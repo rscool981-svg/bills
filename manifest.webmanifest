@@ -1,7 +1,7 @@
 {
-  "name": "Bill Generator",
-  "short_name": "Bills",
-  "description": "Estimate bills, receipts, payments and ledgers for your companies",
+  "name": "MEDBOOKS",
+  "short_name": "MEDBOOKS",
+  "description": "Billing, accounts and stock for your companies",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
