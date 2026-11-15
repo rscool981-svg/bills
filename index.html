@@ -170,6 +170,12 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .ag .c.full{grid-column:1/-1;border-right:0}
 .ag .c.amt{border-right:0;border-bottom:0;justify-content:flex-end;padding:0 6px}
 .ag .c:not(.full){border-bottom:0}
+.agb{border:1.5px solid var(--ink,#0b5d57);border-radius:10px;padding:8px;margin-bottom:12px;background:var(--card)}
+.agh{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.agn{flex:0 0 26px;height:26px;border-radius:13px;background:#0b5d57;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.agh input{flex:1;min-width:0;font-weight:600}
+.agt{text-align:right;font-weight:700;font-size:14px;min-height:18px;margin:2px 4px 6px}
+.agbt .add{width:100%}
 .act .in{display:flex;gap:8px}
 .act button{flex:1}
 .act .gen{flex:1.6}
@@ -209,6 +215,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     </header>
     <div class="ed-banner" id="edBanner" hidden></div>
     <div class="card meta" style="margin-top:10px">
+      <div class="full" id="vsWrap" hidden><label for="vsSel">Voucher name</label><select id="vsSel"></select></div>
       <div><label for="date">Date (B.S.) yyyy/mm/dd</label><input id="date" type="text" inputmode="numeric" placeholder="2083/07/22" autocomplete="off" maxlength="10"></div>
       <div><label for="dateAd">Date (A.D.) yyyy-mm-dd</label><input id="dateAd" type="text" inputmode="numeric" placeholder="2026-11-08" autocomplete="off" maxlength="10"></div>
       <div class="full"><label for="party" id="partyLbl">Party name</label><input id="party" data-sug="party" type="text" placeholder="Name" autocomplete="off" maxlength="60"></div>
@@ -252,16 +259,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 
   <section id="v-agg" hidden>
     <header class="top"><h1>Aggregate sales</h1></header>
-    <div class="note" style="margin-top:0">Enter a whole day's sales in one go. Each party gets its own separate bill. Leave the party empty to use the party of the line above.</div>
+    <div class="note" style="margin-top:0">Enter a whole day's sales in one go, like a rough book. Type a party name, then add as many item lines as that party bought. Tap "Next party" for the next party. Each party gets its own separate bill.</div>
     <div class="card meta" style="margin-top:10px">
       <div><label for="agDate">Date (B.S.) yyyy/mm/dd</label><input id="agDate" type="text" inputmode="numeric" placeholder="2083/07/22" autocomplete="off" maxlength="10"></div>
       <div><label for="agDateAd">Date (A.D.) yyyy-mm-dd</label><input id="agDateAd" type="text" inputmode="numeric" placeholder="2026-11-08" autocomplete="off" maxlength="10"></div>
       <div class="full"><label for="agRem">Remarks (optional, copied to every bill)</label><input id="agRem" type="text" autocomplete="off" maxlength="100"></div>
       <div class="full"><label for="agStk">Stock</label><select id="agStk"><option value="1">Update stock (default)</option><option value="0">Without stock (no effect on stock)</option></select></div>
     </div>
-    <h2>Lines</h2>
+    <h2>Parties and items</h2>
     <div id="agRows"></div>
-    <div class="btns"><button class="add" id="agAdd" type="button">+ Add line</button></div>
+    <div class="btns"><button class="btn2 prim" id="agAdd" type="button">+ Next party</button></div>
     <div class="card total" id="agSum" style="margin-top:12px"></div>
   </section>
 
@@ -724,6 +731,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     report:[
       {k:'sales',l:'Sales',lv:[['sale:date','By date'],['sale:item','By item'],['sale:party','By party']]},
       {k:'purchase',l:'Purchase',lv:[['pur:date','By date'],['pur:item','By item'],['pur:party','By party']]},
+      {k:'salesret',l:'Sales return',lv:[['sret:date','By date'],['sret:item','By item'],['sret:party','By party']]},
+      {k:'purret',l:'Purchase return',lv:[['pret:date','By date'],['pret:item','By item'],['pret:party','By party']]},
       {k:'receipt',l:'Receipt',lv:[['rec:date','By date'],['rec:mode','By mode'],['rec:party','By party']]},
       {k:'payment',l:'Payment',lv:[['pay:date','By date'],['pay:mode','By mode'],['pay:party','By party']]},
       {k:'ledger',l:'Ledger',lv:[['led:party','By party name'],['led:out','Outstanding'],['led:age','Ageing']]},
@@ -734,8 +743,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     modify:[{k:'modify',l:'Modify voucher',lv:[['md','Modify voucher']]}],
     addon:[{k:'ledger',l:'Ledger',lv:[['ad','Ledger']]},{k:'stock',l:'Stock',lv:[['ad','Stock']]},{k:'units',l:'Units',lv:[['ad','Units']]},{k:'user',l:'User',lv:[['ad','User']]},{k:'company',l:'Company',lv:[['ad','Company']]},{k:'voucher',l:'Voucher',lv:[['ad','Voucher']]}]
   };
-  function pfxOf(t){var c=DATA&&DATA.cfg&&DATA.cfg.pfx;return (c&&c[t])||TYPES[t].pfx}
-  function titleOf(t){var c=DATA&&DATA.cfg&&DATA.cfg.ttl;return (c&&c[t])||TYPES[t].title}
+  function vsList(){return (DATA&&DATA.cfg&&DATA.cfg.vs)||[]}
+  function vsFind(id){if(!id)return null;var l=vsList();for(var i=0;i<l.length;i++)if(l[i].id===id)return l[i];return null}
+  function ckey(t,vs){return vs&&vsFind(vs)?t+'@'+vs:t}
+  function pfxOf(t,vs){var v=vsFind(vs);if(v)return v.pfx;var c=DATA&&DATA.cfg&&DATA.cfg.pfx;return (c&&c[t])||TYPES[t].pfx}
+  function titleOf(t,vs){var v=vsFind(vs);if(v)return v.name.toUpperCase();var c=DATA&&DATA.cfg&&DATA.cfg.ttl;return (c&&c[t])||TYPES[t].title}
+  function dShort(d){var v=vsFind(d.vs);return v?v.name:TYPES[d.type].short}
   function isLocked(bs){var c=DATA&&DATA.cfg&&DATA.cfg.closed;return !!(c&&c.till&&bs&&dmy(bs)<=c.till)}
   function lockMsg(){var c=DATA.cfg.closed;return 'The fiscal year up to '+c.till+' is closed. Vouchers dated on or before this date cannot be added, changed or cancelled. The owner can reopen the year in Add On, then Company.'}
   var ROLES={owner:'Owner',operator:'Operator',viewer:'Viewer'};
@@ -754,9 +767,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function myCompanies(){return (user.access||[]).map(function(a){var c=findCo(a.cid);return c?{c:c,role:a.role}:null}).filter(Boolean)}
   function canEnter(){return role==='owner'||role==='operator'}
   function isOwner(){return role==='owner'}
-  function counter(t){return DATA.counters[t]||1}
-  function autoNo(t){return pfxOf(t)+pad(counter(t),4)}
-  function billNo(t){return S[t].no||autoNo(t)}
+  function counter(t,vs){return DATA.counters[ckey(t,vs)]||1}
+  function autoNo(t,vs){return pfxOf(t,vs)+pad(counter(t,vs),4)}
+  function billNo(t){return S[t].no||autoNo(t,S[t].vs)}
   function findDoc(t,no){for(var i=0;i<DATA.docs.length;i++)if(DATA.docs[i].type===t&&DATA.docs[i].no===no)return DATA.docs[i];return null}
   function idb(){
     if(IDBP)return IDBP;
@@ -799,7 +812,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function blankItem(){return {item:'',qty:'',rate:'',unit:'',batch:'',exp:'',mrp:'',pack:'',dT:'pct',dV:''}}
   function normItem(x){var b=blankItem();for(var k in b)if(x&&x[k]!=null)b[k]=String(x[k]);return b}
   function blankItems(n){var a=[];for(var i=0;i<n;i++)a.push(blankItem());return a}
-  function blankState(){return {date:todayBS(),party:'',party2:'',ref:'',items:blankItems(MINROWS),amount:'',mode:'Cash',remarks:'',no:null,discM:(DATA&&DATA.cfg&&DATA.cfg.discMode)||'bill',discT:'amt',discV:'',alloc:{},det:{},nostock:false}}
+  function blankState(){return {date:todayBS(),party:'',party2:'',ref:'',items:blankItems(MINROWS),amount:'',mode:'Cash',remarks:'',vs:'',no:null,discM:(DATA&&DATA.cfg&&DATA.cfg.discMode)||'bill',discT:'amt',discV:'',alloc:{},det:{},nostock:false}}
   function isBlank(st){return !st.party&&!st.party2&&!st.amount&&!st.remarks&&!st.discV&&!(st.items||[]).some(function(it){return it.item||it.qty||it.rate})}
   function cleanItems(arr,mode){
     return (arr||[]).filter(function(it){return String(it.item).trim()||String(it.qty).trim()||String(it.rate).trim()}).map(function(it){
@@ -818,8 +831,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ensureUids(arr){arr.forEach(function(d){if(!d.uid)d.uid='L|'+d.type+'|'+d.no})}
   function fixCounters(){
     ORDER.forEach(function(t){
-      var mx=0;DATA.docs.forEach(function(d){if(d.type===t){var m=/(\d+)$/.exec(d.no);if(m&&+m[1]>mx)mx=+m[1]}});
+      var mx=0;DATA.docs.forEach(function(d){if(d.type===t&&!vsFind(d.vs)){var m=/(\d+)$/.exec(d.no);if(m&&+m[1]>mx)mx=+m[1]}});
       if(mx+1>(DATA.counters[t]||1))DATA.counters[t]=mx+1;
+    });
+    vsList().forEach(function(v){
+      var k=v.base+'@'+v.id,mx=0;DATA.docs.forEach(function(d){if(d.vs===v.id){var m=/(\d+)$/.exec(d.no);if(m&&+m[1]>mx)mx=+m[1]}});
+      if(mx+1>(DATA.counters[k]||1))DATA.counters[k]=mx+1;
     });
   }
   function legacyDoc(r,uname2){
@@ -989,7 +1006,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 
   /* ---------- load a company ---------- */
   var DEF_UNITS=['Pcs','Strip','Box','Pack','Bottle','Vial','Tube','Kg','Gm','Ltr','Ml','Mtr','Set','Dozen'];
-  function cfgDefaults(){return {openCash:0,openBank:0,discMode:'bill',useBatch:false,useExpiry:false,useMrp:false,usePack:false,pfx:{},ttl:{},closed:null,at:''}}
+  function cfgDefaults(){return {openCash:0,openBank:0,discMode:'bill',useBatch:false,useExpiry:false,useMrp:false,usePack:false,pfx:{},ttl:{},vs:[],closed:null,at:''}}
   function addUnit(u){u=String(u||'').trim();if(!u)return false;var k=u.toLowerCase();for(var i=0;i<DATA.units.length;i++)if(DATA.units[i].toLowerCase()===k)return false;DATA.units.push(u);return true}
   function loadCompany(){
     setKeys();shadow={};shadowMeta='';
@@ -1012,7 +1029,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ORDER.forEach(function(t){
         var b=blankState(),x=d&&d[t];
         if(x&&typeof x==='object'){
-          ['date','party','party2','ref','amount','mode','remarks','discT','discV','discM'].forEach(function(f){if(typeof x[f]==='string')b[f]=x[f]});
+          ['date','party','party2','ref','amount','mode','remarks','discT','discV','discM','vs'].forEach(function(f){if(typeof x[f]==='string')b[f]=x[f]});
+          if(b.vs&&!vsFind(b.vs))b.vs='';
           if(Array.isArray(x.items))b.items=x.items.map(normItem);
           if(x.alloc&&typeof x.alloc==='object')b.alloc=x.alloc;
           if(x.no)b.no=x.no;
@@ -1024,8 +1042,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         S[t]=b;
       });
       var ag=d&&d.agg,ab={date:todayBS(),remarks:'',rows:[],nostock:false};
-      if(ag&&typeof ag==='object'){if(typeof ag.date==='string')ab.date=ag.date;if(typeof ag.remarks==='string')ab.remarks=ag.remarks;if(ag.nostock===true)ab.nostock=true;if(Array.isArray(ag.rows))ab.rows=ag.rows.map(function(r){return {party:String(r.party||''),item:String(r.item||''),qty:String(r.qty||''),rate:String(r.rate||''),unit:String(r.unit||'')}})}
-      while(ab.rows.length<8)ab.rows.push({party:'',item:'',qty:'',rate:'',unit:''});
+      if(ag&&typeof ag==='object'){if(typeof ag.date==='string')ab.date=ag.date;if(typeof ag.remarks==='string')ab.remarks=ag.remarks;if(ag.nostock===true)ab.nostock=true;if(Array.isArray(ag.rows))ab.rows=ag.rows.map(function(r){var o={party:String(r.party||''),item:String(r.item||''),qty:String(r.qty||''),rate:String(r.rate||''),unit:String(r.unit||'')};if(r.nb)o.nb=true;return o})}
+      while(ab.rows.length<3)ab.rows.push({party:'',item:'',qty:'',rate:'',unit:''});
+      ab.rows[0].nb=true;
       S.agg=ab;
       saveData();
     });
@@ -1058,7 +1077,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     $('v-denied').hidden=!den;
     $('v-form').hidden=!isT||den;$('v-agg').hidden=!isAg||den;
     $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;
-    $('v-vrep').hidden=!(rep&&['sale','pur','rec','pay','exp'].indexOf(L[0])>=0);
+    $('v-vrep').hidden=!(rep&&['sale','pur','sret','pret','rec','pay','exp'].indexOf(L[0])>=0);
     $('v-ledger').hidden=!(rep&&sub==='led:party');
     $('v-outstanding').hidden=!(rep&&(sub==='led:out'||sub==='led:age'));
     $('v-daybook').hidden=!(rep&&sub==='bk:day');$('v-cashbook').hidden=!(rep&&sub==='bk:cash');$('v-pl').hidden=!(rep&&sub==='bk:pl');
@@ -1093,8 +1112,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function showForm(t){
     cur=t;var T=TYPES[t],st=S[t],it=T.kind==='items',jv=t==='jnl';
     if(it&&!EDIT&&isBlank(st))st.discM=DATA.cfg.discMode||'bill';
-    $('hTitle').textContent=(EDIT?'Edit ':'')+T.label;
-    $('edBanner').hidden=!EDIT;if(EDIT)$('edBanner').textContent='Editing '+T.short+' '+EDIT.d.no+'. Save changes, cancel this voucher, or close to leave it unchanged.';
+    $('edBanner').hidden=!EDIT;if(EDIT)$('edBanner').textContent='Editing '+dShort(EDIT.d)+' '+EDIT.d.no+'. Save changes, cancel this voucher, or close to leave it unchanged.';
+    var vl=vsList().filter(function(v){return v.base===t});
+    $('vsWrap').hidden=!vl.length;
+    if(vl.length){$('vsSel').innerHTML='<option value="">'+esc(TYPES[t].short)+' (standard, '+esc(pfxOf(t,''))+')</option>'+vl.map(function(v){return '<option value="'+v.id+'">'+esc(v.name)+' ('+esc(v.pfx)+')</option>'}).join('');$('vsSel').value=st.vs||'';$('vsSel').disabled=!!EDIT}
+    $('hTitle').textContent=(EDIT?'Edit ':'')+(vsFind(st.vs)?vsFind(st.vs).name:T.label);
     $('billNo').value=billNo(t);$('billNo').readOnly=!EDIT;
     $('editNo').hidden=!isOwner()||!!EDIT;
     $('date').value=st.date;$('dateAd').value=adOf(st.date);
@@ -1174,6 +1196,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function formDoc(){
     var T=TYPES[cur],st=S[cur];
     var d={type:cur,no:billNo(cur),date:normBS(st.date)||st.date,party:st.party.trim(),status:'Active',by:user.username,company:coInfo()};
+    if(st.vs&&vsFind(st.vs))d.vs=st.vs;
     var rm=String(st.remarks||'').trim();if(rm)d.remarks=rm;
     if(T.kind==='items'){
       var mode=st.discM||'none',ct=calcTot(st.items,st.discT,st.discV,mode);
@@ -1221,13 +1244,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     st.date=d.date;d.uid=newUid();d.saved=stamp();d.edited=null;d.edits=0;
     DATA.docs.push(d);
     var mm=/(\d+)$/.exec(d.no);
-    if(st.no){if(mm&&+mm[1]>=counter(cur))DATA.counters[cur]=+mm[1]+1}else DATA.counters[cur]=counter(cur)+1;
+    var ck=ckey(cur,st.vs),keepVs=st.vs;
+    if(st.no){if(mm&&+mm[1]>=counter(cur,st.vs))DATA.counters[ck]=+mm[1]+1}else DATA.counters[ck]=counter(cur,st.vs)+1;
     saveData();
-    S[cur]=blankState();saveDraft();
+    S[cur]=blankState();S[cur].vs=keepVs||'';saveDraft();
     var neg=(T.kind==='items'&&(cur==='sale'||cur==='pret'))?negativeStock(d):'';
     txnDone(d);
     showForm(cur);renderPartyList();renderItemList();
-    toast(T.short+' '+d.no+' saved'+(driveOn()?' and sent to Drive.':'.')+(neg?' Warning: '+neg:''));
+    toast(dShort(d)+' '+d.no+' saved'+(driveOn()?' and sent to Drive.':'.')+(neg?' Warning: '+neg:''));
   }
   function negativeStock(d){
     if(d.noStock)return '';
@@ -1243,14 +1267,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var o=v?findDoc(cur,v):null;
     if(!v||v.length>20){toast('Number cannot be empty or longer than 20 characters.');v=billNo(cur)}
     else if(o&&!(EDIT&&o===EDIT.d)){toast(v+' is already used by a saved '+TYPES[cur].short.toLowerCase()+' document.');v=billNo(cur)}
-    S[cur].no=(!EDIT&&v===autoNo(cur))?null:v;
+    S[cur].no=(!EDIT&&v===autoNo(cur,S[cur].vs))?null:v;
     el.value=billNo(cur);saveDraft();
   }
 
   /* ---------- edit a saved voucher (opens in the entry form) ---------- */
   function stateFromDoc(d){
     var T=TYPES[d.type],b=blankState();
-    b.date=dmy(d.date);b.party=d.party||'';b.party2=d.party2||'';b.ref=d.ref||'';b.remarks=d.remarks||'';b.no=d.no;
+    b.vs=d.vs||'';b.date=dmy(d.date);b.party=d.party||'';b.party2=d.party2||'';b.ref=d.ref||'';b.remarks=d.remarks||'';b.no=d.no;
     if(T.kind==='items'){
       b.discM=d.discMode||'bill';b.discT=d.discT||'amt';b.discV=d.discV!=null?String(d.discV):'';
       var its=(d.items||[]).map(function(x){var o=normItem(x);o.exp=fmtExp(x.exp||'');return o});
@@ -1310,9 +1334,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var rows=S.agg.rows,last='',order=[],map={},err='';
     rows.forEach(function(r,i){
       var has=String(r.item).trim()||String(r.qty).trim()||String(r.rate).trim(),p=String(r.party||'').trim();
-      if(p)last=p;else if(has)p=last;
+      if(p||r.nb||i===0)last=p;else if(has)p=last;
       if(!has)return;
-      if(!p){if(!err)err='Line '+(i+1)+' has no party. Enter the party name on the first line.';return}
+      if(!p){if(!err)err='Enter the party name for the items you typed (party block '+(blockNo(i))+').';return}
       if(strict&&(!String(r.item).trim()||!(num(r.qty)>0)||!(num(r.rate)>0))){if(!err)err='Line '+(i+1)+': enter the item, quantity and rate.';return}
       var k=pkey(p),g=map[k];if(!g){g=map[k]={party:p,items:[],total:0};order.push(k)}
       g.items.push(r);g.total=r2(g.total+lineGross(r));
@@ -1327,27 +1351,62 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     box.innerHTML=g.order.map(function(k){var x=g.map[k];tot=r2(tot+x.total);return '<div class="acrow"><span>'+esc(x.party)+'<small>'+x.items.length+' line'+(x.items.length===1?'':'s')+'</small></span><b style="text-align:right">'+fmt(x.total)+'</b></div>'}).join('')+
       '<div class="big" style="margin-top:10px"><span>'+g.order.length+' bill'+(g.order.length===1?'':'s')+' will be made</span><b>Rs '+fmt(tot)+'</b></div>';
   }
+  function blankAggRow(nb){var r={party:'',item:'',qty:'',rate:'',unit:''};if(nb)r.nb=true;return r}
+  function aggBlocks(){
+    var rows=S.agg.rows,bl=[];
+    rows.forEach(function(r,i){if(i===0||r.nb||String(r.party||'').trim()||!bl.length)bl.push({s:i,e:i});else bl[bl.length-1].e=i});
+    return bl;
+  }
+  function blockNo(i){var bl=aggBlocks(),n=1;bl.forEach(function(b,k){if(i>=b.s&&i<=b.e)n=k+1});return n}
+  function aggFocus(sel){setTimeout(function(){var e=$('agRows').querySelector(sel);if(e){e.focus();try{e.scrollIntoView({block:'center'})}catch(x){}}},40)}
   function renderAgg(){
     var st=S.agg;
     $('agDate').value=st.date;$('agDateAd').value=adOf(st.date);$('agRem').value=st.remarks;$('agStk').value=st.nostock?'0':'1';
     var box=$('agRows');box.innerHTML='';
-    st.rows.forEach(function(r){
-      var d=document.createElement('div');d.className='ag';
-      d.innerHTML='<div class="c full"><input type="text" data-f="party" data-sug="party" autocomplete="off" maxlength="60" placeholder="Party (empty = same as the line above)" value="'+esc(r.party)+'"></div>'+
-        '<div class="c"><input type="text" data-f="item" data-sug="item" autocomplete="off" placeholder="Item" value="'+esc(r.item)+'"></div>'+
-        '<div class="c"><input class="n" type="text" inputmode="decimal" data-f="qty" placeholder="Qty" value="'+esc(r.qty)+'"></div>'+
-        '<div class="c"><input class="n" type="text" inputmode="decimal" data-f="rate" placeholder="Rate" value="'+esc(r.rate)+'"></div>'+
-        '<div class="c amt" data-amt>'+(lineGross(r)?fmt(lineGross(r)):'')+'</div>';
-      d.querySelectorAll('input').forEach(function(inp){
-        inp.addEventListener('input',function(){
-          var f=inp.getAttribute('data-f');r[f]=inp.value;if(f==='item')fillUnit(r);
-          d.querySelector('[data-amt]').textContent=lineGross(r)?fmt(lineGross(r)):'';
-          aggSum();saveDraft();
+    aggBlocks().forEach(function(bk,bi){
+      var first=st.rows[bk.s],card=document.createElement('div');card.className='agb';
+      var head=document.createElement('div');head.className='agh';
+      head.innerHTML='<span class="agn">'+(bi+1)+'</span><input type="text" data-agp="1" data-sug="party" autocomplete="off" maxlength="60" placeholder="Party name" aria-label="Party of block '+(bi+1)+'" value="'+esc(first.party)+'">';
+      head.querySelector('input').addEventListener('input',function(){first.party=this.value;aggSum();saveDraft()});
+      card.appendChild(head);
+      var tot=document.createElement('div');tot.className='agt';
+      function blockTot(){var t=0;for(var i=bk.s;i<=bk.e;i++)t+=lineGross(st.rows[i]);tot.textContent=t?'Bill total: Rs '+fmt(r2(t)):''}
+      for(var i=bk.s;i<=bk.e;i++)(function(r,isLast){
+        var d=document.createElement('div');d.className='ag';
+        d.innerHTML='<div class="c"><input type="text" data-f="item" data-sug="item" autocomplete="off" placeholder="Item" aria-label="Item" value="'+esc(r.item)+'"></div>'+
+          '<div class="c"><input class="n" type="text" inputmode="decimal" data-f="qty" placeholder="Qty" aria-label="Quantity" value="'+esc(r.qty)+'"></div>'+
+          '<div class="c"><input class="n" type="text" inputmode="decimal" data-f="rate" data-hist="1" placeholder="Rate" aria-label="Rate" value="'+esc(r.rate)+'"></div>'+
+          '<div class="c amt" data-amt>'+(lineGross(r)?fmt(lineGross(r)):'')+'</div>';
+        d.querySelectorAll('input').forEach(function(inp){
+          inp.addEventListener('input',function(){
+            var f=inp.getAttribute('data-f');r[f]=inp.value;if(f==='item')fillUnit(r);
+            d.querySelector('[data-amt]').textContent=lineGross(r)?fmt(lineGross(r)):'';
+            blockTot();aggSum();saveDraft();
+          });
+          if(inp.getAttribute('data-f')==='rate')inp.addEventListener('keydown',function(e){
+            if(e.key==='Enter'&&isLast&&(String(r.item).trim()||String(r.rate).trim())){e.preventDefault();addAggLine(bk.e)}
+          });
         });
-      });
-      box.appendChild(d);
+        card.appendChild(d);
+      })(st.rows[i],i===bk.e);
+      card.appendChild(tot);blockTot();
+      var bt=document.createElement('div');bt.className='agbt';
+      bt.innerHTML='<button class="add" type="button">+ Add item line</button>';
+      bt.querySelector('button').addEventListener('click',function(){addAggLine(bk.e)});
+      card.appendChild(bt);
+      box.appendChild(card);
     });
     aggSum();
+  }
+  function addAggLine(afterIdx){
+    S.agg.rows.splice(afterIdx+1,0,blankAggRow(false));renderAgg();saveDraft();
+    var n=aggBlocks(),k=0;n.forEach(function(b,i){if(afterIdx+1>=b.s&&afterIdx+1<=b.e)k=i});
+    var lineNo=afterIdx+1-n[k].s;
+    aggFocus('.agb:nth-child('+(k+1)+') > div:nth-child('+(lineNo+2)+') [data-f="item"]');
+  }
+  function addAggParty(){
+    S.agg.rows.push(blankAggRow(true),blankAggRow(false),blankAggRow(false));renderAgg();saveDraft();
+    var k=aggBlocks().length;aggFocus('.agb:nth-child('+k+') [data-agp]');
   }
   function saveAgg(){
     var st=S.agg,dt=normBS(st.date);
@@ -1368,7 +1427,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     saveData();
     docs.forEach(function(d){txnDone(d)});
     var neg=st.nostock?'':negativeStock({items:all});
-    S.agg={date:dt,remarks:st.remarks,rows:[],nostock:!!st.nostock};while(S.agg.rows.length<8)S.agg.rows.push({party:'',item:'',qty:'',rate:'',unit:''});
+    S.agg={date:dt,remarks:st.remarks,rows:[blankAggRow(true),blankAggRow(false),blankAggRow(false)],nostock:!!st.nostock};
     saveDraft();renderAgg();renderPartyList();renderItemList();
     agDocs=docs;
     $('agTitle').textContent=docs.length+' bill'+(docs.length===1?'':'s')+' created';
@@ -1437,7 +1496,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(i<0&&(isP?findParty(pkey(name)):findItem(pkey(name)))){toast('This name already exists.');return}
       var oe='';
       if(!isP&&$('mOe')&&$('mOe').value.trim()){oe=parseExp($('mOe').value);if(!oe){toast('Check the opening expiry. Use MM/YYYY, for example 08/2028.');return}}
-      authorize().then(function(ok){
+      (i<0&&!isP?Promise.resolve(true):authorize()).then(function(ok){
         if(!ok)return;
         var rec;
         if(isP)rec={name:name,phone:$('mPhone').value.trim(),pan:$('mPan').value.trim(),address:$('mAddr').value.trim(),open:r2(num($('mOpen').value)),side:$('mSide').value};
@@ -1681,7 +1740,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var rows=list.map(function(o){
       var d=o.d,cx=d.status==='Cancelled';
       if(!cx)sums[d.type]=r2(sums[d.type]+d.total);
-      var r=[o.dt,TYPES[d.type].short+' '+d.no+(cx?' (Cancelled)':''),(d.type==='jnl'?d.party+' / '+d.party2:(d.party||''))+(d.remarks?' ('+d.remarks+')':''),cx?'':fmt(d.total)];if(cx)r.b=false;return r;
+      var r=[o.dt,dShort(d)+' '+d.no+(cx?' (Cancelled)':''),(d.type==='jnl'?d.party+' / '+d.party2:(d.party||''))+(d.remarks?' ('+d.remarks+')':''),cx?'':fmt(d.total)];if(cx)r.b=false;return r;
     });
     var tots=[];ORDER.forEach(function(t){if(sums[t])tots.push(['','','Total '+TYPES[t].short.toLowerCase(),fmt(sums[t])])});
     return {file:'DayBook_'+(from||'Start').replace(/\//g,'-')+'_to_'+(to||'Today').replace(/\//g,'-'),title:'DAY BOOK',info:[periodTxt(from,to)],
@@ -1815,7 +1874,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(from&&o.dt<from){bal=r2(bal+inn-out);open=bal;return}
       if(to&&o.dt>to)return;
       bal=r2(bal+inn-out);tin=r2(tin+inn);tout=r2(tout+out);
-      rows.push([o.dt,TYPES[d.type].short+' '+d.no+' - '+(d.party||'')+(d.remarks?' ('+d.remarks+')':''),inn?fmt(inn):'',out?fmt(out):'',fmt(bal)]);
+      rows.push([o.dt,dShort(d)+' '+d.no+' - '+(d.party||'')+(d.remarks?' ('+d.remarks+')':''),inn?fmt(inn):'',out?fmt(out):'',fmt(bal)]);
     });
     if(!rows.length&&!open&&!from)return {empty:'No '+(bank?'bank':'cash')+' entries yet. Receipts, payments and expenses with this mode appear here.'};
     var o0=['','Opening balance','','',fmt(open)];o0.b=true;rows.unshift(o0);
@@ -1881,17 +1940,17 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function renderPL(){showReport($('plOut'),$('plBtns'),plReport())}
 
   /* ---------- voucher reports: by date, item, party, mode ---------- */
-  var VK={sale:['sale','sret'],pur:['pur','pret'],rec:['rec'],pay:['pay'],exp:['exp']};
-  var VNAME={sale:'SALES',pur:'PURCHASE',rec:'RECEIPT',pay:'PAYMENT',exp:'EXPENSE'};
+  var VK={sale:['sale','sret'],pur:['pur','pret'],sret:['sret'],pret:['pret'],rec:['rec'],pay:['pay'],exp:['exp']};
+  var VNAME={sale:'SALES',pur:'PURCHASE',sret:'SALES RETURN',pret:'PURCHASE RETURN',rec:'RECEIPT',pay:'PAYMENT',exp:'EXPENSE'};
   function vrepReport(){
     var L=sub.split(':'),kind=L[0],by=L[1],types=VK[kind];if(!types)return {empty:''};
     var from=normBS($('vrFrom').value)||'',to=normBS($('vrTo').value)||'',pq=pkey($('vrParty').value),iq=$('vrItem').value.trim().toLowerCase();
-    var isI=kind==='sale'||kind==='pur',list=[];
+    var isI=kind==='sale'||kind==='pur'||kind==='sret'||kind==='pret',net=kind==='sale'||kind==='pur',list=[];
     DATA.docs.forEach(function(d,i){
       if(!live(d)||types.indexOf(d.type)<0)return;
       var dt=dmy(d.date);if(from&&dt<from)return;if(to&&dt>to)return;
       if(pq&&pkey(d.party)!==pq)return;
-      list.push({d:d,i:i,dt:dt,sg:(d.type==='sret'||d.type==='pret')?-1:1});
+      list.push({d:d,i:i,dt:dt,sg:(net&&(d.type==='sret'||d.type==='pret'))?-1:1});
     });
     list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});
     if(!list.length)return {empty:'No '+VNAME[kind].toLowerCase()+' vouchers in this period.'};
@@ -1901,7 +1960,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var hasMode=!isI;
       list.forEach(function(o){
         var d=o.d,a=r2(o.sg*d.total);tot=r2(tot+a);
-        var r=[o.dt,TYPES[d.type].short+' '+d.no,(d.party||'')+(d.remarks?' ('+d.remarks+')':'')];
+        var r=[o.dt,dShort(d)+' '+d.no,(d.party||'')+(d.remarks?' ('+d.remarks+')':'')];
         if(hasMode)r.push(d.mode||'');r.push((a<0?'- ':'')+fmt(Math.abs(a)));rows.push(r);
       });
       cols=[{h:'Date',w:1.3,al:'l'},{h:'Voucher',w:1.8,al:'l'},{h:'Party',w:2.4,al:'l'}];
@@ -1941,7 +2000,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       cols=[{h:by==='mode'?'Mode':(kind==='exp'?'Expense head':'Party'),w:3,al:'l'},{h:'Vouchers',w:1.1,al:'r'},{h:'Amount',w:1.6,al:'r'}];
       totals=[['Total',String(cnt),fmt(tot)]];title=VNAME[kind]+(by==='mode'?' BY MODE':(kind==='exp'?' BY HEAD':' BY PARTY'));
     }
-    if(isI)info.push('Returns are shown with a minus sign and reduce the total.');
+    if(net)info.push('Returns are shown with a minus sign and reduce the total. See the Sales return and Purchase return reports for returns alone.');
     return {file:base,title:title,info:info,cols:cols,rows:rows,totals:totals,minw:minw};
   }
   function renderVrep(){
@@ -2024,7 +2083,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function drawItems(d){
     var T=TYPES[d.type],P=painter(9000),F=P.F,L=P.L,R=P.R,y,lines=docLines(d),hasD=lines.some(function(it){return num(it.dV)>0});
     var E=hasD?[24,62,318,412,498,592,776]:[24,66,420,520,630,776],nc=E.length-1,iQ=2,iR=3,iA=nc;
-    P.header(d.company,titleOf(d.type));numRow(P,d,T);y=P.y;
+    P.header(d.company,titleOf(d.type,d.vs));numRow(P,d,T);y=P.y;
     var hd=hasD?['SN','Item','Qty','Rate','Disc','Amount (Rs)']:['SN','Item','Qty','Rate','Amount (Rs)'];
     for(var i=0;i<nc;i++){
       P.box(E[i],E[i+1],y,40,'#e3efec');
@@ -2080,7 +2139,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function drawVoucher(d){
     var T=TYPES[d.type],P=painter(3000),F=P.F,L=P.L,R=P.R,y;
-    P.header(d.company,titleOf(d.type));numRow(P,d,T);y=P.y;
+    P.header(d.company,titleOf(d.type,d.vs));numRow(P,d,T);y=P.y;
     P.box(L,R,y,60,'#e3efec');
     P.txt('Amount (Rs)',L+10,y+38,'left','bold 22px '+F,'#0b5d57');
     P.txt(fmt(d.total),R-10,y+40,'right','bold 30px '+F);y+=60;
@@ -2244,7 +2303,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(im.complete)setTimeout(run,100);else im.onload=function(){setTimeout(run,100)};
     setTimeout(run,1500);
   }
-  function shareDoc(d){shareCanvas(drawDoc(d),fileBase(d),TYPES[d.type].short+' '+d.no)}
+  function shareDoc(d){shareCanvas(drawDoc(d),fileBase(d),dShort(d)+' '+d.no)}
   function printDoc(d){printCanvas(drawDoc(d),fileBase(d))}
 
   /* ---------- saved documents: print / share, modify ---------- */
@@ -2261,7 +2320,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var q=$('q').value.trim().toLowerCase(),t=$('lsType').value,out=[];
     DATA.docs.forEach(function(d,i){
       if(!live(d)||(t&&d.type!==t))return;
-      var hay=(d.no+' '+d.party+' '+(d.party2||'')+' '+dmy(d.date)+' '+TYPES[d.type].label+' '+TYPES[d.type].short).toLowerCase();
+      var hay=(d.no+' '+d.party+' '+(d.party2||'')+' '+dmy(d.date)+' '+TYPES[d.type].label+' '+dShort(d)).toLowerCase();
       if(q&&hay.indexOf(q)<0)return;
       out.push(i);
     });
@@ -2269,7 +2328,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var cut2=out.length>200;if(cut2)out=out.slice(-200);
     $('lsList').innerHTML=out.length?out.map(function(i){
       var d=DATA.docs[i];
-      return '<div class="line" data-i="'+i+'" role="button" tabindex="0"><span>'+esc(d.no)+'<span class="tag">'+esc(TYPES[d.type].short)+'</span><small>'+esc(dmy(d.date))+' &middot; '+esc(d.party||'-')+'</small></span><span>'+fmt(d.total)+'</span></div>';
+      return '<div class="line" data-i="'+i+'" role="button" tabindex="0"><span>'+esc(d.no)+'<span class="tag">'+esc(dShort(d))+'</span><small>'+esc(dmy(d.date))+' &middot; '+esc(d.party||'-')+'</small></span><span>'+fmt(d.total)+'</span></div>';
     }).join(''):'<div class="note">'+(DATA.docs.some(live)?'No matching documents.':'Nothing saved yet. Use the Voucher tab to create one.')+'</div>';
     var nl=DATA.docs.filter(live).length;
     $('lsNote').textContent=nl+' document'+(nl===1?'':'s')+' saved'+((q||t||cut2)?' ('+out.length+' shown'+(cut2?', latest only - search to find older ones':'')+')':'')+'.';
@@ -2289,7 +2348,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function toggleCancel(d){
     if(isLocked(d.date)){toast(lockMsg());return}
-    if(!confirm('Cancel '+TYPES[d.type].short+' '+d.no+'? It will be removed from the lists, ledger, stock, day book and Excel, and its file is removed from Google Drive. This cannot be undone.'))return;
+    if(!confirm('Cancel '+dShort(d)+' '+d.no+'? It will be removed from the lists, ledger, stock, day book and Excel, and its file is removed from Google Drive. This cannot be undone.'))return;
     var pre=(EDIT&&EDIT.d===d)?Promise.resolve(true):authorize();
     pre.then(function(ok){
       if(!ok)return;
@@ -2316,7 +2375,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     $('mdList').innerHTML=idx.length?idx.map(function(i){
       var d=DATA.docs[i];
-      return '<div class="line" data-i="'+i+'" role="button" tabindex="0"><span>'+esc(d.no)+'<span class="tag">'+esc(TYPES[d.type].short)+'</span><small>'+esc(dmy(d.date))+' &middot; '+esc(d.party||'-')+'</small></span><span>'+fmt(d.total)+'</span></div>';
+      return '<div class="line" data-i="'+i+'" role="button" tabindex="0"><span>'+esc(d.no)+'<span class="tag">'+esc(dShort(d))+'</span><small>'+esc(dmy(d.date))+' &middot; '+esc(d.party||'-')+'</small></span><span>'+fmt(d.total)+'</span></div>';
     }).join(''):'<div class="note">No vouchers yet.</div>';
   }
   function mdFind(){
@@ -2397,10 +2456,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     (rem.units||[]).forEach(function(u){if(addUnit(u))st.changed=true});
     if(rem.cfg){
       var rc=rem.cfg,lc=DATA.cfg;
-      if(rc.at&&rc.at>(lc.at||'')){['discMode','useBatch','useExpiry','useMrp','usePack'].forEach(function(k){if(rc[k]!==undefined)lc[k]=rc[k]});lc.pfx=rc.pfx||{};lc.ttl=rc.ttl||{};lc.at=rc.at;st.changed=true}
+      if(rc.at&&rc.at>(lc.at||'')){['discMode','useBatch','useExpiry','useMrp','usePack'].forEach(function(k){if(rc[k]!==undefined)lc[k]=rc[k]});lc.pfx=rc.pfx||{};lc.ttl=rc.ttl||{};lc.vs=rc.vs||[];lc.at=rc.at;st.changed=true}
       if(rc.closed&&rc.closed.at&&(!lc.closed||rc.closed.at>(lc.closed.at||''))){lc.closed=rc.closed;st.changed=true}
     }
-    ORDER.forEach(function(t){var c=+(rem.counters||{})[t]||1;if(c>counter(t)){DATA.counters[t]=c;st.changed=true}});
+    Object.keys(rem.counters||{}).forEach(function(t){var c=+(rem.counters||{})[t]||1;if(c>(DATA.counters[t]||1)){DATA.counters[t]=c;st.changed=true}});
     if(rem.cfg&&!num(DATA.cfg.openCash)&&!num(DATA.cfg.openBank)&&(num(rem.cfg.openCash)||num(rem.cfg.openBank))){DATA.cfg={openCash:num(rem.cfg.openCash),openBank:num(rem.cfg.openBank)};st.changed=true}
     fixCounters();
     ORDER.forEach(function(t){if(S[t]&&S[t].no&&findDoc(t,S[t].no))S[t].no=null});
@@ -2668,7 +2727,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     else if(k==='voucher')openVc();
   }
   function renderAddon(){
-    var cards=[['ledger','Ledger','Create parties and ledgers with opening balances.'],['stock','Stock','Stock items, opening stock, MRP and packing.'],['units','Units','Add the units of quantity you use (Strip, Box, Kg and so on).'],['user','User','Add staff, set their access and reset passwords (admin only).'],['company','Company','Company details, opening cash and bank, fiscal year closing, Google Drive, backup and delete company.'],['voucher','Voucher','Default discount, batch, expiry, MRP and packing options, voucher numbers and bill titles.']];
+    var cards=[['ledger','Ledger','Create parties and ledgers with opening balances.'],['stock','Stock','Stock items, opening stock, MRP and packing.'],['units','Units','Add the units of quantity you use (Strip, Box, Kg and so on).'],['user','User','Add staff, set their access and reset passwords (admin only).'],['company','Company','Company details, opening cash and bank, fiscal year closing, Google Drive, backup and delete company.'],['voucher','Voucher','Your own voucher names, number prefixes and types, default discount, and batch, expiry, MRP and packing options.']];
     $('adBody').innerHTML=cards.map(function(c){return '<button class="adcard" type="button" data-ad="'+c[0]+'"><b>'+c[1]+'</b><span>'+c[2]+'</span></button>'}).join('');
   }
 
@@ -2686,12 +2745,58 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       '<h2>Discount</h2><div class="card meta"><div class="full"><label for="vcDisc">Default discount on new sales and purchases</label><select id="vcDisc"><option value="none">No discount</option><option value="bill">Bill-wise</option><option value="item">Item-wise</option></select></div><div class="full note" style="margin:0">You can still change it on every voucher.</div></div>'+
       '<h2>Item details (optional)</h2><div class="card"><label class="chk"><input type="checkbox" id="vcBatch"> Batch number</label><label class="chk" style="margin-top:8px"><input type="checkbox" id="vcExp"> Expiry date</label><label class="chk" style="margin-top:8px"><input type="checkbox" id="vcMrp"> MRP</label><label class="chk" style="margin-top:8px"><input type="checkbox" id="vcPack"> Packing</label><div class="note">When on, these boxes appear under each item line of sales and purchase vouchers, and in the stock item form. The expiry alert report uses them.</div></div>'+
       '<h2>Voucher numbers and bill titles</h2><div class="card">'+types.map(function(t){return '<div class="acrow" style="grid-template-columns:78px 78px 1fr"><span>'+esc(TYPES[t].short)+'</span><input type="text" data-pf="'+t+'" maxlength="8" autocomplete="off" aria-label="Prefix of '+esc(TYPES[t].short)+'"><input type="text" data-tt="'+t+'" maxlength="30" autocomplete="off" aria-label="Title of '+esc(TYPES[t].short)+'"></div>'}).join('')+'<div class="note">Middle box: number prefix, used for new numbers only. Right box: the title printed on the bill.</div></div>'+
-      '<div class="btns"><button class="btn2 prim" id="vcSave" type="button">Save voucher settings (password)</button></div>';
+      '<div class="btns"><button class="btn2 prim" id="vcSave" type="button">Save voucher settings (password)</button></div>'+
+      '<h2>Your own vouchers</h2><div class="card"><div class="note" style="margin-top:0">Make your own voucher, for example "Cash Memo" or "Challan". Choose its name, its number prefix and which kind of voucher it works like. It then appears as a choice at the top of that voucher form, with its own numbers, and its bills carry its name.</div><div id="vsBox"></div>'+
+      '<div class="meta" style="margin-top:10px"><div class="full"><label for="vsName">Voucher name</label><input id="vsName" type="text" maxlength="30" autocomplete="off" placeholder="Cash Memo"></div>'+
+      '<div><label for="vsPfx">Number prefix</label><input id="vsPfx" type="text" maxlength="8" autocomplete="off" placeholder="CM-"></div>'+
+      '<div><label for="vsStart">First number</label><input id="vsStart" type="text" inputmode="numeric" maxlength="6" value="1"></div>'+
+      '<div class="full"><label for="vsBase">Works like</label><select id="vsBase">'+VS_BASES.map(function(t){return '<option value="'+t+'">'+esc(TYPES[t].label)+'</option>'}).join('')+'</select></div></div>'+
+      '<div class="btns"><button class="btn2 prim" id="vsAdd" type="button">Add voucher (password)</button></div></div>';
     $('vcDisc').value=c.discMode||'bill';
     $('vcBatch').checked=!!c.useBatch;$('vcExp').checked=!!c.useExpiry;$('vcMrp').checked=!!c.useMrp;$('vcPack').checked=!!c.usePack;
     types.forEach(function(t){qa('[data-pf="'+t+'"]')[0].value=pfxOf(t);qa('[data-tt="'+t+'"]')[0].value=titleOf(t)});
-    $('vcSave').addEventListener('click',vcSave);
+    $('vcSave').addEventListener('click',vcSave);$('vsAdd').addEventListener('click',vsAdd);renderVs();
     $('vcModal').hidden=false;$('vcModal').scrollTop=0;
+  }
+  var VS_BASES=['sale','sret','pur','pret','rec','pay','exp','jnl'];
+  function renderVs(){
+    var l=vsList(),box=$('vsBox');if(!box)return;
+    box.innerHTML=l.length?l.map(function(v){return '<div class="line" style="cursor:default"><span>'+esc(v.name)+'<small>'+esc(TYPES[v.base].label)+' &middot; numbers '+esc(v.pfx)+'</small></span><span><button class="pen" data-vsd="'+esc(v.id)+'" type="button">Delete</button></span></div>'}).join(''):'<div class="note">No vouchers of your own yet.</div>';
+    qa('[data-vsd]').forEach(function(b){b.addEventListener('click',function(){vsDel(b.getAttribute('data-vsd'))})});
+  }
+  function allPrefixes(){
+    var o={};ORDER.forEach(function(t){o[pfxOf(t,'').toLowerCase()]=1});vsList().forEach(function(v){o[v.pfx.toLowerCase()]=1});return o;
+  }
+  function vsAdd(){
+    var name=$('vsName').value.trim().replace(/\s+/g,' '),pf=$('vsPfx').value.trim(),st=parseInt($('vsStart').value,10),base=$('vsBase').value;
+    if(!name||name.length>30){toast('Enter a voucher name of up to 30 characters.');return}
+    if(!/^[A-Za-z0-9_\-\/]{1,8}$/.test(pf)){toast('The number prefix must be 1 to 8 letters, numbers or dashes.');return}
+    if(!(st>=1&&st<=999999)){toast('First number must be between 1 and 999999.');return}
+    if(allPrefixes()[pf.toLowerCase()]){toast('That prefix is already used by another voucher. Choose a different one.');return}
+    var low=name.toLowerCase();
+    if(vsList().some(function(v){return v.name.toLowerCase()===low})||ORDER.some(function(t){return TYPES[t].label.toLowerCase()===low||TYPES[t].short.toLowerCase()===low})){toast('A voucher with this name already exists.');return}
+    authorize().then(function(ok){
+      if(!ok)return;
+      var id='v'+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
+      if(!DATA.cfg.vs)DATA.cfg.vs=[];
+      DATA.cfg.vs.push({id:id,name:name,pfx:pf,base:base});
+      DATA.counters[base+'@'+id]=st;DATA.cfg.at=stamp();
+      saveData();queueAuto();
+      $('vsName').value='';$('vsPfx').value='';$('vsStart').value='1';renderVs();
+      if(!$('v-form').hidden)showForm(cur);
+      toast('Voucher "'+name+'" added. Choose it at the top of the '+TYPES[base].label.toLowerCase()+' form.');
+    });
+  }
+  function vsDel(id){
+    var v=vsFind(id);if(!v)return;
+    if(DATA.docs.some(function(d){return d.vs===id})){toast('"'+v.name+'" has saved vouchers, so it cannot be deleted.');return}
+    if(!confirm('Delete the voucher "'+v.name+'"? Nothing was saved with it.'))return;
+    authorize().then(function(ok){
+      if(!ok)return;
+      DATA.cfg.vs=DATA.cfg.vs.filter(function(x){return x.id!==id});DATA.cfg.at=stamp();
+      Object.keys(S).forEach(function(t){if(S[t]&&S[t].vs===id){S[t].vs='';S[t].no=null}});
+      saveData();queueAuto();renderVs();if(!$('v-form').hidden)showForm(cur);toast('Voucher deleted.');
+    });
   }
   function vcSave(){
     var pf={},tt={},bad='';
@@ -2999,8 +3104,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(below>=h||below>=r.top-10)box.style.top=(r.bottom+2)+'px';else box.style.top=Math.max(4,r.top-h-2)+'px';
   }
   function histFor(el){
-    var row=el.closest('.g'),ii=row&&row.querySelector('[data-f="item"]');if(!ii||!DATA)return null;
-    var party=$('party').value,item=ii.value,ty=cur;
+    var row=el.closest('.g,.ag'),ii=row&&row.querySelector('[data-f="item"]');if(!ii||!DATA)return null;
+    var agb=el.closest('.agb'),party=agb?agb.querySelector('[data-agp]').value:$('party').value,item=ii.value,ty=agb?'sale':cur;
     if(!pkey(party)||!pkey(item))return null;
     var base=(ty==='sale'||ty==='sret')?'sale':((ty==='pur'||ty==='pret')?'pur':'');if(!base)return null;
     var out=[],pk=pkey(party),ik=pkey(item);
@@ -3022,7 +3127,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var hh=box.offsetHeight,below=window.innerHeight-r.bottom-70;
     if(below>=hh||below>=r.top-10)box.style.top=(r.bottom+2)+'px';else box.style.top=Math.max(4,r.top-hh-2)+'px';
   }
-  document.addEventListener('focusin',function(e){var t=e.target;if(!t.getAttribute)return;if(t.getAttribute('data-hist'))histShow(t);else if(t.getAttribute('data-sug'))sugShow(t);else sugHide()});
+  document.addEventListener('focusin',function(e){var t=e.target;if(!t.getAttribute)return;if(t.getAttribute('data-sug'))sugShow(t);else sugHide()});
+  document.addEventListener('click',function(e){var t=e.target;if(t.getAttribute&&t.getAttribute('data-hist')&&t.tagName==='INPUT')histShow(t)});
   document.addEventListener('input',function(e){var t=e.target;if(!t.getAttribute)return;if(t.getAttribute('data-sug'))sugShow(t);else if(t.getAttribute('data-hist'))sugHide()});
   document.addEventListener('pointerdown',function(e){
     var d=e.target.closest&&e.target.closest('#sug div');
@@ -3031,7 +3137,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(v==null&&rt==null)return;
       el.value=v!=null?v:rt;sugHide();
       el.dispatchEvent(new Event('input',{bubbles:true}));
-      if(v!=null&&el.getAttribute('data-f')==='item'){var rw=el.closest('.g'),ri=rw&&rw.querySelector('[data-f="rate"]');if(ri)setTimeout(function(){ri.focus()},30)}
+      if(v!=null&&el.getAttribute('data-f')==='item'){var rw=el.closest('.g,.ag'),ri=rw&&rw.querySelector('[data-f="qty"]');if(ri)setTimeout(function(){ri.focus()},30)}
     }else if(!(e.target.getAttribute&&(e.target.getAttribute('data-sug')||e.target.getAttribute('data-hist'))))sugHide();
   },true);
   document.addEventListener('scroll',sugHide,true);
@@ -3059,8 +3165,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('agDate').addEventListener('input',function(){S.agg.date=this.value;saveDraft()});
   $('agRem').addEventListener('input',function(){S.agg.remarks=this.value;saveDraft()});
   $('agStk').addEventListener('change',function(){S.agg.nostock=this.value==='0';saveDraft()});
-  $('agAdd').addEventListener('click',function(){for(var i=0;i<4;i++)S.agg.rows.push({party:'',item:'',qty:'',rate:'',unit:''});renderAgg();saveDraft()});
+  $('agAdd').addEventListener('click',addAggParty);
   $('party2').addEventListener('input',function(){S[cur].party2=this.value;saveDraft()});
+  $('vsSel').addEventListener('change',function(){S[cur].vs=this.value;S[cur].no=null;saveDraft();showForm(cur)});
   $('discM').addEventListener('change',function(){S[cur].discM=this.value;renderRows();saveDraft()});
   $('stkM').addEventListener('change',function(){S[cur].nostock=this.value==='0';saveDraft()});
   $('cxBtn').addEventListener('click',function(){if(EDIT)toggleCancel(EDIT.d)});
