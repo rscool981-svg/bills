@@ -35,3 +35,5 @@ Settings > Version: Auto-detect / PC / Mobile.  Settings > Shortcut Keys: on/off
 Defaults: Alt+S save, Alt+P print, Alt+H share, Alt+A abort, Alt+V Voucher, Alt+R Receipt, Alt+B Sales, Alt+Q Purchase, Alt+Y Payment, Alt+J Journal, Alt+L Ledger, Alt+I Inventory, Alt+T Settings, Alt+K list.
 
 BILL PRINT: compact fonts and rows, sharper output; about 30 to 36 items fit one A4 page.
+
+Earlier-rate popup now also opens when the cursor reaches the Rate cell by keyboard (Tab / Enter / arrows); Up/Down + Enter picks a rate.
