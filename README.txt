@@ -20,3 +20,9 @@ NEW IN THIS VERSION
 - Add On > Import / Export: export stock, parties, opening balances, transactions, ledger balances as Excel, PDF, JPG or PNG; import stock, parties and transactions from Excel, CSV, a photo or a PDF.
 - Aggregate sales: "Fill from a photo of the notebook". Set up the photo reader first in Add On > Import / Export > Photo reader (Claude API key, or Google Drive text reader).
 - Photo button ("Fill from a photo") in every voucher form. Aggregate sales return, aggregate purchase, aggregate purchase return, aggregate receipt and aggregate payment added under their menus.
+
+NEW (photo reader v2)
+- Photo reader reads unlimited entries per photo/PDF (repairs cut-off answers, 2400px images, shows exact error from Claude).
+- Add On > Import / Export > "Test photo reader" checks your key; "Entry sheets" prints ready-made sheets (PDF/JPG/PNG) for sales/purchase, receipt/payment, journal.
+- Stock option "Without stock": only party, date, amount, remarks (single and aggregate; sales, purchase, returns).
+- Remarks are blank by default and never auto-filled.

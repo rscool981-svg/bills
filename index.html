@@ -179,6 +179,7 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .unk{border-color:#d9822b!important;background:#fff4e5!important}
 .agv{display:grid;grid-template-columns:minmax(0,1fr) 84px 82px;gap:6px;margin-bottom:8px}
 .agv input,.agv select{min-width:0;padding:10px 8px}
+.agv.nm{grid-template-columns:minmax(0,1fr) 120px}
 .act .in{display:flex;gap:8px}
 .act button{flex:1}
 .act .gen{flex:1.6}
@@ -271,7 +272,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div><label for="agDate">Date (B.S.) yyyy/mm/dd</label><input id="agDate" type="text" inputmode="numeric" placeholder="2083/07/22" autocomplete="off" maxlength="10"></div>
       <div><label for="agDateAd">Date (A.D.) yyyy-mm-dd</label><input id="agDateAd" type="text" inputmode="numeric" placeholder="2026-11-08" autocomplete="off" maxlength="10"></div>
       <div class="full"><label for="agRem">Remarks (optional, copied to every bill)</label><input id="agRem" type="text" autocomplete="off" maxlength="100"></div>
-      <div class="full" id="agStkWrap"><label for="agStk">Stock</label><select id="agStk"><option value="1">Update stock (default)</option><option value="0">Without stock (no effect on stock)</option></select></div>
+      <div class="full" id="agStkWrap"><label for="agStk">Stock</label><select id="agStk"><option value="1">Update stock (default)</option><option value="0">Without stock: party and amount only</option></select></div>
     </div>
     <h2>Parties and items</h2>
     <div id="agRows"></div>
@@ -535,7 +536,15 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div class="full" id="ocrKeyWrap"><label for="ocrKey">Claude API key</label><input id="ocrKey" type="password" autocomplete="off" placeholder="sk-ant-..."></div>
     <div class="full note" style="margin:0" id="ocrNote"></div>
   </div>
-  <div class="btns"><button class="btn2 prim" id="ocrSave" type="button">Save photo reader (password)</button></div>
+  <div class="btns"><button class="btn2 prim" id="ocrSave" type="button">Save photo reader (password)</button><button class="btn2" id="ocrTest" type="button">Test photo reader</button></div>
+  <div class="note" id="ocrStat" style="margin:6px 0 0"></div>
+  <h2>Entry sheets (print and write on)</h2>
+  <div class="card meta">
+    <div class="full"><label for="shWhat">Sheet for</label><select id="shWhat"><option value="items">Sales, Sales return, Purchase, Purchase return (party, items, qty, rate)</option><option value="amt">Receipt, Payment, or sales/purchase without stock (party, amount, mode)</option><option value="jnl">Journal (debit party, credit party, amount)</option></select></div>
+    <div class="full"><label for="shFmt">File type</label><select id="shFmt"><option value="pdf">PDF</option><option value="jpg">JPG picture</option><option value="png">PNG picture</option></select></div>
+    <div class="full note" style="margin:0">Print the sheet, write entries on it neatly in capital or block letters, one entry per line, then use the photo button on any voucher or aggregate screen. As many pages as needed. The reader also accepts any ordinary notebook photo, PDF, JPG or PNG.</div>
+  </div>
+  <div class="btns"><button class="btn2" id="shGo" type="button">Download entry sheet</button></div>
 </div></div>
 <!-- units -->
 <div class="modal l3" id="unModal" hidden><div class="mi">
@@ -851,7 +860,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function blankItem(){return {item:'',qty:'',rate:'',unit:'',batch:'',exp:'',mrp:'',pack:'',dT:'pct',dV:''}}
   function normItem(x){var b=blankItem();for(var k in b)if(x&&x[k]!=null)b[k]=String(x[k]);return b}
   function blankItems(n){var a=[];for(var i=0;i<n;i++)a.push(blankItem());return a}
-  function blankState(){return {date:todayBS(),party:'',party2:'',ref:'',items:blankItems(MINROWS),amount:'',mode:'Cash',remarks:'',vs:'',no:null,discM:(DATA&&DATA.cfg&&DATA.cfg.discMode)||'bill',discT:'amt',discV:'',alloc:{},det:{},nostock:false}}
+  function blankState(){return {date:todayBS(),party:'',party2:'',ref:'',items:blankItems(MINROWS),amount:'',mode:'Cash',remarks:'',vs:'',no:null,discM:(DATA&&DATA.cfg&&DATA.cfg.discMode)||'bill',discT:'amt',discV:'',alloc:{},det:{},nostock:false,ao:false}}
   function isBlank(st){return !st.party&&!st.party2&&!st.amount&&!st.remarks&&!st.discV&&!(st.items||[]).some(function(it){return it.item||it.qty||it.rate})}
   function cleanItems(arr,mode){
     return (arr||[]).filter(function(it){return String(it.item).trim()||String(it.qty).trim()||String(it.rate).trim()}).map(function(it){
@@ -1077,6 +1086,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
           if(x.alloc&&typeof x.alloc==='object')b.alloc=x.alloc;
           if(x.no)b.no=x.no;
           if(x.nostock===true)b.nostock=true;
+          if(x.ao===true)b.ao=true;
         }
         while(b.items.length<MINROWS)b.items.push(blankItem());
         if(b.no&&findDoc(t,b.no))b.no=null;
@@ -1163,13 +1173,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     $('party').value=st.party;$('partyLbl').textContent=T.party;
     $('party2Wrap').hidden=!jv;$('party2').value=st.party2||'';
     $('refWrap').hidden=!T.ref;$('ref').value=st.ref||'';
-    $('itemsBox').hidden=!it;$('vBox').hidden=it;$('discMWrap').hidden=!it;$('stkWrap').hidden=!it;$('stkM').value=st.nostock?'0':'1';
+    var ao=it&&!!st.ao;
+    $('itemsBox').hidden=!it||ao;$('vBox').hidden=it&&!ao;$('discMWrap').hidden=!it||ao;$('stkWrap').hidden=!it;
+    $('stkM').innerHTML='<option value="1">Update stock (default)</option><option value="0">Without stock: party, date, amount and remarks only</option>'+((st.nostock&&!st.ao)?'<option value="2">Items listed, no effect on stock (old bill)</option>':'');
+    $('stkM').value=st.ao?'0':(st.nostock?'2':'1');
     $('party').setAttribute('data-sug',t==='exp'?'head':'party');
     $('rem').value=st.remarks||'';
-    $('vModeWrap').hidden=jv;
+    $('vModeWrap').hidden=jv||ao;
     $('shareBtn').hidden=$('printBtn').hidden=!!EDIT;$('cxBtn').hidden=$('closeBtn').hidden=!EDIT;
     $('saveBtn').textContent=EDIT?'Save changes':'Save & New';
-    if(it){$('discM').value=st.discM;$('discT').value=st.discT||'amt';$('discV').value=st.discV||'';renderRows()}
+    if(it&&!ao){$('discM').value=st.discM;$('discT').value=st.discT||'amt';$('discV').value=st.discV||'';renderRows()}
     else{$('vAmt').value=st.amount;$('vMode').value=st.mode;vTotals();renderAlloc()}
   }
   function unitOpts(sel){
@@ -1238,7 +1251,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var d={type:cur,no:billNo(cur),date:normBS(st.date)||st.date,party:st.party.trim(),status:'Active',by:user.username,company:coInfo()};
     if(st.vs&&vsFind(st.vs))d.vs=st.vs;
     var rm=String(st.remarks||'').trim();if(rm)d.remarks=rm;
-    if(T.kind==='items'){
+    if(T.kind==='items'&&st.ao){
+      d.items=[];d.sub=d.total=r2(num(st.amount));d.disc=0;d.discMode='none';d.noStock=true;if(T.ref&&st.ref.trim())d.ref=st.ref.trim();
+    }else if(T.kind==='items'){
       var mode=st.discM||'none',ct=calcTot(st.items,st.discT,st.discV,mode);
       d.items=cleanItems(st.items,mode);d.sub=ct.sub;d.disc=ct.disc;d.discMode=mode;
       if(mode==='bill'){d.discT=st.discT;d.discV=st.discV}
@@ -1259,7 +1274,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var bad=(d.items||[]).filter(function(it){return it.exp&&!/^\d{4}-\d{2}-\d{2}$/.test(it.exp)})[0];
       if(bad){toast('Check the expiry date of '+bad.item+'. Use MM/YYYY, for example 08/2028.');return null}
     }
-    if(d.total<=0){toast(T.kind==='items'?'Add at least one item with quantity and rate first.':'Enter the amount first.');return null}
+    if(d.total<=0){toast(T.kind==='items'&&!S[cur].ao?'Add at least one item with quantity and rate first.':'Enter the amount first.');return null}
     if(cur==='jnl'){
       if(!d.party||!d.party2){toast('Enter both the debit and the credit ledger.');return null}
       if(pkey(d.party)===pkey(d.party2)){toast('The debit and credit ledgers must be different.');return null}
@@ -1320,7 +1335,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var its=(d.items||[]).map(function(x){var o=normItem(x);o.exp=fmtExp(x.exp||'');return o});
       var legacy=d.noStock&&!its.some(function(x){return num(x.qty)||num(x.rate)});
       b.nostock=!!d.noStock;
-      if(legacy||!its.length){its=[Object.assign(blankItem(),{item:(d.items&&d.items[0]&&d.items[0].item)||'Amount as agreed',qty:'1',rate:String(d.total)})]}
+      if(d.noStock&&!(d.items||[]).length){b.ao=true;b.amount=String(d.total);its=[]}
+      else if(legacy||!its.length){its=[Object.assign(blankItem(),{item:(d.items&&d.items[0]&&d.items[0].item)||'Amount as agreed',qty:'1',rate:String(d.total)})]}
       b.items=its;while(b.items.length<MINROWS)b.items.push(blankItem());
     }else{
       b.amount=String(d.total);b.mode=d.mode||'Cash';
@@ -1381,7 +1397,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   /* ---------- aggregate sales: one day, many parties, one bill each ---------- */
   var AGG_TYPES=['sale','sret','pur','pret','rec','pay'],aggType='sale';
   function AG(){return S['agg:'+aggType]}
-  function aggIsV(t){return TYPES[t||aggType].kind!=='items'}
+  function aggMode(){return TYPES[aggType].kind!=='items'}
+  function aggIsV(){return aggMode()||!!(AG()&&AG().nostock)}
   function blankAggRow(nb){var r={party:'',item:'',qty:'',rate:'',unit:'',amt:'',mode:'Cash'};if(nb)r.nb=true;return r}
   function newAgg(t){
     var a={date:todayBS(),remarks:'',rows:[],nostock:false},n=TYPES[t].kind==='items'?3:5;
@@ -1410,7 +1427,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         has=p||String(r.amt).trim();if(!has)return;
         if(!p){if(!err)err='Row '+(i+1)+': enter the party name.';return}
         if(strict&&!(num(r.amt)>0)){if(!err)err='Row '+(i+1)+': enter the amount.';return}
-        k=pkey(p)+'|'+r.mode;g=map[k];if(!g){g=map[k]={party:p,mode:r.mode,items:[],total:0};order.push(k)}
+        k=pkey(p)+(aggMode()?'|'+r.mode:'');g=map[k];if(!g){g=map[k]={party:p,mode:aggMode()?r.mode:'',items:[],total:0};order.push(k)}
         g.items.push(r);g.total=r2(g.total+num(r.amt));return;
       }
       has=String(r.item).trim()||String(r.qty).trim()||String(r.rate).trim();
@@ -1428,7 +1445,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(g.err){box.innerHTML='<div class="note warn" style="margin:0">'+esc(g.err)+'</div>';return}
     if(!g.order.length){box.innerHTML='<div class="note" style="margin:0">Nothing entered yet.</div>';return}
     var tot=0;
-    box.innerHTML=g.order.map(function(k){var x=g.map[k];tot=r2(tot+x.total);return '<div class="acrow"><span>'+esc(x.party)+'<small>'+(V?esc(x.mode):x.items.length+' line'+(x.items.length===1?'':'s'))+'</small></span><b style="text-align:right">'+fmt(x.total)+'</b></div>'}).join('')+
+    box.innerHTML=g.order.map(function(k){var x=g.map[k];tot=r2(tot+x.total);return '<div class="acrow"><span>'+esc(x.party)+'<small>'+(V?esc(x.mode||''):x.items.length+' line'+(x.items.length===1?'':'s'))+'</small></span><b style="text-align:right">'+fmt(x.total)+'</b></div>'}).join('')+
       '<div class="big" style="margin-top:10px"><span>'+g.order.length+' '+noun+(g.order.length===1?'':'s')+' will be made</span><b>Rs '+fmt(tot)+'</b></div>';
   }
   function aggBlocks(){
@@ -1447,21 +1464,21 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function renderAgg(){
     var st=AG(),V=aggIsV(),T=TYPES[aggType];
     $('agH1').textContent=AGN[aggType][0];$('agIntro').textContent=AGN[aggType][1];
-    $('agStkWrap').hidden=V;$('agPhoto').textContent=V?'Fill from a photo of the slips or notebook':'Fill from a photo of the notebook';
+    $('agStkWrap').hidden=aggMode();$('agPhoto').textContent=V?'Fill from a photo of the slips or notebook':'Fill from a photo of the notebook';
     $('agAdd').textContent=V?'+ Add row':'+ Next party';$('saveBtn').textContent=V?'Save all vouchers':'Save all bills';
     $('agDate').value=st.date;$('agDateAd').value=adOf(st.date);$('agRem').value=st.remarks;$('agStk').value=st.nostock?'0':'1';
     var box=$('agRows');box.innerHTML='';
     if(V){
       st.rows.forEach(function(r,i){
-        var d=document.createElement('div');d.className='agv';
+        var d=document.createElement('div');d.className='agv'+(aggMode()?'':' nm');
         d.innerHTML='<input type="text" data-agp="1" data-sug="party" autocomplete="off" maxlength="60" placeholder="Party name" aria-label="Party of row '+(i+1)+'" value="'+esc(r.party)+'">'+
           '<input class="n" type="text" inputmode="decimal" data-f="amt" placeholder="Amount" aria-label="Amount" value="'+esc(r.amt)+'">'+
-          '<select data-f="mode" aria-label="Mode">'+MODES.map(function(m){return '<option'+(m===r.mode?' selected':'')+' value="'+esc(m)+'">'+esc(m.replace(' transfer','').replace('QR / Wallet','QR'))+'</option>'}).join('')+'</select>';
+          (aggMode()?'<select data-f="mode" aria-label="Mode">'+MODES.map(function(m){return '<option'+(m===r.mode?' selected':'')+' value="'+esc(m)+'">'+esc(m.replace(' transfer','').replace('QR / Wallet','QR'))+'</option>'}).join('')+'</select>':'');
         var pi=d.querySelector('[data-agp]');
         function markP(){pi.classList.toggle('unk',!!r.party.trim()&&!findParty(pkey(r.party)))}markP();
         pi.addEventListener('input',function(){r.party=this.value;markP();aggSum();saveDraft()});
         d.querySelector('[data-f="amt"]').addEventListener('input',function(){r.amt=this.value;aggSum();saveDraft()});
-        d.querySelector('[data-f="mode"]').addEventListener('change',function(){r.mode=this.value;aggSum();saveDraft()});
+        var msel=d.querySelector('[data-f="mode"]');if(msel)msel.addEventListener('change',function(){r.mode=this.value;aggSum();saveDraft()});
         box.appendChild(d);
       });
       aggSum();return;
@@ -1529,7 +1546,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var gg=g.map[k];
       while(findDoc(ty,autoNo(ty,'')))DATA.counters[ty]=counter(ty,'')+1;
       var d={type:ty,no:autoNo(ty,''),date:dt,party:gg.party,status:'Active',by:user.username,company:coInfo(),uid:newUid(),saved:now,edited:null,edits:0};
-      if(V){d.total=gg.total;d.mode=gg.mode}
+      if(V){d.total=gg.total;if(aggMode())d.mode=gg.mode;else{d.items=[];d.sub=gg.total;d.disc=0;d.discMode='none';d.noStock=true}}
       else{
         var items=cleanItems(gg.items.map(function(r){return Object.assign(blankItem(),{item:r.item,qty:r.qty,rate:r.rate,unit:r.unit||''})}),'none'),tot=sumItems(items,'none');
         d.items=items;d.sub=tot;d.disc=0;d.discMode='none';d.total=tot;all=all.concat(items);
@@ -2257,7 +2274,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     P.box(L,R,y,60,'#e3efec');
     P.txt('Amount (Rs)',L+10,y+38,'left','bold 22px '+F,'#0b5d57');
     P.txt(fmt(d.total),R-10,y+40,'right','bold 30px '+F);y+=60;
-    if(d.type!=='jnl'){P.box(L,R,y,42);P.txt(d.type==='led'?'Debit: '+fmt(d.dr||0)+'     Credit: '+fmt(d.cr||0):'Mode: '+(d.mode||''),L+10,y+28,'left','bold 19px '+F);y+=42}
+    if(d.type!=='jnl'&&(d.mode||d.type==='led')){P.box(L,R,y,42);P.txt(d.type==='led'?'Debit: '+fmt(d.dr||0)+'     Credit: '+fmt(d.cr||0):'Mode: '+(d.mode||''),L+10,y+28,'left','bold 19px '+F);y+=42}
     if(d.type==='led'&&d.details){var dl=P.wrap('Details: '+d.details,R-L-20,'19px '+F),dh=dl.length*26+16;P.box(L,R,y,dh);dl.forEach(function(l,k){P.txt(l,L+10,y+28+k*26,'left','19px '+F)});y+=dh}
     if(d.alloc&&d.alloc.length){
       var al=P.wrap('Against bills: '+d.alloc.map(function(a){return a.no+' ('+fmt(a.amt)+')'}).join(', '),R-L-20,'19px '+F),ah=al.length*26+16;
@@ -2273,7 +2290,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(d.status==='Cancelled')P.mark('CANCELLED');
     return P.done();
   }
-  function drawDoc(d){return TYPES[d.type].kind==='items'?drawItems(d):drawVoucher(d)}
+  function drawDoc(d){return TYPES[d.type].kind==='items'&&!(d.noStock&&!docLines(d).length)?drawItems(d):drawVoucher(d)}
   function drawLedger(lg){
     var P=painter(Math.min(16000,1000+lg.rows.length*90)),F=P.F,L=P.L,R=P.R,E=[24,128,400,520,640,776],y;
     P.header(coInfo(),'LEDGER STATEMENT');y=P.y;
@@ -3194,6 +3211,27 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var m=$('ocrMethod').value;$('ocrKeyWrap').hidden=m!=='claude';
     $('ocrNote').textContent=m==='claude'?'Each photo is sent to Anthropic with your key and you pay Anthropic a small amount per photo. The key is kept only on this phone, so use a key with a low spending limit and remove it if the phone is lost.':(m==='drive'?'Needs Google Drive sync to be on and signed in. The photo is converted to text by Google in a temporary file that is deleted at once. Neat printed or block-letter writing works best.':'Choose how photos and PDFs are read. Nothing is sent anywhere until you read a photo.');
   }
+  function drawSheet(kind){
+    var H=1120,P=painter(H),F=P.F,x=P.x,L=24,R=776,y=24,i;
+    var ttl={items:'MEDBOOKS ENTRY SHEET: SALES / PURCHASE / RETURNS',amt:'MEDBOOKS ENTRY SHEET: RECEIPT / PAYMENT / AMOUNT ONLY',jnl:'MEDBOOKS ENTRY SHEET: JOURNAL'}[kind];
+    P.txt(ttl,400,y+22,'center','bold 22px '+F);y+=38;
+    P.txt('Voucher: ____________________     Date (B.S.): ____ / ____ / ________',L,y+20,'left','18px '+F);y+=34;
+    var tips={items:'Write the PARTY NAME on its own line (capital letters), then one line per item: Item, Qty, Unit, Rate. Leave a blank line between parties.',amt:'One entry per line: Party name, Amount, Mode (Cash or Bank). Remarks only if needed.',jnl:'One entry per line: Debit party, Credit party, Amount.'}[kind];
+    P.wrap(tips,R-L,'15px '+F).forEach(function(l){P.txt(l,L,y+16,'left','15px '+F,'#444');y+=20});y+=8;
+    var cols=kind==='items'?[['Party / Item',0,360],['Qty',360,450],['Unit',450,550],['Rate',550,650],['Amount (optional)',650,776]]:
+      kind==='amt'?[['No',0,50],['Party',50,400],['Amount',400,520],['Mode',520,640],['Remarks (optional)',640,776]]:
+      [['No',0,50],['Debit party',50,300],['Credit party',300,550],['Amount',550,776]];
+    x.fillStyle='#e3efec';x.fillRect(L,y,R-L,30);x.strokeStyle='#222';x.lineWidth=1.5;x.strokeRect(L,y,R-L,30);
+    cols.forEach(function(c){x.fillStyle='#0b5d57';x.font='bold 15px '+F;x.textAlign='left';x.fillText(c[0],L+c[1]+6,y+20)});y+=30;
+    var rh=40,n=Math.floor((H-y-24)/rh);
+    x.strokeStyle='#888';x.lineWidth=1;
+    for(i=0;i<n;i++){
+      x.strokeRect(L,y+i*rh,R-L,rh);
+      if(kind!=='items')x.fillStyle='#999',x.font='13px '+F,x.fillText(String(i+1),L+8,y+i*rh+26);
+    }
+    cols.slice(1).forEach(function(c){x.beginPath();x.moveTo(L+c[1],y-30);x.lineTo(L+c[1],y+n*rh);x.stroke()});
+    return P.x.canvas;
+  }
   function ocrReady(){var c=ocrCfg();return (c.m==='claude'&&c.k)||(c.m==='drive'&&driveOn())}
   function imgPrep(file){
     return new Promise(function(res,rej){
@@ -3202,7 +3240,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       }
       var im=new Image(),u=URL.createObjectURL(file);
       im.onload=function(){
-        var mx=1800,sc=Math.min(1,mx/Math.max(im.width,im.height)),cv=document.createElement('canvas');
+        var mx=2400,sc=Math.min(1,mx/Math.max(im.width,im.height)),cv=document.createElement('canvas');
         cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
         var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);
         URL.revokeObjectURL(u);res({media:'image/jpeg',data:cv.toDataURL('image/jpeg',0.85).split(',')[1]});
@@ -3210,27 +3248,49 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       im.onerror=function(){URL.revokeObjectURL(u);rej(new Error('Could not open this picture.'))};im.src=u;
     });
   }
-  function jsonFrom(t){var a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)throw new Error('The reader did not return a readable result. Try a clearer photo.');return JSON.parse(t.slice(a,b+1))}
+  function jsonRepair(t){
+    var st=[],inS=false,esc2=false,cut=-1,snap=null,i,ch;
+    for(i=0;i<t.length;i++){
+      ch=t[i];
+      if(inS){if(esc2)esc2=false;else if(ch==='\\')esc2=true;else if(ch==='"')inS=false;continue}
+      if(ch==='"'){inS=true;continue}
+      if(ch==='{'||ch==='[')st.push(ch);
+      else if(ch==='}'||ch===']'){st.pop();if(st.length>=1){cut=i+1;snap=st.slice()}}
+    }
+    if(cut<0)return null;
+    var out=t.slice(0,cut);
+    for(i=snap.length-1;i>=0;i--)out+=snap[i]==='{'?'}':']';
+    return out;
+  }
+  function jsonFrom(t){
+    var a=t.search(/[\{\[]/);if(a<0)throw new Error('The reader did not return a readable result. Try a clearer photo.');
+    var b=t.slice(a),lb=Math.max(b.lastIndexOf('}'),b.lastIndexOf(']')),r;
+    try{r=JSON.parse(b.slice(0,lb+1))}catch(e){
+      var f=jsonRepair(b);if(!f)throw new Error('The reader did not return a readable result. Try a clearer photo.');
+      try{r=JSON.parse(f)}catch(e2){throw new Error('The reader did not return a readable result. Try a clearer photo.')}
+    }
+    return Array.isArray(r)?{entries:r,parties:r,rows:r}:r;
+  }
   function claudeRead(file,kind){
     var c=ocrCfg(),names=DATA.parties.slice(0,300).map(function(p){return p.name}).join(' | '),items=DATA.items.slice(0,300).map(function(p){return p.name}).join(' | ');
-    var KN='Known party names (use the exact spelling when the writing matches one): '+(names||'none')+'. Known item names (same rule): '+(items||'none')+'. If a word is unclear give your best reading. Do not invent entries.';
+    var KN='Known party names (use the exact spelling when the writing matches one): '+(names||'none')+'. Known item names (same rule): '+(items||'none')+'. If a word is unclear give your best reading. Do not invent entries. There is NO limit on the number of entries: read every entry on the page, from the first line to the last, and never stop early or summarise.';
     var prompt=kind==='bill'?
       'This is a photo of one bill, invoice or handwritten note for a single party. Reply with JSON only, no other words, exactly in this form: {"party":"party name","date":"date as written or empty","remarks":"","lines":[{"item":"item name","qty":10,"unit":"strip or empty","rate":null,"amount":null}]}. Fill rate when printed, otherwise amount of the line if printed. '+KN:
       kind==='slip'?
       'This is a photo of one receipt, payment slip or voucher. Reply with JSON only, no other words, exactly in this form: {"party":"party name (the person or firm paying or paid; for a journal the debit side)","party2":"credit side for a journal, else empty","amount":1000,"mode":"Cash or Bank transfer or Cheque or QR / Wallet","date":"date as written or empty","remarks":""}. '+KN:
       kind==='slips'?
-      'This is a photo of a rough book or slips listing receipts or payments, one entry per party with an amount and maybe the mode (cash or bank). Reply with JSON only, no other words, exactly in this form: {"entries":[{"party":"party name","amount":1000,"mode":"Cash or Bank transfer or Cheque or QR / Wallet"}]}. '+KN:
+      'This is a photo, scan or PDF of a list with one entry per line (it may follow the MEDBOOKS entry sheet: columns No, Party, Amount, Mode, and an optional Remarks column or line). Entries may be numbered, ruled or just written line by line, over one or many pages. Read EVERY entry. Reply with JSON only, no other words, exactly in this form: {"entries":[{"party":"party name","amount":1000,"mode":"Cash or Bank transfer or Cheque or QR / Wallet"}]}. If no mode is written use "Cash". Ignore totals and page headings. '+KN:
       kind==='notebook'?
-      'This is a photo of a shopkeeper\'s handwritten daily sales notebook. Each customer (party) name is followed by the items sold to that customer with quantities, and sometimes rates. Read every entry. Reply with JSON only, no other words, exactly in this form: {"parties":[{"party":"Customer name","lines":[{"item":"item name","qty":10,"unit":"strip or empty","rate":null,"amount":null}]}]}. Give rate when written, otherwise the line amount when written. If a customer appears twice, list the customer once with all lines. Known customer names (use the exact spelling when the writing matches one): '+(names||'none')+'. Known item names (same rule): '+(items||'none')+'. If a word is unclear give your best reading. Do not invent entries.':
+      'This is a photo of a shopkeeper\'s handwritten daily sales notebook. Each customer (party) name is followed by the items sold to that customer with quantities, and sometimes rates. Read every entry; it may follow the MEDBOOKS entry sheet (a party name on its own line, then item lines with Item, Qty, Unit, Rate) over one or many pages. Reply with JSON only, no other words, exactly in this form: {"parties":[{"party":"Customer name","lines":[{"item":"item name","qty":10,"unit":"strip or empty","rate":null,"amount":null}]}]}. Give rate when written, otherwise the line amount when written. If a customer appears twice, list the customer once with all lines. Known customer names (use the exact spelling when the writing matches one): '+(names||'none')+'. Known item names (same rule): '+(items||'none')+'. If a word is unclear give your best reading. Do not invent entries.':
       'This is a picture or PDF of a table or list (stock items, party names, balances or transactions). Reply with JSON only, no other words, in this form: {"rows":[["cell","cell"],["cell","cell"]]}. Put the column titles in the first row if the page has them. Keep every row. Every cell is plain text.';
     return imgPrep(file).then(function(f){
       var block=f.pdf?{type:'document',source:{type:'base64',media_type:f.media,data:f.data}}:{type:'image',source:{type:'base64',media_type:f.media,data:f.data}};
       return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:4000,messages:[{role:'user',content:[block,{type:'text',text:prompt}]}]})});
+        body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:32000,messages:[{role:'user',content:[block,{type:'text',text:prompt}]}]})});
     }).then(function(r){
       if(r.status===401||r.status===403)throw new Error('The Claude API key was not accepted. Check the key in Import / Export, Photo reader.');
       if(r.status===429)throw new Error('Too many requests or the spending limit is reached. Try again later.');
-      if(!r.ok)throw new Error('The reader could not process this (code '+r.status+').');
+      if(!r.ok)return r.json().catch(function(){return {}}).then(function(j){throw new Error('The reader could not process this (code '+r.status+')'+(j&&j.error&&j.error.message?': '+j.error.message:'.'))});
       return r.json();
     }).then(function(j){
       var t=(j.content||[]).map(function(x){return x.text||''}).join('');
@@ -3339,7 +3399,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function fmPhotoGo(file){
     if(!file)return;
     if(!ocrReady()){if(isOwner()){toast('Set up the photo reader first.');openIe()}else toast('Ask the owner to set up the photo reader in Add On, Import / Export.');return}
-    var T=TYPES[cur],kind=T.kind==='items'?'bill':'slip',tt=cur;
+    var T=TYPES[cur],kind=(T.kind==='items'&&!S[cur].ao)?'bill':'slip',tt=cur;
     toast('Reading the photo. This can take 10 to 30 seconds...');$('fmPhoto').disabled=true;
     photoRead(file,kind).then(function(res){
       if(cur!==tt||EDIT)return;
@@ -3814,12 +3874,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('agDateAd').addEventListener('blur',function(){var n=normBS(this.value);if(n){$('agDate').value=n;this.value=bsToAD(n)||this.value;AG().date=n;saveDraft()}});
   $('agDate').addEventListener('input',function(){AG().date=this.value;saveDraft()});
   $('agRem').addEventListener('input',function(){AG().remarks=this.value;saveDraft()});
-  $('agStk').addEventListener('change',function(){AG().nostock=this.value==='0';saveDraft()});
+  $('agStk').addEventListener('change',function(){AG().nostock=this.value==='0';saveDraft();renderAgg()});
   $('agAdd').addEventListener('click',addAggParty);
   $('party2').addEventListener('input',function(){S[cur].party2=this.value;saveDraft()});
   $('vsSel').addEventListener('change',function(){S[cur].vs=this.value;S[cur].no=null;saveDraft();showForm(cur)});
   $('discM').addEventListener('change',function(){S[cur].discM=this.value;renderRows();saveDraft()});
-  $('stkM').addEventListener('change',function(){S[cur].nostock=this.value==='0';saveDraft()});
+  $('stkM').addEventListener('change',function(){var v=this.value;S[cur].nostock=v!=='1';S[cur].ao=v==='0';saveDraft();showForm(cur)});
   $('abortBtn').addEventListener('click',abortEntry);
   $('cxBtn').addEventListener('click',function(){if(EDIT)toggleCancel(EDIT.d)});
   $('closeBtn').addEventListener('click',function(){exitEdit()});
@@ -3886,6 +3946,18 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('ieClose').addEventListener('click',function(){$('ieModal').hidden=true});
   $('ieExGo').addEventListener('click',ieExport);
   $('ieTpl').addEventListener('click',ieTemplate);
+  $('shGo').addEventListener('click',function(){var k=$('shWhat').value,f=$('shFmt').value,cv=drawSheet(k);canvasBlob(cv,f,function(b){if(b)download(b,'MEDBOOKS_entry_sheet_'+k+'.'+f)})});
+  $('ocrTest').addEventListener('click',function(){
+    var c=ocrCfg(),out=$('ocrStat');
+    if(!ocrReady()){out.textContent=c.m==='drive'?'Photo reader: Google Drive is not signed in.':'Photo reader is not set up. Choose a method and save it first.';return}
+    out.textContent='Testing...';
+    var cv=document.createElement('canvas');cv.width=900;cv.height=400;var x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,900,400);x.fillStyle='#000';x.font='bold 40px Arial';
+    ['1  Ram Medical   5000   Cash','2  Sita Traders   1200   Bank','3  Hari Store   750   Cash'].forEach(function(t,i){x.fillText(t,40,90+i*90)});
+    cv.toBlob(function(b){
+      var f=new File([b],'test.png',{type:'image/png'});
+      photoRead(f,'slips').then(function(r){var n=((r&&r.entries)||[]).length;out.textContent=n===3?'Photo reader works. It read all 3 test entries.':'Reader answered but read '+n+' of 3 test entries. '+(n?'Try a clearer photo for real work.':'')}).catch(function(e){out.textContent='Photo reader failed: '+(e.message||e)});
+    },'image/png');
+  });
   $('ieImWhat').addEventListener('change',function(){IM=null;$('ieImOut').innerHTML='';$('ieImFile').value=''});
   $('ieImFile').addEventListener('change',function(){if(this.files&&this.files[0])ieFile(this.files[0])});
   $('ocrMethod').addEventListener('change',ocrUi);
