@@ -2242,8 +2242,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(line)lines.push(line);return lines.length?lines:[''];
     };
     P.header=function(c2,title){
-      c2=c2||{};
-      if(c2.name&&!/^\s*estimate\b/i.test(c2.name)){
+      var cur2=coInfo();c2=c2||{};
+      c2={name:cur2.name||c2.name||'',address:cur2.address||c2.address||'',phone:cur2.phone||c2.phone||'',pan:cur2.pan||c2.pan||''};
+      if(c2.name){
         var nl=P.wrap(c2.name,P.R-P.L-20,'bold 22px '+F),nh=nl.length*26+12;
         P.box(P.L,P.R,P.y,nh);nl.forEach(function(l,k){P.txt(l,W/2,P.y+24+k*26,'center','bold 22px '+F)});P.y+=nh;
         var sub2=[c2.address,c2.phone?'Phone: '+c2.phone:'',c2.pan?'PAN: '+c2.pan:''].filter(Boolean).join('   |   ');
@@ -3276,6 +3277,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function drawSheet(kind){
     var H=1120,P=painter(H),F=P.F,x=P.x,L=24,R=776,y=24,i;
     var ttl={items:'MEDBOOKS ENTRY SHEET: SALES / PURCHASE / RETURNS',amt:'MEDBOOKS ENTRY SHEET: RECEIPT / PAYMENT / AMOUNT ONLY',jnl:'MEDBOOKS ENTRY SHEET: JOURNAL'}[kind];
+    if(co.name){P.txt(co.name,400,y+22,'center','bold 24px '+F);y+=34}
     P.txt(ttl,400,y+22,'center','bold 22px '+F);y+=38;
     P.txt('Voucher: ____________________     Date (B.S.): ____ / ____ / ________',L,y+20,'left','18px '+F);y+=34;
     var tips={items:'Write the PARTY NAME on its own line (capital letters), then one line per item: Item, Qty, Unit, Rate. Leave a blank line between parties.',amt:'One entry per line: Party name, Amount, Mode (Cash or Bank). Remarks only if needed.',jnl:'One entry per line: Debit party, Credit party, Amount.'}[kind];
@@ -4314,7 +4316,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     authorize().then(function(ok){
       if(!ok)return;
       co.name=nm;co.address=$('uAddr').value.trim();co.phone=$('uPhone').value.trim();co.pan=$('uPan').value.trim();
-      saveCos();$('coName').textContent=co.name;queueAuto();toast('Company details saved. New bills will use them.');
+      saveCos();$('coName').textContent=co.name;queueAuto();toast('Company details saved. All bills, vouchers, reports and statements will show them.');
     });
   });
   $('msClose').addEventListener('click',function(){$('msModal').hidden=true});
