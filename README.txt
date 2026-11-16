@@ -13,3 +13,10 @@ MEDBOOKS - web package
 4. FISCAL YEAR: Add On > Company > Fiscal year closing. Closing locks the year; balances carry forward automatically. The owner can reopen it.
 5. DELETE COMPANY: Add On > Company > Delete company (password, type the name; a backup file is downloaded first).
 Backup files contain password hashes - keep them private.
+
+NEW IN THIS VERSION
+- Abort button in every voucher form and in aggregate sales: erases the unfinished entry and closes the window.
+- Cancelling a voucher renumbers the later vouchers of the same kind so numbers have no gap.
+- Add On > Import / Export: export stock, parties, opening balances, transactions, ledger balances as Excel, PDF, JPG or PNG; import stock, parties and transactions from Excel, CSV, a photo or a PDF.
+- Aggregate sales: "Fill from a photo of the notebook". Set up the photo reader first in Add On > Import / Export > Photo reader (Claude API key, or Google Drive text reader).
+- Photo button ("Fill from a photo") in every voucher form. Aggregate sales return, aggregate purchase, aggregate purchase return, aggregate receipt and aggregate payment added under their menus.
