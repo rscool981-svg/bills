@@ -26,3 +26,5 @@ NEW (photo reader v2)
 - Add On > Import / Export > "Test photo reader" checks your key; "Entry sheets" prints ready-made sheets (PDF/JPG/PNG) for sales/purchase, receipt/payment, journal.
 - Stock option "Without stock": only party, date, amount, remarks (single and aggregate; sales, purchase, returns).
 - Remarks are blank by default and never auto-filled.
+
+PC / Mobile view: tap "PC view" / "Mobile view" at the top right. PC view uses the full screen with a left menu and wide entry tables. Your choice is remembered on that device.

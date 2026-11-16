@@ -120,6 +120,30 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .act button{padding:12px 6px;border-radius:10px;font-weight:700;font-size:14px;border:0}
 .share{background:var(--soft);color:var(--accent)}
 .gen{background:var(--accent);color:var(--accent-ink)}
+
+/* PC view */
+body.pc{padding-left:calc(176px + 20px);padding-right:24px;padding-bottom:84px}
+body.pc.locked{padding-left:14px}
+body.pc .wrap{max-width:none}
+body.pc .nav{top:0;bottom:0;right:auto;left:0;width:176px;height:auto;grid-auto-flow:row;grid-auto-columns:auto;grid-template-rows:none;align-content:start;border-top:0;border-right:1px solid var(--line);padding:16px 0 0}
+body.pc .nav button{font-size:15px;text-align:left;padding:16px 20px;border-top:0;border-left:4px solid transparent}
+body.pc .nav button.on{border-left-color:var(--accent)}
+body.pc .act{left:176px;bottom:0}
+body.pc .act .in{max-width:760px;margin:0 0 0 auto;grid-template-columns:1fr 1fr 1fr 1.6fr}
+body.pc .seg{flex-wrap:wrap;overflow:visible}
+body.pc .seg button{font-size:14px;padding:10px 16px;flex:0 0 auto}
+body.pc .meta{grid-template-columns:repeat(4,1fr)}
+body.pc .meta .full{grid-column:span 2}
+body.pc .mi{max-width:1100px}
+body.pc .agb,body.pc #agRows{max-width:1100px}
+body.pc input,body.pc select{font-size:15px}
+body.pc .g{grid-template-columns:40px minmax(0,1fr) 110px 120px 140px}
+body.pc .ag{grid-template-columns:minmax(0,1fr) 90px 110px 130px}
+body.pc .agv{grid-template-columns:minmax(0,1fr) 160px 140px}
+body.pc .agv.nm{grid-template-columns:minmax(0,1fr) 200px}
+body.pc .lg{font-size:13px}
+body.pc #hdrFix{display:none}
+@media (max-width:760px){body.pc .act{bottom:calc(var(--navh) + env(safe-area-inset-bottom,0px))}body.pc{padding-left:14px;padding-right:14px}body.pc .nav{top:auto;left:0;right:0;width:auto;height:var(--navh);grid-auto-flow:column;grid-auto-columns:1fr;flex-direction:row;padding:0;border-right:0;border-top:1px solid var(--line)}body.pc .nav button{font-size:11px;padding:6px 1px;border-left:0;border-top:3px solid transparent;text-align:center}body.pc .nav button.on{border-top-color:var(--accent)}body.pc .act{left:0}}
 /* modals */
 .modal{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;
   padding:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -203,7 +227,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 <div class="wrap">
   <div class="who">
     <div><div class="brand">MEDBOOKS</div><b id="coName"></b><small id="usrName"></small></div>
-    <div class="whoB"><button class="pen" id="swBtn" type="button">Switch</button><button class="pen" id="stBtn" type="button">Settings</button><button class="pen" id="logoutBtn" type="button">Log out</button></div>
+    <div class="whoB"><button class="pen" id="viewBtn" type="button">PC view</button><button class="pen" id="swBtn" type="button">Switch</button><button class="pen" id="stBtn" type="button">Settings</button><button class="pen" id="logoutBtn" type="button">Log out</button></div>
   </div>
   <button class="sync" id="syncLine" type="button" hidden></button>
   <div class="seg" id="subnav"></div>
@@ -4062,6 +4086,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     saveData();later('xl',driveExcel);later('bk',queueAuto);
     $('ntModal').hidden=true;renderLedger();toast('Entry deleted.');
   });
+  function viewIsPc(){var v=get('eb_view','');return v==='pc'||(v!=='mobile'&&window.innerWidth>=900)}
+  function applyView(){var pc=viewIsPc();document.body.classList.toggle('pc',pc);$('viewBtn').textContent=pc?'Mobile view':'PC view'}
+  $('viewBtn').addEventListener('click',function(){set('eb_view',viewIsPc()?'mobile':'pc');applyView()});
+  window.addEventListener('resize',function(){if(!get('eb_view',''))applyView()});
+  applyView();
   $('stBtn').addEventListener('click',openSettings);
   $('stClose').addEventListener('click',function(){$('stModal').hidden=true});
   $('swBtn').addEventListener('click',showCoModal);
