@@ -39,3 +39,14 @@ BILL PRINT: compact fonts and rows, sharper output; about 30 to 36 items fit one
 Earlier-rate popup now also opens when the cursor reaches the Rate cell by keyboard (Tab / Enter / arrows); Up/Down + Enter picks a rate.
 
 Company name (and address/phone/PAN) now always shown at the top of every bill, voucher, statement, report and entry sheet, using the current Settings > Company details.
+
+NEW IN VERSION 11
+- Inventory: Purchase price list and Sales price list (filter by item, party, dates).
+- Stock summary hides items with zero closing stock.
+- Journal: any number of Dr and Cr ledgers (+ Ledger buttons).
+- Ledger groups like Tally (Add On > Ledger groups); Report > Ledger > By group.
+- Day Book: money in, money out, opening, closing and difference.
+- Export: one ledger/item or all; ledger statements and stock statements.
+- Staff: owner adds/removes users in Add On > User, sets access limits and each person's Gmail.
+- Tap any voucher row in a report to open it. Alt+P / Alt+H print or share the last saved voucher from any screen.
+- Show/Hide eye on every password box.
