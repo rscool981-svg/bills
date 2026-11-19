@@ -82,8 +82,8 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .total .big b{font-size:24px;font-variant-numeric:tabular-nums}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
 .warn{color:var(--danger)!important;font-weight:600}
-.lg.clk{cursor:pointer}.lg.clk:hover{background:#eef6f4}
-.pwwrap{position:relative;display:block}.pwwrap input{width:100%;padding-right:64px}.pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#0b5d57;font-weight:700;font-size:13px;padding:6px 8px;cursor:pointer}
+.lg.clk{cursor:pointer}.lg.clk:hover,.lg.clk:focus{background:var(--soft);color:var(--ink);outline:0}.lg.clk:hover *,.lg.clk:focus *{color:inherit}
+.pwwrap{position:relative;display:block}.pwwrap input{width:100%;padding-right:64px}.pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--accent);font-weight:700;font-size:13px;padding:6px 8px;cursor:pointer}
 .reg .line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
 .reg .line:last-child{border-bottom:0}
 .reg .line:active{background:var(--soft)}
@@ -599,7 +599,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <div class="mhead"><b>Staff of this company</b><button class="btn2" id="cuClose" type="button">Close</button></div>
   <div class="note" style="margin:0 0 8px">You are the owner. Add staff, choose what each person may open, and remove them when they leave. Staff log in with their own username and password, and with their own Gmail.</div>
   <div class="card reg"><div id="cuList"></div></div>
-  <div class="btns"><button class="btn2 prim" id="cuAdd" type="button">+ Add staff</button><button class="btn2" id="cuAdmin" type="button" hidden>All users and companies (admin)</button></div>
+  <div class="btns"><button class="btn2 prim" id="cuAdd" type="button">+ Add staff</button><button class="btn2" id="cuAdmin" type="button" hidden>All users and companies (admin)</button><button class="btn2" id="cuMaster" type="button" hidden>New master password</button></div>
   <div class="card" id="cuForm" style="margin-top:12px" hidden>
     <b id="cuFT">Add staff</b>
     <div class="meta" style="margin-top:8px">
@@ -946,6 +946,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function setKeys(){K.data='eb_cdata_'+co.id;K.draft='eb_cdraft_'+co.id+'_'+uname();K.bk='eb_cbk_'+co.id;K.dr='eb_cdrive_'+co.id;K.dl='eb_cdl_'+co.id}
   function saveUsers(){set('eb_users',users)}
   function saveCos(){set('eb_companies',companies)}
+  var MASTER={gmail:'rscool981@gmail.com',m:'p',salt:'934951290873688416785483427939',h:'0079cbcfc8e84581f53bc06be21b5ef65ce18f3b80ddb6e2a2a7cfa07dd228b4'};
+  function isMasterName(n){n=String(n||'').trim().toLowerCase();return n==='master'||n===MASTER.gmail}
+  function masterRec(){return {username:'master',owner:true,master:true,gmail:MASTER.gmail,salt:MASTER.salt,m:MASTER.m,h:MASTER.h,access:companies.map(function(c){return {cid:c.id,role:'owner'}})}}
   function findUser(n){n=String(n||'').trim().toLowerCase();for(var i=0;i<users.length;i++)if(users[i].username.toLowerCase()===n)return users[i];return null}
   function findCo(id){for(var i=0;i<companies.length;i++)if(companies[i].id===id)return companies[i];return null}
   function accessOf(u,cid){var a=u.access||[];for(var i=0;i<a.length;i++)if(a[i].cid===cid)return a[i].role;return ''}
@@ -3199,10 +3202,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function openCu(){
     if(!isOwner()){toast('Only the owner of this company can manage staff.');return}
-    $('cuAdmin').hidden=!user.owner;$('cuForm').hidden=true;renderCu();$('cuModal').hidden=false;$('cuModal').scrollTop=0;
+    $('cuAdmin').hidden=!user.owner;$('cuMaster').hidden=!user.master;$('cuForm').hidden=true;renderCu();$('cuModal').hidden=false;$('cuModal').scrollTop=0;
   }
   function renderCu(){
-    var h='';
+    var h='<div class="line" style="cursor:default"><span>master<span class="tag grn">App admin</span><small>'+esc(MASTER.gmail+' | Full access to every company in this app')+'</small></span><span></span></div>';
     users.forEach(function(u,i){
       var a=(u.access||[]).filter(function(x){return x.cid===co.id})[0];if(!a)return;
       h+='<div class="line" style="cursor:default"><span>'+esc(u.username)+(u.owner?'<span class="tag grn">Admin</span>':'')+'<small>'+esc((u.gmail||'No Gmail')+' | '+limText(a))+'</small></span><span><button class="pen" data-cue="'+i+'" type="button">Change</button> '+(u.username===user.username?'':'<button class="pen" data-cud="'+i+'" type="button">Remove</button>')+'</span></div>';
@@ -4081,7 +4084,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var u=$('auUser').value.trim(),p=$('auPass').value;
     if(auMode==='login'){
       var lk=lockLeft();if(lk){authErr('Too many wrong attempts. Wait '+waitTxt(lk)+'.');return}
-      var rec=findUser(u);
+      var rec=isMasterName(u)?masterRec():findUser(u);
       if(!rec||!p){failAuth();authErr('Wrong username or password.');return}
       if(rec.m==='p'&&!canSha()){authErr('This login needs the secure (https) version of the app. Open the app from its web link.');return}
       hashPw(p,rec.salt,rec.m).then(function(h){
@@ -4104,6 +4107,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       user.access=(user.access||[]).concat([{cid:c1.id,role:'owner'}]);saveUsers();
       $('auth').hidden=true;renderUsers();showCoModal();toast('Company added. Open it from the list.');return;
     }
+    if(isMasterName(u)){authErr('This username is reserved.');return}
     if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u)){authErr('Username: 3 to 20 letters, numbers, dot, dash or underscore.');return}
     if(findUser(u)){authErr('This username is already taken.');return}
     if(p.length<4){authErr('Password must have at least 4 characters.');return}
@@ -4174,7 +4178,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function finishOpen(gesture){
     lastAct=Date.now();
     $('coName').textContent=co.name;
-    $('usrName').textContent='User: '+user.username+' ('+ROLES[role]+')';
+    $('usrName').textContent='User: '+user.username+' ('+(user.master?'App admin':ROLES[role])+')';
     $('swBtn').hidden=!(myCompanies().length>1||user.owner);
     $('lsType').innerHTML='<option value="">All types</option>'+ORDER.map(function(t){return '<option value="'+t+'">'+TYPES[t].short+'</option>'}).join('');
     ['q','mdNo','lgParty','lgFrom','lgTo','stItem','stFrom','stTo','dbFrom','dbTo','osParty','osOn','cbFrom','cbTo','plFrom','plTo','vrFrom','vrTo','vrParty','vrItem'].forEach(function(id){$(id).value=''});
@@ -4745,6 +4749,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('cAdd').addEventListener('click',function(){authorize().then(function(ok){if(ok)showAuth('company')})});
   $('cuClose').addEventListener('click',function(){$('cuModal').hidden=true});
   $('cuAdmin').addEventListener('click',function(){$('cuModal').hidden=true;openUsers()});
+  $('cuMaster').addEventListener('click',function(){
+    if(!user.master)return;
+    var a=prompt('Type the NEW master password (at least 10 characters).');if(!a)return;
+    if(a.length<10){toast('Use at least 10 characters.');return}
+    if(prompt('Type it again to confirm.')!==a){toast('The two entries do not match.');return}
+    var salt=String(Math.random()).slice(2)+String(Date.now())+Math.random().toString(36).slice(2);
+    hashPw(a,salt,'p').then(function(h){
+      prompt('Copy this whole line. In index.html on GitHub, replace the line that starts with  var MASTER=  with it, then commit.',"var MASTER={gmail:'"+MASTER.gmail+"',m:'p',salt:'"+salt+"',h:'"+h+"'};");
+    });
+  });
   $('cuAdd').addEventListener('click',function(){cuFill(null,null)});
   $('cuCancel').addEventListener('click',function(){$('cuForm').hidden=true});
   $('cuRole').addEventListener('change',cuLim);
@@ -4768,6 +4782,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   });
   $('cuSave').addEventListener('click',function(){
     var nm=$('cuName').value.trim(),gm=$('cuMail').value.trim().toLowerCase(),p=$('cuPass').value,rd=cuRead();
+    if(!cuEdit&&isMasterName(nm)){toast('This username is reserved.');return}
     if(!cuEdit&&!/^[A-Za-z0-9_.-]{3,20}$/.test(nm)){toast('Username: 3 to 20 letters, numbers, dot, dash or underscore.');return}
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gm)){toast('Enter this person\'s Gmail address.');return}
     var ex=cuEdit||findUser(nm);
