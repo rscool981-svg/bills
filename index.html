@@ -658,7 +658,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <h2>Entry sheets (print and write on)</h2>
   <div class="card meta">
     <div class="full"><label for="shWhat">Sheet for</label><select id="shWhat"><option value="items">Sales, Sales return, Purchase, Purchase return (party, items, qty, rate)</option><option value="amt">Receipt, Payment, or sales/purchase without stock (party, amount, mode)</option><option value="jnl">Journal (debit party, credit party, amount)</option></select></div>
-    <div class="full"><label for="shFmt">File type</label><select id="shFmt"><option value="pdf">PDF</option><option value="jpg">JPG picture</option><option value="png">PNG picture</option></select></div>
+    <div class="full"><label for="shFmt">File type</label><select id="shFmt"><option value="pdf">PDF</option><option value="jpg">JPG picture</option><option value="png">PNG picture</option><option value="xlsx">Excel (all sheets in one file, ready to fill and import)</option></select></div>
     <div class="full note" style="margin:0">Print the sheet, write entries on it neatly in capital or block letters, one entry per line, then use the photo button on any voucher or aggregate screen. As many pages as needed. The reader also accepts any ordinary notebook photo, PDF, JPG or PNG.</div>
   </div>
   <div class="btns"><button class="btn2" id="shGo" type="button">Download entry sheet</button></div>
@@ -1095,19 +1095,22 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return new Blob(parts,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   }
   function colL(i){return String.fromCharCode(65+i)}
-  function sheetXml(rows,widths){
-    var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>'+
+  var XSTY='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts><fonts count="5"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font><font><i/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0F6E5A"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEAF4F1"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF999999"/></left><right style="thin"><color rgb="FF999999"/></right><top style="thin"><color rgb="FF999999"/></top><bottom style="thin"><color rgb="FF999999"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="10"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/><xf numFmtId="4" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left"/></xf><xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="4" fontId="2" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="2" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  function sheetXml(rows,widths,freeze){
+    var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><cols>'+
       widths.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>'}).join('')+'</cols><sheetData>';
+    if(freeze)x=x.replace('<cols>','<sheetViews><sheetView workbookViewId="0"><pane ySplit="'+freeze+'" topLeftCell="A'+(freeze+1)+'" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>');
     rows.forEach(function(r,ri){
       x+='<row r="'+(ri+1)+'">';
       r.forEach(function(v,ci){
-        if(v===''||v==null)return;
+        var st='';if(v&&typeof v==='object'){st=' s="'+v.s+'"';v=v.v}
         var ref=colL(ci)+(ri+1);
-        x+=typeof v==='number'?'<c r="'+ref+'"><v>'+v+'</v></c>':'<c r="'+ref+'" t="inlineStr"><is><t>'+esc(v)+'</t></is></c>';
+        if(v===''||v==null){if(st)x+='<c r="'+ref+'"'+st+'/>';return}
+        x+=typeof v==='number'&&st?'<c r="'+ref+'"'+st+'><v>'+v+'</v></c>':typeof v!=='number'&&st?'<c r="'+ref+'"'+st+' t="inlineStr"><is><t>'+esc(v)+'</t></is></c>':typeof v==='number'?'<c r="'+ref+'"><v>'+v+'</v></c>':'<c r="'+ref+'" t="inlineStr"><is><t>'+esc(v)+'</t></is></c>';
       });
       x+='</row>';
     });
-    return x+'</sheetData></worksheet>';
+    return x+'</sheetData><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>';
   }
   function xlsxBlob(){
     var docs=[['Type','Number','Date (B.S.)','Party','Sub Total','Discount','Net Total','Status','Against Bill','Mode','Remarks','Generated By','Saved On','Last Edited','Edited By','Credit ledger (journal)','Discount type','Stock']];
@@ -1137,14 +1140,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return xlsxFromSheets(sheets);
   }
   function xlsxFromSheets(sheets){
+    var used={};sheets.forEach(function(sh){var b=String(sh.n||'Sheet').replace(/[\\\/?*\[\]:]/g,' ').trim().slice(0,28)||'Sheet',n=b,k=1;while(used[n.toLowerCase()])n=b+' '+(++k);used[n.toLowerCase()]=1;sh.n=n});
     var H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     var files=[
-      {name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'}).join('')+'</Types>'},
+      {name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'}).join('')+'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
       {name:'_rels/.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
-      {name:'xl/workbook.xml',data:H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map(function(s,i){return '<sheet name="'+s.n+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>'}).join('')+'</sheets></workbook>'},
-      {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return '<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>'}).join('')+'</Relationships>'}
+      {name:'xl/workbook.xml',data:H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map(function(s,i){return '<sheet name="'+esc(s.n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>'}).join('')+'</sheets></workbook>'},
+      {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return '<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>'}).join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'}
     ];
-    sheets.forEach(function(s,i){files.push({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:sheetXml(s.r,s.w)})});
+    sheets.forEach(function(s,i){files.push({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:sheetXml(s.r,s.w,s.freeze)})});
+    files.push({name:'xl/styles.xml',data:XSTY});
     return zip(files);
   }
   var XMIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -1910,7 +1915,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('bkApply').addEventListener('click',function(){
     var a=BKA;if(!a)return;var k=a.k,ix=a.ix,v=function(id){return $(id)?$(id).value.trim():''};
     if(k==='ls'){
-      var nd=v('bkDate'),ad='';if(nd){var nb=normBS(nd);if(!nb){toast('Check the date.');return}ad=bsToAD(nb);if(isLocked(ad)){toast(lockMsg());return}}
+      var nd=v('bkDate'),ad='';if(nd){ad=normBS(nd);if(!ad){toast('Check the date.');return}if(isLocked(ad)){toast(lockMsg());return}}
       if(!nd&&!v('bkParty')&&!v('bkMode')&&!v('bkRem')){toast('Fill at least one box.');return}
     }else if(k==='ms'&&msKind!=='party'){if(!v('bkUnit')&&!v('bkRate')&&!v('bkMrp')&&!v('bkPack')){toast('Fill at least one box.');return}}
     else if(!v('bkGrp')&&!v('bkSide')){toast('Choose at least one change.');return}
@@ -3509,11 +3514,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 
 
   /* ---------- import / export ---------- */
-  var IE_EX=[['items','Stock items (one or all)'],['parties','Parties and ledgers (one or all)'],['opening','Opening balances'],['txn','Transactions (all, or one party)'],['txn:sale','Sales bills with stock items'],['txn:pur','Purchase bills with stock items'],['txn:sret','Sales returns'],['txn:pret','Purchase returns'],['txn:rec','Receipt vouchers'],['txn:pay','Payment vouchers'],['txn:jnl','Journal vouchers'],['ledger','Ledger balances (one or all)'],['ledstmt','Ledger statement with running balance (one or all ledgers)'],['stock','Stock summary (one or all items)'],['stkstmt','Stock item statement (one or all items)'],['register','Full register (Excel only)']];
+  var IE_EX=[['items','Stock items (one or all)'],['parties','Parties and ledgers (one or all)'],['opening','Opening balances'],['txn','Transactions (all, or one party)'],['ledxl','Ledger in Excel format (vouchers with items; one sheet per ledger)'],['rx:sale','All sales bills, Excel register (with items, or without stock)'],['rx:pur','All purchase bills, Excel register (with items, or without stock)'],['rx:sret','All sales returns, Excel register'],['rx:pret','All purchase returns, Excel register'],['rx:rec','All receipts, Excel register'],['rx:pay','All payments, Excel register'],['rx:jnl','All journals, Excel register'],['ledger','Ledger balances (one or all)'],['ledstmt','Ledger statement with running balance (one or all ledgers)'],['stock','Stock summary (one or all items)'],['stkstmt','Stock item statement (one or all items)'],['register','Full register (Excel only)']];
   var IM=null;
   function nv(x){var n=parseFloat(String(x==null?'':x).replace(/,/g,''));return isFinite(n)?n:0}
   function hkey(h){return String(h==null?'':h).toLowerCase().replace(/[^a-z0-9]/g,'')}
-  function exWhoKind(){var w=$('ieExWhat').value.replace(/^txn:.*/,'txn');$('ieExWho').setAttribute('data-sug',(w==='items'||w==='stock'||w==='stkstmt')?'item':'party');$('ieExWho').disabled=(w==='opening'&&false)||w==='register'}
+  function exWhoKind(){var w=$('ieExWhat').value.replace(/^txn:.*/,'txn');if(w==='ledxl')w='ledstmt';if(/^rx:/.test(w))w='txn';$('ieExWho').setAttribute('data-sug',(w==='items'||w==='stock'||w==='stkstmt')?'item':'party');$('ieExWho').disabled=(w==='opening'&&false)||w==='register'}
   function openIe(){
     if(!isOwner()){toast('Only the owner can use Import / Export.');return}
     var sl=$('ieExWhat');if(!sl.options.length)sl.innerHTML=IE_EX.map(function(x){return '<option value="'+x[0]+'">'+x[1]+'</option>'}).join('');
@@ -3600,6 +3605,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ieExport(){
     var w=$('ieExWhat').value,f=$('ieExFmt').value;
     if(w==='register'){download(xlsxBlob(),regFile());toast('Excel register downloaded.');return}
+    if(/^rx:/.test(w)){
+      var tr=w.slice(3),f2=normBS($('ieExFrom').value)||'',t2=normBS($('ieExTo').value)||'',rb=regSheet(tr,f2,t2,0,exWho());
+      if(rb.r.length<=3){toast('No '+TYPES[tr].short.toLowerCase()+' vouchers found for these choices.');return}
+      showFile(xlsxFromSheets([rb]),(safeName(TYPES[tr].short)||'Vouchers')+'_register.xlsx');toast('Excel file ready. Tap Share or Download.');return;
+    }
+    if(w==='ledxl'){
+      var fr=normBS($('ieExFrom').value)||'',tt=normBS($('ieExTo').value)||'',ls=ledgerSheets(fr,tt);
+      if(!ls.length){toast(exWho()?'Nothing found for "'+exWho()+'".':'There is nothing to export.');return}
+      showFile(xlsxFromSheets(ls),(exWho()?safeName(exWho()):'Ledgers')+'_ledger.xlsx');toast('Excel file ready. Tap Share or Download.');return;
+    }
     var t=exTable(w);
     if(!t.R.length){toast(exWho()?'Nothing found for "'+exWho()+'". Check the name or the dates.':'There is nothing to export for this choice.');return}
     if(f==='xlsx'){
@@ -3690,7 +3705,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(!sheets.length)throw new Error('The Excel file has no data.');
       var want=IM_SPEC[what],best=sheets[0];
       sheets.forEach(function(sh){if(findHeader(sh,want)>=0&&findHeader(best,want)<0)best=sh});
-      return {rows:best,src:'Excel'};
+      var ls=sheets.filter(function(sh){return isLedgerSheet(sh)>=0});
+      return {rows:best,src:'Excel',all:ls.length?ls:null,sheets:sheets};
     });
     if(/\.(csv|txt)$/.test(n)||/^text\//.test(t))return file.text().then(function(x){return {rows:parseCSV(x),src:'CSV'}});
     if(/^image\//.test(t)||t==='application/pdf'||/\.pdf$/.test(n))return photoRead(file,'table').then(function(r){return {rows:r.rows,src:'photo'}});
@@ -3722,11 +3738,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var l=vsList();for(var i=0;i<l.length;i++)if(hkey(l[i].name)===k)return l[i].base;
     return '';
   }
-  function planOf(what,rows){
-    var forced='';if(/^txn:/.test(what)){forced=what.slice(4);what='txn'}
+  function planOf(what,rows,all){
+    var forced='',lopens=null;if(/^txn:/.test(what)){forced=what.slice(4);what='txn'}
+    if(what==='txn'){
+      var lt=ledgerToTxn(all||[rows]);if(lt){rows=lt.rows;lopens=lt.opens}
+      else{var rg=regToTxn([rows],forced);if(rg){if(rg.errs.length&&rg.rows.length<2)return {fatal:rg.errs[0]};rows=rg.rows}}
+    }
     var spec=IM_SPEC[what],hi=findHeader(rows,spec);
     if(hi<0)return {fatal:'The first row must have column titles. Needed: '+spec._req.map(function(k){return k}).join(', ')+'. Download the template to see the layout.'};
-    var m=mapCols(rows[hi],spec),body=rows.slice(hi+1),P={what:what,add:[],skip:0,errs:[],note:''};
+    var m=mapCols(rows[hi],spec),body=rows.slice(hi+1),P={what:what,add:[],skip:0,errs:[],note:'',opens:[]};
+    (lopens||[]).forEach(function(o){if(!findParty(pkey(o.name))&&!P.opens.some(function(x){return pkey(x.name)===pkey(o.name)}))P.opens.push({name:o.name,phone:'',pan:'',address:'',open:r2(o.open),side:o.side})});
     var seen={};
     if(what==='items'){
       body.forEach(function(r,i){
@@ -3776,7 +3797,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
           if(!g.lines.length){
             if(!(g.amt>0)){P.errs.push('Row '+g.row+': voucher of '+g.party+' has no item lines or amount.');return}
             d.items=[];d.sub=g.amt;d.disc=0;d.discMode='none';d.total=g.amt;d.noStock=true;d.mode=g.mode||'Credit';
-          }else{var ct=calcTot(g.lines,'amt','','none');d.items=g.lines;d.sub=ct.sub;d.disc=0;d.discMode='none';d.total=ct.net}
+          }else{var ct=calcTot(g.lines,'amt','','none');d.items=g.lines;d.sub=ct.sub;d.disc=0;d.discMode='none';d.total=ct.net;
+            if(g.amt>0&&g.amt+0.5<ct.sub){var df=r2(ct.sub-g.amt);d.discMode='bill';d.discT='amt';d.discV=String(df);d.disc=df;d.total=r2(ct.sub-df)}}
         }else{
           if(!(g.amt>0)){P.errs.push('Row '+g.row+': amount is missing for '+g.party+'.');return}
           d.total=g.amt;if(g.ty==='jnl')d.party2=g.party2;else d.mode=g.mode||'Cash';
@@ -3796,8 +3818,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var rows=P.add.slice(0,8).map(function(x){return P.what==='txn'?[x.date,TYPES[x.type].short,x.party,fmt(x.total)]:(P.what==='items'?[x.name,x.unit,String(x.open),fmt(x.rate)]:[x.name,x.phone,fmt(x.open),x.side])});
       h+=htmlTable({cols:cl.map(function(c,i){return {h:c,w:i===0||i===2?2:1,al:i===3?'r':'l'}}),rows:rows,totals:[],minw:420})+(P.add.length>8?'<div class="note">...and '+(P.add.length-8)+' more.</div>':'');
     }
+    if(P.opens&&P.opens.length)h+='<div class="note">'+P.opens.length+' new ledger(s) will be created with the opening balance from the file: '+esc(P.opens.slice(0,4).map(function(o){return o.name+' '+fmt(o.open)+' '+o.side}).join(', '))+'.</div>';
     if(P.errs.length)h+='<div class="note err"><b>'+P.errs.length+' row(s) need attention:</b><br>'+P.errs.slice(0,8).map(esc).join('<br>')+(P.errs.length>8?'<br>...':'')+'</div>';
-    if(P.add.length)h+='<div class="btns"><button class="btn2 prim" id="ieImGo" type="button">Import '+P.add.length+' (password)</button></div>';
+    if(P.add.length||(P.opens&&P.opens.length))h+='<div class="btns"><button class="btn2 prim" id="ieImGo" type="button">Import '+P.add.length+(P.opens&&P.opens.length?' + '+P.opens.length+' ledger(s)':'')+' (password)</button></div>';
     else h+='<div class="note">Nothing new to import.</div>';
     $('ieImOut').innerHTML=h;IM=P;
     if($('ieImGo'))$('ieImGo').addEventListener('click',ieCommit);
@@ -3805,13 +3828,21 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ieFile(file){
     var what=$('ieImWhat').value;
     $('ieImOut').innerHTML='<div class="note">Reading the file...</div>';IM=null;
-    fileToRows(file,what.replace(/^txn:.*/,'txn')).then(function(r){ieShowPlan(planOf(what,r.rows),r.src)}).catch(function(e){$('ieImOut').innerHTML='<div class="note err">'+esc(e.message||'Could not read the file.')+'</div>'});
+    fileToRows(file,what.replace(/^txn:.*/,'txn')).then(function(r){
+      var P;
+      if(/^txn/.test(what)&&r.sheets){
+        var ps=[];if(r.all)ps.push(planOf(what,null,r.all));
+        r.sheets.forEach(function(sh){if(isLedgerSheet(sh)<0&&(isRegSheet(sh)>=0||findHeader(sh,IM_SPEC.txn)>=0))ps.push(planOf(what,sh))});
+        P=ps.filter(function(p){return !p.fatal}).reduce(function(a,b){if(!a)return b;a.add=a.add.concat(b.add);a.skip+=b.skip;a.errs=a.errs.concat(b.errs);a.opens=(a.opens||[]).concat(b.opens||[]);return a},null)||(ps[0]||planOf(what,r.rows));
+      }else P=planOf(what,r.rows,r.all);
+      ieShowPlan(P,r.src)}).catch(function(e){$('ieImOut').innerHTML='<div class="note err">'+esc(e.message||'Could not read the file.')+'</div>'});
   }
   function ieCommit(){
-    var P=IM;if(!P||!P.add.length)return;
+    var P=IM;if(!P||(!P.add.length&&!(P.opens&&P.opens.length)))return;
     authorize().then(function(ok){
       if(!ok)return;
       var n=0;
+      (P.opens||[]).forEach(function(o){if(!findParty(pkey(o.name))){DATA.parties.push(o);n++}});
       if(P.what==='items'){P.add.forEach(function(r){if(findItem(pkey(r.name)))return;DATA.items.push(r);addUnit(r.unit);n++});fillUnitDl()}
       else if(P.what==='parties'){P.add.forEach(function(r){if(findParty(pkey(r.name)))return;DATA.parties.push(r);n++})}
       else{
@@ -3829,6 +3860,155 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       toast(n+' imported.');
     });
   }
+  /* ---- ledger statement in Excel (Tally-like): voucher row, then item rows ---- */
+  var LC=['SALES','RECEIPT','SALES RETURN','PURCHASE','PAYMENT','PURCHASE RETURN','JOURNAL DR','JOURNAL CR'],LCOL={sale:0,rec:1,sret:2,pur:3,pay:4,pret:5},LH=['Date','Particulars','Voucher Type','Vch No.','Quantity','Unit','Rate'].concat(LC),LCW=[11,32,14,12,10,8,10,12,12,13,12,12,14,12,12];
+  function adSerial(iso){var p=String(iso).split(/[-\/]/);return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/864e5)+25569}
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function adLong(iso){var p=String(iso).split(/[-\/]/);return (+p[2])+'-'+MON[+p[1]-1]+'-'+p[0]}
+  function ledgerBlock(nm,from,to){
+    var lg=ledgerFor(nm,from,to),R=[],dts=[];
+    DATA.docs.forEach(function(d){if(live(d))dts.push(String(d.date))});
+    R.push([{v:'Ledger:',s:6},{v:lg.name,s:6},'',{v:(from||to)?periodTxt(from,to):'All dates (B.S. dates in the app, A.D. dates here)',s:8}]);
+    R.push([]);
+    R.push(LH.map(function(h){return {v:h,s:1}}));
+    var op=lg.open||0,oc=LH.map(function(){return {v:'',s:2}});
+    oc[1]={v:'OPENING BALANCE',s:6};oc[2]={v:op<0?'Cr':'Dr',s:6};oc[7+(op<0?1:0)]={v:Math.abs(op),s:7};
+    R.push(oc);
+    lg.rows.forEach(function(r){
+      var d=DATA.docs[r.i];if(!d)return;
+      var T=TYPES[d.type]||{},row=LH.map(function(){return {v:'',s:2}});
+      row[0]={v:adSerial(bsToAD(dmy(d.date))||'1970-01-01'),s:9};row[2]={v:r.led?'Ledger entry':dShort(d),s:6};row[3]={v:r.led?'':String(d.no||''),s:6};
+      var col=LCOL[d.type];
+      if(d.type==='jnl'){
+        var oth=jlines(d).filter(function(x){return pkey(x.p)!==pkey(lg.name)}).map(function(x){return x.p}).join(', ');
+        row[1]={v:oth||lg.name,s:6};if(r.dr)row[13]={v:r.dr,s:7};if(r.cr)row[14]={v:r.cr,s:7};
+      }else if(col!==undefined){row[1]={v:lg.name,s:6};row[7+col]={v:d.total,s:7}}
+      else{row[1]={v:r.part,s:6};if(r.dr)row[13]={v:r.dr,s:7};if(r.cr)row[14]={v:r.cr,s:7}}
+      R.push(row);
+      if(T.kind==='items'&&col!==undefined)(d.items||[]).forEach(function(it){
+        var ir=LH.map(function(){return {v:'',s:2}});ir[1]={v:it.item||'',s:2};ir[4]={v:nv(it.qty),s:3};ir[5]={v:uOf(it.item,it.unit),s:2};ir[6]={v:nv(it.rate),s:3};R.push(ir);
+      });
+    });
+    return R;
+  }
+  function ledgerSheets(from,to){
+    var names=partyBalances().map(function(o){return o.name}),pick=exPick(names,function(x){return x}),out=[];
+    pick.forEach(function(nm){var R=ledgerBlock(nm,from,to);if(R.length>4||(ledgerFor(nm,from,to).open))out.push({n:nm,r:R,w:LCW,freeze:3})});
+    return out;
+  }
+  function isLedgerSheet(sh){
+    for(var i=0;i<Math.min(sh.length,8);i++){var k=sh[i].map(hkey);if(k.indexOf('particulars')>=0&&k.indexOf('vouchertype')>=0)return i}
+    return -1;
+  }
+  function parseAnyDate(v){
+    if(typeof v==='number')return v;
+    var t=txt(v),m=/^(\d{1,2})[- ]([A-Za-z]{3})[a-z]*[- ,]+(\d{4})$/.exec(t);
+    if(m){var mi=MON.indexOf(m[2][0].toUpperCase()+m[2].slice(1,3).toLowerCase());if(mi>=0)return Math.round(Date.UTC(+m[3],mi,+m[1])/864e5)+25569}
+    return t;
+  }
+  var STDH=['Date','Type','Number','Party','Credit ledger (journal)','Item','Qty','Unit','Rate','Amount','Mode','Remarks'];
+  function ledgerToTxn(sheets){
+    var rows=[STDH],opens=[],found=false,notes=[];
+    sheets.forEach(function(sh){
+      var hi=isLedgerSheet(sh);if(hi<0)return;found=true;
+      var hk=sh[hi].map(hkey),ix=function(names){for(var j=0;j<hk.length;j++)if(names.indexOf(hk[j])>=0)return j;return -1};
+      var c={date:ix(['date','datebs','miti']),part:ix(['particulars']),type:ix(['vouchertype','type']),no:ix(['vchno','vouchno','voucherno','number']),qty:ix(['quantity','qty']),unit:ix(['unit']),rate:ix(['rate']),
+        a:[ix(['sales']),ix(['receipt']),ix(['salesreturn']),ix(['purchase']),ix(['payment']),ix(['purchasereturn']),ix(['journaldr','journal']),ix(['journalcr'])],bal:ix(['balance'])};
+      var led='';for(var i=0;i<hi;i++){if(hkey(sh[i][0])==='ledger'&&sh[i][1])led=txt(sh[i][1])}
+      var TY=['Sales','Receipt','Sales Return','Purchase','Payment','Purchase Return','Journal','Journal'],cur=null;
+      sh.slice(hi+1).forEach(function(r){
+        var g=function(k){return k<0?'':(r[k]==null?'':r[k])},part=txt(g(c.part)),dv=g(c.date);
+        if(hkey(part)==='openingbalance'){
+          var amt=0,cr=false;c.a.forEach(function(k,j){var v=nv(g(k));if(v){amt=Math.abs(v);if(j===1||j===2||j===3||j===7)cr=cr||j===1||j===3||j===7}});
+          if(!amt){var b=nv(g(c.bal));amt=Math.abs(b);cr=b<0}
+          if(/^\s*c/i.test(txt(g(c.type))))cr=true;if(/^\s*d/i.test(txt(g(c.type))))cr=false;
+          if(amt&&(led||part))opens.push({name:led||part,open:amt,side:cr?'Cr':'Dr'});return;
+        }
+        if(txt(dv)!==''){
+          var ty=txt(g(c.type)),vi=-1,amt2=0;
+          c.a.forEach(function(k,j){var v=nv(g(k));if(v&&vi<0){vi=j;amt2=v}});
+          if(!ty&&vi>=0)ty=TY[vi];
+          if(vi<0&&typeOf(ty)==='jnl'){cur=null;return}
+          var party=led||part,p2='';
+          if(typeOf(ty)==='jnl'){if(vi===7){party=part;p2=led}else{party=led;p2=part}}
+          cur={dt:parseAnyDate(dv),ty:ty,no:txt(g(c.no)),party:party,p2:p2};
+          rows.push([cur.dt,ty,cur.no,party,p2,'','','','',amt2||'','','']);
+        }else if(cur&&part){
+          rows.push([cur.dt,cur.ty,cur.no,cur.party,cur.p2,part,g(c.qty),g(c.unit),g(c.rate),'','','']);
+        }
+      });
+    });
+    return found?{rows:rows,opens:opens}:null;
+  }
+  /* ---- voucher register in Excel (all sales, all purchases, receipts ...): voucher row, then its items ---- */
+  var RT=['sale','sret','pur','pret','rec','pay','jnl'],RH=['Date','Particulars','Vch No.','Quantity','Unit','Rate','Amount','Mode','Remarks'],RHJ=['Date','Particulars (debit ledger)','Vch No.','Credit ledger','','','Amount','','Remarks'],RW=[12,34,12,10,9,11,14,11,26];
+  function regHead(t){return t==='jnl'?RHJ:RH}
+  function regBlock(t,from,to,rows,who){
+    var T=TYPES[t],isI=T.kind==='items',R=[],H=regHead(t),w=(who||'').toLowerCase();
+    R.push([{v:T.short+' Register',s:5},'',{v:rows?'Fill from the next row: voucher row first (date, party, number, amount), then one row for each item.'+(isI?' Leave items out for a bill without stock.':''):((from||to)?periodTxt(from,to):'All dates'),s:8}]);
+    R.push([]);R.push(H.map(function(h){return {v:h,s:1}}));
+    if(rows){
+      for(var i=0;i<rows;i++)R.push(H.map(function(h,j){return {v:'',s:j===0?4:(j===6||j===5||j===3?3:2)}}));
+      return R;
+    }
+    var ord=[];
+    DATA.docs.forEach(function(d,i){
+      if(!live(d)||d.type!==t)return;var dt=dmy(d.date);if(from&&dt<from)return;if(to&&dt>to)return;
+      if(w&&String(d.party||'').toLowerCase().indexOf(w)<0&&String(d.party2||'').toLowerCase().indexOf(w)<0)return;
+      ord.push({d:d,i:i,dt:dt});
+    });
+    ord.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});
+    ord.forEach(function(o){
+      var d=o.d,row=H.map(function(){return {v:'',s:2}});
+      row[0]={v:adSerial(bsToAD(o.dt)||'1970-01-01'),s:9};row[1]={v:d.party||'',s:6};row[2]={v:String(d.no||''),s:6};row[6]={v:num(d.total),s:7};
+      if(t==='jnl')row[3]={v:d.party2||'',s:6};else if(!isI||d.mode)row[7]={v:d.mode||'',s:6};
+      if(d.remarks)row[8]={v:d.remarks,s:2};
+      R.push(row);
+      if(isI)(d.items||[]).forEach(function(it){
+        var ir=H.map(function(){return {v:'',s:2}});ir[1]={v:it.item||'',s:2};ir[3]={v:nv(it.qty),s:3};ir[4]={v:uOf(it.item,it.unit),s:2};ir[5]={v:nv(it.rate),s:3};ir[6]={v:amount(it,d.discMode==='bill'?'bill':'item'),s:3};R.push(ir);
+      });
+    });
+    return R;
+  }
+  function regSheet(t,from,to,rows,who){return {n:TYPES[t].short+' Register',r:regBlock(t,from,to,rows,who),w:RW,freeze:3}}
+  function isRegSheet(sh){
+    for(var i=0;i<Math.min(sh.length,8);i++){var k=sh[i].map(hkey);if(k.indexOf('particulars')>=0&&k.indexOf('vchno')>=0&&k.indexOf('amount')>=0&&k.indexOf('vouchertype')<0)return i}
+    return -1;
+  }
+  function regToTxn(sheets,forced){
+    var rows=[STDH],found=false,errs=[];
+    sheets.forEach(function(sh){
+      var hi=isRegSheet(sh);if(hi<0)return;found=true;
+      var t=forced;
+      for(var i=0;i<hi;i++){var k=hkey(sh[i][0]).replace(/register|entry|sheet/g,'');var tt=k?typeOf(k):'';if(tt&&TYPES[tt]){t=tt;break}}
+      if(!t){errs.push('Could not tell which voucher type the sheet is for. Name it like "Sales Register" in the first row.');return}
+      var hk=sh[hi].map(hkey),ix=function(n){return hk.indexOf(n)},
+          c={date:ix('date'),part:ix('particulars')>=0?ix('particulars'):ix('particularsdebitledger'),no:ix('vchno'),qty:ix('quantity'),unit:ix('unit'),rate:ix('rate'),amt:ix('amount'),mode:ix('mode'),rem:ix('remarks'),cr:ix('creditledger')};
+      if(c.part<0)for(var j=0;j<hk.length;j++)if(hk[j].indexOf('particulars')===0)c.part=j;
+      var lab=TYPES[t].short,cur=null;
+      sh.slice(hi+1).forEach(function(r){
+        var g=function(k){return k<0?'':(r[k]==null?'':r[k])},part=txt(g(c.part)),dv=g(c.date);
+        if(txt(dv)!==''){
+          cur={dt:parseAnyDate(dv),no:txt(g(c.no))};
+          rows.push([cur.dt,lab,cur.no,part,txt(g(c.cr)),'','','','',g(c.amt),txt(g(c.mode)),txt(g(c.rem))]);cur.party=part;
+        }else if(cur&&part&&TYPES[t].kind==='items'){
+          rows.push([cur.dt,lab,cur.no,cur.party,'',part,g(c.qty),g(c.unit),g(c.rate),g(c.amt),'','']);
+        }
+      });
+    });
+    return found?{rows:rows,errs:errs}:null;
+  }
+  function entrySheetsXlsx(){
+    var N=60,sh=[],hdr=function(H){return H.map(function(h){return {v:h,s:1}})},blank=function(n,fn){var a=[];for(var i=0;i<n;i++)a.push(fn(i));return a};
+    var itemsH=['Date (B.S.)','Type','Number','Party','Item','Qty','Unit','Rate','Amount','Remarks'],itemW=[13,16,11,28,30,9,9,11,13,24];
+    RT.forEach(function(t){sh.push(regSheet(t,'','',t==='rec'||t==='pay'||t==='jnl'?N:N*2))});
+    var lr=[[{v:'Ledger:',s:6},{v:'(write ledger name)',s:6},'',{v:'Ledger statement sheet. Voucher row first (date, voucher type, number, amount in its column), then its items below (item, quantity, unit, rate).',s:8}],[],hdr(LH),(function(){var o=LH.map(function(){return {v:'',s:2}});o[1]={v:'OPENING BALANCE',s:6};o[2]={v:'Dr',s:6};return o})()];
+    for(var i=0;i<N*2;i++)lr.push(LH.map(function(h,j){return {v:'',s:j===0?4:(j>=4&&j!==5&&j!==2&&j!==3?3:2)}}));
+    sh.push({n:'Ledger sheet',freeze:3,w:LCW,r:lr});
+    sh.push({n:'Stock items sheet',freeze:1,w:[30,10,12,10,10,12,14,14],r:[hdr(TPL.items.H)].concat(blank(N,function(){return TPL.items.H.map(function(h,j){return {v:'',s:j>=2&&j<=4?3:2}})}))});
+    sh.push({n:'Ledgers sheet',freeze:1,w:[30,14,14,28,16,10],r:[hdr(TPL.parties.H)].concat(blank(N,function(){return TPL.parties.H.map(function(h,j){return {v:'',s:j===4?3:2}})}))});
+    return xlsxFromSheets(sh);
+  }
   var TPL={
     items:{n:'Items',H:['Item','Unit','Opening qty','Rate','MRP','Packing','Opening batch','Opening expiry'],R:[['Paracetamol 500','Strip',100,12,15,'10 tabs','B101','08/2028']]},
     parties:{n:'Ledgers',H:['Name','Phone','PAN','Address','Opening balance','Dr / Cr'],R:[['Ram Medical','9800000000','123456789','Kathmandu',5000,'Dr']]},
@@ -3843,7 +4023,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function ieTemplate(){
     var w=$('ieImWhat').value,sh;
-    if(/^txn:/.test(w)){var t=w.slice(4),tr=tplRows(t);sh=[{n:TPL_T[t][0],r:[tr.H].concat(tr.R),w:tr.H.map(function(){return 18})},{n:'How to fill',r:[[TPL_T[t][1]],['Date: B.S. like 2083/08/01 (A.D. also accepted). Number may be left empty: it is numbered automatically.'],['Names that are new are created automatically in Ledgers / Stock.']],w:[110]}];
+    if(/^txn:/.test(w)){var t=w.slice(4);
+      var ex=regSheet(t,'','',40),ey=ex.r;
+      download(xlsxFromSheets([ex]),'MEDBOOKS_'+TPL_T[t][0].replace(/ /g,'_')+'_register_template.xlsx');return;
+      var tr=tplRows(t);sh=[{n:TPL_T[t][0],r:[tr.H].concat(tr.R),w:tr.H.map(function(){return 18})},{n:'How to fill',r:[[TPL_T[t][1]],['Date: B.S. like 2083/08/01 (A.D. also accepted). Number may be left empty: it is numbered automatically.'],['Names that are new are created automatically in Ledgers / Stock.']],w:[110]}];
       download(xlsxFromSheets(sh),'MEDBOOKS_'+TPL_T[t][0].replace(/ /g,'_')+'_template.xlsx');return}
     var x=TPL[w];
     download(xlsxFromSheets([{n:x.n,r:[x.H].concat(x.R),w:x.H.map(function(){return 18})}]),'MEDBOOKS_'+x.n+'_template.xlsx');
@@ -3854,7 +4037,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     sh.push({n:'Any vouchers',r:[TPL.txn.H].concat(TPL.txn.R),w:TPL.txn.H.map(function(){return 18})});
     sh.push({n:TPL.items.n,r:[TPL.items.H].concat(TPL.items.R),w:TPL.items.H.map(function(){return 18})});
     sh.push({n:TPL.parties.n,r:[TPL.parties.H].concat(TPL.parties.R),w:TPL.parties.H.map(function(){return 18})});
-    download(xlsxFromSheets(sh),'MEDBOOKS_all_templates.xlsx');toast('All templates downloaded in one Excel file.');
+    download(entrySheetsXlsx(),'MEDBOOKS_all_templates.xlsx');toast('All templates downloaded in one Excel file.');
   }
 
   /* ---------- photo reader (notebook photo, scanned list) ---------- */
@@ -4845,7 +5028,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('ieClose').addEventListener('click',function(){$('ieModal').hidden=true});
   $('ieExGo').addEventListener('click',ieExport);
   $('ieTpl').addEventListener('click',ieTemplate);$('ieTplAll').addEventListener('click',ieTemplateAll);
-  $('shGo').addEventListener('click',function(){var k=$('shWhat').value,f=$('shFmt').value,cv=drawSheet(k);canvasBlob(cv,f,function(b){if(b)download(b,'MEDBOOKS_entry_sheet_'+k+'.'+f)})});
+  $('shGo').addEventListener('click',function(){var k=$('shWhat').value,f=$('shFmt').value;if(f==='xlsx'){download(entrySheetsXlsx(),'MEDBOOKS_entry_sheets.xlsx');toast('Excel entry sheets downloaded. Fill them in and use Import.');return}var cv=drawSheet(k);canvasBlob(cv,f,function(b){if(b)download(b,'MEDBOOKS_entry_sheet_'+k+'.'+f)})});
   $('ocrTest').addEventListener('click',function(){
     var c=ocrCfg(),out=$('ocrStat');
     if(!ocrReady()){out.textContent=c.m==='drive'?'Photo reader: Google Drive is not signed in.':'Photo reader is not set up. Choose a method and save it first.';return}

@@ -60,3 +60,7 @@ Version 17: items, ledgers and units from older vouchers are added to Add On aut
 Version 18: Add On can edit/rename ledgers, stock items, units and groups (renames update saved bills). Fixed an error when saving a ledger with no group.
 
 Version 19: import/export by voucher type (sales, purchase, returns, receipt, payment, journal; with or without stock), template download per type and all templates in one Excel file, select-several with bulk edit/cancel/delete for vouchers, stock, ledgers and units, Google Drive subfolders per voucher type (Sales, Purchase, Receipt, Payment ...).
+
+Version 20: ledger Excel format (voucher row + item rows, import and export, one sheet per ledger), formatted Excel entry sheets for every voucher type, styled Excel files.
+
+Version 21: Excel registers for all sales / purchases / returns / receipts / payments / journals (voucher row + item rows), import and export, matching entry sheets.
