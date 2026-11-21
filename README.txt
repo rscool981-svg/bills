@@ -50,3 +50,11 @@ NEW IN VERSION 11
 - Staff: owner adds/removes users in Add On > User, sets access limits and each person's Gmail.
 - Tap any voucher row in a report to open it. Alt+P / Alt+H print or share the last saved voucher from any screen.
 - Show/Hide eye on every password box.
+
+Version 15: report paging arrows, corrected B.S./A.D. dates (A.D. shown yyyy/mm/dd), aggregate sales/purchase with units, batch, expiry, MRP, print and share, automatic Google Drive upload (refreshes in background; needs one Google sign-in per session if Google asks), custom groups that behave like standard groups, ESC steps back in PC mode, units shown in every stock report and remembered per item.
+
+Version 16: new stock items must be given a unit when a voucher is saved (remembered afterwards); items, ledgers and units created inside vouchers now appear in Add On for editing.
+
+Version 17: items, ledgers and units from older vouchers are added to Add On automatically.
+
+Version 18: Add On can edit/rename ledgers, stock items, units and groups (renames update saved bills). Fixed an error when saving a ledger with no group.
