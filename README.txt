@@ -58,3 +58,5 @@ Version 16: new stock items must be given a unit when a voucher is saved (rememb
 Version 17: items, ledgers and units from older vouchers are added to Add On automatically.
 
 Version 18: Add On can edit/rename ledgers, stock items, units and groups (renames update saved bills). Fixed an error when saving a ledger with no group.
+
+Version 19: import/export by voucher type (sales, purchase, returns, receipt, payment, journal; with or without stock), template download per type and all templates in one Excel file, select-several with bulk edit/cancel/delete for vouchers, stock, ledgers and units, Google Drive subfolders per voucher type (Sales, Purchase, Receipt, Payment ...).
