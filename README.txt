@@ -64,3 +64,5 @@ Version 19: import/export by voucher type (sales, purchase, returns, receipt, pa
 Version 20: ledger Excel format (voucher row + item rows, import and export, one sheet per ledger), formatted Excel entry sheets for every voucher type, styled Excel files.
 
 Version 21: Excel registers for all sales / purchases / returns / receipts / payments / journals (voucher row + item rows), import and export, matching entry sheets.
+
+Version 22: cash transactions on sales/purchase/returns (automatic cash receipt/payment), tap-through drill-down from reports (item > party > voucher), no discount by default, Pcs default unit, ledger list hides zero-balance parties.
