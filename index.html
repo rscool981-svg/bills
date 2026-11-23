@@ -112,8 +112,19 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .lgb .c{font-weight:700}
 .acrow{display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center;margin-top:8px}
 .acrow span{overflow-wrap:anywhere}
+.cxg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cxg button{padding:14px 0;font-size:18px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px}
+.cxg button.op{background:var(--soft);color:var(--accent)}.cxg button.eq{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px}
+.cal .h{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding:4px 0}.cal .h.sat,.cal .d.sat .b{color:#c0392b}
+.cal .d{border:1px solid var(--line);border-radius:6px;min-height:46px;padding:3px 4px;background:var(--card);cursor:pointer;text-align:center}
+.cal .d .b{font-weight:700;font-size:15px}.cal .d .s{font-size:10.5px;color:var(--muted)}.cal .d.today{outline:2px solid var(--accent);background:var(--soft)}.cal .d.sel{background:var(--accent);color:#fff}.cal .d.sel .b,.cal .d.sel .s{color:#fff}
+.dnr{display:grid;grid-template-columns:70px 1fr 110px;gap:8px;align-items:center;margin-top:6px}.dnr b{font-size:15px}.dnr .a{text-align:right;font-weight:700}
+.rmi{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}.rmi.done span{text-decoration:line-through;color:var(--muted)}.rmi .due{font-size:12px;color:var(--muted)}.rmi .due.late{color:#c0392b;font-weight:700}
+.hpc{margin-top:10px}.hpc h3{margin:0 0 4px;font-size:15px}.hpc p{margin:0;line-height:1.7}
+.cac{flex-wrap:nowrap}.cac .btn2{flex:0 0 auto;min-width:0;padding:10px 12px}.cac select{flex:1;min-width:0}.cac #caM{flex:1.7}
 /* bars */
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);border-top:1px solid var(--line);
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--card);border-top:1px solid var(--line);
   height:calc(var(--navh) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .nav button{border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;padding:6px 2px;border-top:3px solid transparent}
 .nav button.on{color:var(--accent);border-top-color:var(--accent);background:var(--soft)}
@@ -441,6 +452,71 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     </div>
   </section>
 
+  <section id="v-manual" hidden>
+    <div class="card meta" style="margin-top:12px">
+      <div class="full"><label for="mdDate">Day book date (B.S. or A.D.)</label><input id="mdDate" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div class="full btns" style="margin-top:0"><button class="btn2" id="mdPrev" type="button">&#9664; Previous day</button><button class="btn2" id="mdToday" type="button">Today</button><button class="btn2" id="mdNext" type="button">Next day &#9654;</button></div>
+      <div class="full"><label for="mdCash">Cash counted in hand (Rs)</label><input id="mdCash" type="text" inputmode="decimal" placeholder="Type, or use the note counter below" autocomplete="off"></div>
+      <details class="full" id="mdDenBox"><summary style="font-weight:700;cursor:pointer">Count notes (denomination counter)</summary><div id="mdDen"></div></details>
+      <div class="full"><label for="mdRem">Remarks</label><input id="mdRem" type="text" maxlength="120" autocomplete="off"></div>
+      <div class="full"><button class="btn2 prim" id="mdSave" type="button" style="width:100%">Save this day book</button></div>
+    </div>
+    <div id="mdOut"></div>
+    <div class="btns" id="mdBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="mdShare" type="button">Share</button><button class="btn2" id="mdPrint" type="button">Print</button></div>
+    <h2>Saved day books (latest first)</h2>
+    <div class="card" id="mdList"></div>
+  </section>
+
+  <section id="v-utility" hidden>
+    <div id="u-calc" hidden>
+      <div class="card" style="margin-top:12px">
+        <input id="cxIn" type="text" inputmode="none" autocomplete="off" placeholder="Type or tap: 12*4.5+10%" style="font-size:22px;text-align:right;font-weight:700">
+        <div id="cxOut" style="text-align:right;font-size:18px;min-height:26px;color:var(--muted);margin:4px 2px 8px"></div>
+        <div class="cxg" id="cxPad"></div>
+        <div class="note" id="cxMem" style="margin:6px 0 0"></div>
+      </div>
+      <h2>History</h2>
+      <div class="card"><div id="cxHist"></div><div class="btns"><button class="btn2" id="cxHClear" type="button">Clear history</button><button class="btn2" id="cxCopy" type="button">Copy result</button></div></div>
+      <div class="note">Functions: SUM, MIN, MAX, AVERAGE, ROUND, ABS, SQRT, INT, MOD, POWER, PI. Percent works like a shop calculator: 200+10% = 220.</div>
+    </div>
+    <div id="u-cal" hidden>
+      <div class="card" style="margin-top:12px">
+        <div class="btns" style="margin-top:0"><button class="btn2" id="caMode" type="button" style="flex:1 1 100%">Show A.D. calendar</button></div><div class="btns cac"><button class="btn2" id="caPrev" type="button" aria-label="Previous month">&#9664;</button><select id="caM" aria-label="Month"></select><select id="caY" aria-label="Year"></select><button class="btn2" id="caNext" type="button" aria-label="Next month">&#9654;</button><button class="btn2" id="caToday" type="button">Today</button></div>
+        <div id="caGrid"></div>
+        <div class="note" id="caNote"></div>
+      </div>
+      <h2>Date converter</h2>
+      <div class="card meta">
+        <div class="full"><label for="ccIn">Type a date (B.S. like 2083/01/15 or A.D. like 2026-04-28)</label><input id="ccIn" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+        <div class="full" id="ccOut"></div>
+      </div>
+      <h2>Days between two dates</h2>
+      <div class="card meta">
+        <div><label for="cdA">From (B.S. or A.D.)</label><input id="cdA" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+        <div><label for="cdB">To (B.S. or A.D.)</label><input id="cdB" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+        <div class="full" id="cdOut"></div>
+      </div>
+    </div>
+    <div id="u-den" hidden>
+      <h2>Cash denomination counter</h2>
+      <div class="card"><div id="udBox"></div><div class="btns"><button class="btn2" id="udClear" type="button">Clear all</button></div></div>
+    </div>
+    <div id="u-notes" hidden>
+      <h2>Reminder notes</h2>
+      <div class="card meta">
+        <div class="full"><label for="rmText">Note</label><input id="rmText" type="text" maxlength="200" placeholder="e.g. Call Ram Medical for payment" autocomplete="off"></div>
+        <div><label for="rmDue">Remind on (optional, B.S. or A.D.)</label><input id="rmDue" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+        <div style="align-self:end"><button class="btn2 prim" id="rmAdd" type="button" style="width:100%">Add note</button></div>
+      </div>
+      <div class="card" id="rmList"></div>
+    </div>
+    <div id="u-help" hidden>
+      <h2>Help &mdash; how to use MEDBOOKS</h2>
+      <div class="card meta"><div class="full"><label for="hpLang">Language</label><select id="hpLang"></select></div><div class="full note" id="hpNote" style="margin:0"></div></div>
+      <div id="hpBody"></div>
+    </div>
+  </section>
+
   <section id="v-outstanding" hidden>
     <div class="card meta" style="margin-top:12px">
       <div><label for="osKind">Show</label><select id="osKind"><option value="rec">To receive</option><option value="pay">To pay</option></select></div>
@@ -489,12 +565,19 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <button type="button" data-t="print">Print/Share</button>
   <button type="button" data-t="modify">Modify</button>
   <button type="button" data-t="addon">Add On</button>
+  <button type="button" data-t="utility">Utility</button>
 </nav>
 
 <!-- preview -->
 <div class="modal l2" id="ddModal" hidden><div class="mi">
   <div class="mhead"><b id="ddTitle">Details</b><span><button class="btn2" id="ddBack" type="button">Back</button> <button class="btn2" id="ddClose" type="button">Close</button></span></div>
   <div id="ddInfo"></div><div id="ddBody"></div>
+</div></div>
+<div class="modal l2" id="vsModal" hidden><div class="mi">
+  <div class="mhead"><b id="vsTitle">Voucher details</b><button class="btn2" id="vsClose" type="button">Close</button></div>
+  <div id="vsBody" role="button" tabindex="0" style="cursor:pointer"></div>
+  <div class="btns"><button class="btn2 prim" id="vsOpen" type="button">Open voucher</button></div>
+  <div class="note">Tap the details or the button to open the full voucher.</div>
 </div></div>
 <div class="modal l2" id="pvModal" hidden><div class="mi">
   <div class="mhead"><b id="pvTitle"></b><button class="btn2" id="pvClose" type="button">Close</button></div>
@@ -529,7 +612,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div class="card meta"><div class="full"><label class="chk"><input type="checkbox" id="scOn"> <span><b>Enable all keyboard shortcuts</b><br>Turn this off to disable every shortcut at once (Enter, Tab and arrow keys keep working).</span></label></div>
     <div class="full note" style="margin:0">Tap Change on any row and press the new keys. Use Alt, Ctrl or Shift with a key, or a function key (F1 to F12). Backspace clears a shortcut, Esc cancels. Each device keeps its own list. On a phone, Run performs the action, or connect a keyboard.</div></div>
     <div class="card"><div id="scList"></div></div>
-    <div class="btns"><button class="btn2" id="scReset" type="button">Reset all to default</button></div>
+    <div class="btns"><button class="btn2" id="scReset" type="button">Reset all to default</button><button class="btn2 prim" id="scPrint" type="button">Print list</button><button class="btn2" id="scShare" type="button">Share list</button></div>
     <h2>Built-in keys (always on)</h2>
     <div class="card note" style="margin:0;line-height:1.9"><b>Enter</b>: OK, choose the highlighted party or item, then jump to the next box (in the last row it adds a new row). <b>Tab / Shift+Tab</b>: next / previous box. <b>Up / Down arrow</b>: move between rows or choose from the party and item list. <b>Left / Right arrow</b>: move between boxes in a row. <b>Esc</b>: close the list, window or this settings screen.</div>
   </div>
@@ -940,9 +1023,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       {k:'receipt',l:'Receipt',lv:[['rec:date','By date'],['rec:mode','By mode'],['rec:party','By party']]},
       {k:'payment',l:'Payment',lv:[['pay:date','By date'],['pay:mode','By mode'],['pay:party','By party']]},
       {k:'ledger',l:'Ledger',lv:[['led:party','By party name'],['led:grp','By group'],['led:out','Outstanding'],['led:age','Ageing']]},
-      {k:'books',l:'Books',lv:[['bk:day','Day book'],['bk:cash','Cash / Bank'],['bk:pl','Profit & Loss']]},
+      {k:'books',l:'Books',lv:[['bk:day','Day book'],['bk:man','Manual day book'],['bk:cash','Cash / Bank'],['bk:pl','Profit & Loss']]},
       {k:'expense',l:'Expense',lv:[['exp:date','By date'],['exp:party','By head']]}],
     inventory:[{k:'stock',l:'Stock',lv:[['st:sum','Stock summary'],['st:item','Stock by item'],['st:pprice','Purchase price list'],['st:sprice','Sales price list'],['st:exp','Expiry alert']]}],
+    utility:[{k:'calc',l:'Calculator',lv:[['ut:calc','Calculator']]},{k:'cal',l:'Calendar',lv:[['ut:cal','Calendar']]},{k:'den',l:'Cash count',lv:[['ut:den','Cash count']]},{k:'notes',l:'Reminders',lv:[['ut:notes','Reminders']]},{k:'help',l:'Help',lv:[['ut:help','Help']]}],
     print:[{k:'print',l:'Print / Share',lv:[['pl','Vouchers']]}],
     modify:[{k:'modify',l:'Modify voucher',lv:[['md','Modify voucher']]}],
     addon:[{k:'ledger',l:'Ledger',lv:[['ad','Ledger']]},{k:'stock',l:'Stock',lv:[['ad','Stock']]},{k:'units',l:'Units',lv:[['ad','Units']]},{k:'user',l:'User',lv:[['ad','User']]},{k:'company',l:'Company',lv:[['ad','Company']]},{k:'voucher',l:'Voucher',lv:[['ad','Voucher']]},{k:'ie',l:'Import / Export',lv:[['ad','Import / Export']]}]
@@ -1272,7 +1356,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
 
   /* ---------- navigation ---------- */
-  function tabAllowed(t){var l=limOf();if(t==='voucher')return canEnter();if(t==='modify'||t==='addon')return isOwner();if(t==='report'&&l&&l.rep===false)return false;if(t==='inventory'&&l&&l.inv===false)return false;return true}
+  function tabAllowed(t){var l=limOf();if(t==='voucher')return canEnter();if(t==='utility')return true;if(t==='modify'||t==='addon')return isOwner();if(t==='report'&&l&&l.rep===false)return false;if(t==='inventory'&&l&&l.inv===false)return false;return true}
   function grpOfLeaf(t,leaf){var m=MENU[t];for(var i=0;i<m.length;i++)for(var j=0;j<m[i].lv.length;j++)if(m[i].lv[j][0]===leaf)return m[i].k;return m[0].k}
   var NAVH=[],NAVBACK=false;
   function go(t,g,l){
@@ -1299,7 +1383,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var isT=tab==='voucher'&&!!TYPES[sub],isAg=tab==='voucher'&&sub.indexOf('agg:')===0,den=(isT||isAg)&&!canEnter(),L=sub.split(':'),rep=tab==='report';
     $('v-denied').hidden=!den;
     $('v-form').hidden=!isT||den;$('v-agg').hidden=!isAg||den;
-    $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;
+    $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;$('v-utility').hidden=tab!=='utility';$('v-manual').hidden=!(rep&&sub==='bk:man');
     $('v-vrep').hidden=!(rep&&['sale','pur','sret','pret','rec','pay','exp'].indexOf(L[0])>=0);
     $('v-ledger').hidden=!(rep&&sub==='led:party');$('v-group').hidden=!(rep&&sub==='led:grp');
     $('v-outstanding').hidden=!(rep&&(sub==='led:out'||sub==='led:age'));
@@ -1314,6 +1398,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     else if(rep&&sub==='led:party')renderLedger();
     else if(rep&&sub==='led:grp')renderGroup();
     else if(tab==='inventory')renderStock();
+    else if(tab==='utility')renderUtility();
+    else if(rep&&sub==='bk:man')renderManual();
     else if(rep&&sub==='bk:day')renderDayBook();
     else if(rep&&(sub==='led:out'||sub==='led:age'))renderOutstanding();
     else if(rep&&sub==='bk:cash')renderCash();
@@ -2194,13 +2280,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     var lg=curLedger();
     var h='<h2>'+esc(lg.name)+'</h2><div class="sheet lgwrap"><div style="min-width:364px"><div class="lg lgh"><div class="c">Date</div><div class="c">Particulars</div><div class="c r">Debit</div><div class="c r">Credit</div><div class="c r">Balance</div></div>';
-    if(lg.showOpen)h+='<div class="lg lgb"><div class="c"></div><div class="c">Opening balance</div><div class="c r"></div><div class="c r"></div><div class="c r">'+esc(balTxt(lg.open))+'</div></div>';
-    var lpi=pgInfo('lgOut',lg.rows.length,'L|'+lg.name+'|'+lg.rows.length,true),lbar=pgBar('lgOut',lg.rows.length,lpi);
+    var lrows=lg.rows.slice().reverse(),lpi=pgInfo('lgOut',lrows.length,'L|'+lg.name+'|'+lrows.length,false),lbar=pgBar('lgOut',lrows.length,lpi);
     PGR.lgOut=renderLedger;
     h=lbar+h;
-    (lg.rows.length>25&&PSZ?lg.rows.slice(lpi.a,lpi.b):lg.rows).forEach(function(r){
+    (lrows.length>25&&PSZ?lrows.slice(lpi.a,lpi.b):lrows).forEach(function(r){
       h+='<div class="lg"'+(r.led?' data-i="'+r.i+'" style="cursor:pointer" role="button"':' data-vi="'+r.i+'" style="cursor:pointer" role="button"')+'><div class="c">'+esc(dmy(r.date))+'</div><div class="c">'+esc(r.part)+'</div><div class="c r">'+(r.dr?fmt(r.dr):'')+'</div><div class="c r">'+(r.cr?fmt(r.cr):'')+'</div><div class="c r">'+esc(balTxt(r.bal))+'</div></div>';
     });
+    if(lg.showOpen&&(!(lrows.length>25&&PSZ)||lpi.p>=lpi.pages-1))h+='<div class="lg lgb"><div class="c"></div><div class="c">Opening balance</div><div class="c r"></div><div class="c r"></div><div class="c r">'+esc(balTxt(lg.open))+'</div></div>';
     if(!lg.rows.length&&!lg.showOpen)h+='<div class="lg"><div class="c" style="grid-column:1/-1">No entries for this party.</div></div>';
     h+='<div class="lg lgt"><div class="c"></div><div class="c r" style="justify-content:flex-end">Total</div><div class="c r">'+fmt(lg.totDr)+'</div><div class="c r">'+fmt(lg.totCr)+'</div><div class="c r">'+esc(balTxt(lg.close))+'</div></div></div></div>';
     h+='<div class="card total"><div class="big"><span>Closing balance</span><b class="'+(lg.close>0?'dr':(lg.close<0?'cr':''))+'">'+esc(balTxt(lg.close))+'</b></div><div class="note" style="margin:0">'+(lg.close>0?'To receive from '+esc(lg.name):(lg.close<0?'To pay to '+esc(lg.name):'Settled'))+'</div></div>';
@@ -2311,7 +2397,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     });
     var nm=buy?'PURCHASE PRICE LIST':'SALES PRICE LIST';
     if(!out.length)return {empty:'No '+(buy?'purchase':'sales')+' prices found for this choice. Change the item, party or dates above.'};
-    out.sort(function(a,b){var x=a.item.toLowerCase(),y=b.item.toLowerCase();return x<y?-1:(x>y?1:(a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)))});
+    out.sort(function(a,b){var x=a.item.toLowerCase(),y=b.item.toLowerCase();return x<y?-1:(x>y?1:(a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)))});
     var info=[periodTxt(from,to)];if(iq)info.push('Item: '+$('stItem').value.trim());if(pq)info.push('Party: '+$('stParty').value.trim());
     if(iq){var rs=out.map(function(x){return x.rate}),last=out.slice().sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)}).pop();info.push('Lowest Rs '+fmt(Math.min.apply(null,rs))+'   Highest Rs '+fmt(Math.max.apply(null,rs))+'   Latest Rs '+fmt(last.rate))}
     var rows=out.map(function(x){var r=[x.item,x.dt,x.party,x.no,fq(x.q)+' '+uOf(x.item,x.unit),fmt(x.rate)];r.i=x.i;return r});
@@ -2334,8 +2420,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         return summaryReport(ms,from,to,'STOCK ITEMS MATCHING "'+item+'"');
       }
       var u=' '+uOf(r.name,r.unit),rows=[];
-      var o0=['','Opening balance','','','',fq(r.open)+u];o0.b=true;if(from||r.open)rows.push(o0);
-      r.rows.forEach(function(x){var rr=[x.date,x.part,x.inq?fq(x.inq)+u:'',x.outq?fq(x.outq)+u:'',x.rate?fmt(x.rate):'',fq(x.bal)+u];rr.i=x.i;rows.push(rr)});
+      var o0=['','Opening balance','','','',fq(r.open)+u];o0.b=true;
+      r.rows.slice().reverse().forEach(function(x){var rr=[x.date,x.part,x.inq?fq(x.inq)+u:'',x.outq?fq(x.outq)+u:'',x.rate?fmt(x.rate):'',fq(x.bal)+u];rr.i=x.i;rows.push(rr)});
+      if(from||r.open)rows.push(o0);
       var avgS=r.soldQty?r2(r.soldVal/r.soldQty):0;
       return {file:'Stock_'+(safeName(r.name)||'Item')+'_'+(to||'All').replace(/\//g,'-'),title:'STOCK ITEM STATEMENT',
         info:['Item: '+r.name+' ('+uOf(r.name,r.unit)+')',periodTxt(from,to),'Sold: '+fq(r.soldQty)+u+' for Rs '+fmt(r.soldVal)+(r.soldQty?' (average Rs '+fmt(avgS)+')':''),'Closing stock: '+fq(r.close)+u],
@@ -2381,7 +2468,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var from=normBS($('dbFrom').value)||'',to=normBS($('dbTo').value)||'';
     var list=[];
     DATA.docs.forEach(function(d,i){if(!live(d))return;var dt=dmy(d.date);if(from&&dt<from)return;if(to&&dt>to)return;list.push({d:d,i:i,dt:dt})});
-    list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:(a.i-b.i))});
+    list.sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:(b.i-a.i))});
     var sums={};ORDER.forEach(function(t){sums[t]=0});
     var rows=list.map(function(o){
       var d=o.d;sums[d.type]=r2(sums[d.type]+d.total);
@@ -2482,13 +2569,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var rows=[],tp=0,cols=[{h:'Party',w:2.2,al:'l'},{h:'Date',w:1.3,al:'l'},{h:'Bill',w:1.3,al:'l'},{h:'Amount',w:1.2,al:'r'},{h:'Settled',w:1.2,al:'r'},{h:'Pending',w:1.2,al:'r'},{h:'Days',w:.8,al:'r'}];
       all.forEach(function(o){
         if(k0&&pkey(o.name)!==k0)return;
-        var bills=o.inv.filter(function(b){return r2(b.total-b.paid)>0.004});if(!bills.length)return;
+        var bills=o.inv.filter(function(b){return r2(b.total-b.paid)>0.004}).reverse();if(!bills.length)return;
         var sp=0;
         bills.forEach(function(b){var bd=b.date?bsDays(b.date):null,p=r2(b.total-b.paid);sp=r2(sp+p);var br=[o.name,b.date||'Opening',b.no,fmt(b.total),fmt(r2(b.paid)),fmt(p),(bd!=null&&nd!=null)?String(nd-bd):''],bix=-1;DATA.docs.forEach(function(d,di){if(bix<0&&live(d)&&d.no===b.no&&pkey(d.party)===pkey(o.name))bix=di});if(bix>=0)br.i=bix;else br.dr={k:'pv',party:o.name};rows.push(br)});
         var tr=['Total - '+o.name+(o.advance>0.004?' (advance '+fmt(o.advance)+')':''),'','','','',fmt(sp),''];tr.b=true;tr.dr={k:'pv',party:o.name};rows.push(tr);tp=r2(tp+sp);
       });
       if(!rows.length)return {empty:'Nothing is pending'+(pq?' for "'+pq+'"':'')+' ('+lab.toLowerCase()+').'};
-      return {file:'Outstanding_'+(kind==='rec'?'Receivable':'Payable')+'_'+on.replace(/\//g,'-'),title:'OUTSTANDING BILLS - '+lab.toUpperCase(),info:['As on '+on+'   |   Bill-wise, oldest first'+(pq?'   |   Party: '+pq:'')],
+      return {file:'Outstanding_'+(kind==='rec'?'Receivable':'Payable')+'_'+on.replace(/\//g,'-'),title:'OUTSTANDING BILLS - '+lab.toUpperCase(),info:['As on '+on+'   |   Bill-wise, newest first'+(pq?'   |   Party: '+pq:'')],
         cols:cols,rows:rows,totals:[['Total pending','','','','',fmt(tp),'']],minw:760,
         foot:'Receipts and payments that name a bill settle that bill. Money not tied to a bill settles the oldest bills first.'};
     }
@@ -2555,7 +2642,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var cr=[o.dt,dShort(d)+' '+d.no+' - '+(d.party||'')+(d.remarks?' ('+d.remarks+')':''),inn?fmt(inn):'',out?fmt(out):'',fmt(bal)];cr.i=o.i;rows.push(cr);
     });
     if(!rows.length&&!open&&!from)return {empty:'No '+(bank?'bank':'cash')+' entries yet. Receipts, payments and expenses with this mode appear here.'};
-    var o0=['','Opening balance','','',fmt(open)];o0.b=true;rows.unshift(o0);
+    var o0=['','Opening balance','','',fmt(open)];o0.b=true;rows.reverse();rows.push(o0);
     var nm=bank?'BANK BOOK':'CASH BOOK';
     return {file:(bank?'BankBook_':'CashBook_')+(from||'Start').replace(/\//g,'-')+'_to_'+(to||'Today').replace(/\//g,'-'),title:nm,info:[periodTxt(from,to),'Closing balance: Rs '+fmt(bal)],
       cols:[{h:'Date',w:1.4,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'In',w:1.2,al:'r'},{h:'Out',w:1.2,al:'r'},{h:'Balance',w:1.4,al:'r'}],
@@ -2630,7 +2717,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(pq&&pkey(d.party)!==pq)return;
       list.push({d:d,i:i,dt:dt,sg:(net&&(d.type==='sret'||d.type==='pret'))?-1:1});
     });
-    list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});
+    list.sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)});
     if(!list.length)return {empty:'No '+VNAME[kind].toLowerCase()+' vouchers in this period.'};
     var info=[periodTxt(from,to)];if(pq)info.push('Party: '+$('vrParty').value.trim());
     var base=VNAME[kind]+'_by_'+by+'_'+(from||'Start').replace(/\//g,'-')+'_to_'+(to||'Today').replace(/\//g,'-'),tot=0,rows=[],cols,totals,title,minw=560;
@@ -2706,7 +2793,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     if(x.k==='ipv'){
       var kk=pkey(x.item),pp=pkey(x.party==='(no party)'?'':x.party),ix=[];
-      stockMoves().forEach(function(mv){
+      stockMoves().slice().sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)}).forEach(function(mv){
         if(mv.key!==kk||pkey(mv.party)!==pp||!inPer(mv.dt,x.from,x.to)||(x.types&&x.types.indexOf(mv.type)<0))return;
         var r=[mv.dt,TYPES[mv.type].short+' '+mv.no,fq(mv.inq||mv.outq)+' '+mv.unit,fmt(mv.rate),fmt(r2((mv.inq||mv.outq)*mv.rate))];r.i=mv.i;rows.push(r);ix.push(mv.i);tot=r2(tot+(mv.inq||mv.outq)*mv.rate);
       });
@@ -2714,13 +2801,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     if(x.k==='pv'){
       var lg=ledgerFor(x.party,x.from||'',x.to||'');
-      lg.rows.forEach(function(r){var rr=[dmy(r.date),r.part,r.dr?fmt(r.dr):'',r.cr?fmt(r.cr):'',balTxt(r.bal)];rr.i=r.i;rows.push(rr)});
+      lg.rows.slice().reverse().forEach(function(r){var rr=[dmy(r.date),r.part,r.dr?fmt(r.dr):'',r.cr?fmt(r.cr):'',balTxt(r.bal)];rr.i=r.i;rows.push(rr)});
       return {title:lg.name,info:['Ledger entries. Tap one to open its voucher.'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'Debit',w:1.1,al:'r'},{h:'Credit',w:1.1,al:'r'},{h:'Balance',w:1.3,al:'r'}],rows:rows,totals:[['','Closing','','',balTxt(lg.close)]],minw:560};
     }
     // 'dl': a list of vouchers
     var ixs=x.ix||[];
     if(!x.ix){DATA.docs.forEach(function(d,i){if(!live(d)||x.types.indexOf(d.type)<0)return;if(!inPer(dmy(d.date),x.from,x.to))return;if(x.head&&pkey(d.party)!==pkey(x.head))return;ixs.push(i)})}
-    ixs.slice().sort(function(a,b){var da=dmy(DATA.docs[a].date),db=dmy(DATA.docs[b].date);return da<db?-1:(da>db?1:a-b)}).forEach(function(i){var d=DATA.docs[i];if(!d)return;var r=[dmy(d.date),dShort(d)+' '+d.no,d.party||'',fmt(d.total)];r.i=i;rows.push(r);tot=r2(tot+d.total)});
+    ixs.slice().sort(function(a,b){var da=dmy(DATA.docs[a].date),db=dmy(DATA.docs[b].date);return da<db?1:(da>db?-1:b-a)}).forEach(function(i){var d=DATA.docs[i];if(!d)return;var r=[dmy(d.date),dShort(d)+' '+d.no,d.party||'',fmt(d.total)];r.i=i;rows.push(r);tot=r2(tot+d.total)});
     return {title:x.title||'Vouchers',info:['Tap a voucher to open it'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Voucher',w:1.7,al:'l'},{h:'Party',w:2.4,al:'l'},{h:'Amount',w:1.3,al:'r'}],rows:rows,totals:[['','Total','',fmt(tot)]],minw:520,single:rows.length===1?rows[0].i:null};
   }
   function drillShow(){
@@ -2734,7 +2821,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function drillOpen(x){
     DSTK.push(x);var o=drillShow();
-    if(o&&o.single!=null&&DATA.docs[o.single]){DSTK.pop();if(DSTK.length)drillShow();else $('ddModal').hidden=true;var d=DATA.docs[o.single];if(d.type==='led')openLedgerEntry(d);else openDoc(o.single)}
+    if(o&&o.single!=null&&DATA.docs[o.single]){DSTK.pop();if(DSTK.length)drillShow();else $('ddModal').hidden=true;showVsum(o.single)}
   }
   function drillBack(){if(DSTK.length>1){DSTK.pop();drillShow();return true}return false}
   document.addEventListener('click',function(e){
@@ -2920,8 +3007,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(bal!=null)P.txt(balTxt(bal),E[5]-8,y+25,'right','bold 17px '+F);
       y+=h;
     }
+    lg.rows.slice().reverse().forEach(function(r){row(dmy(r.date),r.part,r.dr,r.cr,r.bal,false)});
     if(lg.showOpen)row('','Opening balance',0,0,lg.open,true);
-    lg.rows.forEach(function(r){row(dmy(r.date),r.part,r.dr,r.cr,r.bal,false)});
     P.box(E[0],E[2],y,42,'#e3efec');P.box(E[2],E[3],y,42,'#e3efec');P.box(E[3],E[4],y,42,'#e3efec');P.box(E[4],E[5],y,42,'#e3efec');
     P.txt('Total',E[2]-8,y+29,'right','bold 19px '+F);
     P.txt(fmt(lg.totDr),E[3]-8,y+29,'right','bold 19px '+F);P.txt(fmt(lg.totCr),E[4]-8,y+29,'right','bold 19px '+F);
@@ -3076,8 +3163,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(q&&hay.indexOf(q)<0)return;
       out.push(i);
     });
-    out.sort(function(a,b){var x=dmy(DATA.docs[a].date),y=dmy(DATA.docs[b].date);return x<y?-1:(x>y?1:a-b)});
-    var cut2=false,lpi2=pgInfo('lsList',out.length,'V|'+q+'|'+t+'|'+out.length,true),lbar2=pgBar('lsList',out.length,lpi2);PGR.lsList=renderList;
+    out.sort(function(a,b){var x=dmy(DATA.docs[a].date),y=dmy(DATA.docs[b].date);return x<y?1:(x>y?-1:b-a)});
+    var cut2=false,lpi2=pgInfo('lsList',out.length,'V|'+q+'|'+t+'|'+out.length,false),lbar2=pgBar('lsList',out.length,lpi2);PGR.lsList=renderList;
     var outAll=out;if(out.length>25&&PSZ)out=out.slice(lpi2.a,lpi2.b);
     $('lsList').innerHTML=outAll.length?lbar2+out.map(function(i){
       var d=DATA.docs[i];
@@ -4874,7 +4961,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   var KEYS=[
     ['save','Save the voucher (Save & New)','Alt+S'],['print','Print the voucher','Alt+P'],['share','Share the voucher','Alt+H'],['abort','Abort (discard the entry)','Alt+A'],
     ['photo','Fill from a photo','Alt+U'],['addrow','Add a row / next party','Alt+N'],
-    ['t_voucher','Voucher','Alt+V'],['t_report','A/C Report','Alt+E'],['r_ledger','Ledger report','Alt+L'],['t_inventory','Inventory','Alt+I'],['r_daybook','Day book','Alt+X'],['r_price','Sales price list','Alt+Z'],['r_group','Group summary','Alt+F'],['open_last','Open the last saved voucher','Alt+.'],['t_print','Print/Share tab','Alt+D'],['t_modify','Modify','Alt+M'],['t_addon','Add On','Alt+O'],
+    ['t_voucher','Voucher','Alt+V'],['t_report','A/C Report','Alt+E'],['r_ledger','Ledger report','Alt+L'],['t_inventory','Inventory','Alt+I'],['r_daybook','Day book','Alt+X'],['r_price','Sales price list','Alt+Z'],['r_group','Group summary','Alt+F'],['open_last','Open the last saved voucher','Alt+.'],['t_print','Print/Share tab','Alt+D'],['t_modify','Modify','Alt+M'],['t_addon','Add On','Alt+O'],['t_utility','Utility','Alt+C'],['r_manual','Manual day book','Alt+G'],
     ['v_sale','Sales / Billing entry','Alt+B'],['v_purchase','Purchase entry','Alt+Q'],['v_receipt','Receipt entry','Alt+R'],['v_payment','Payment entry','Alt+Y'],['v_journal','Journal entry','Alt+J'],['v_aggsale','Aggregate sales','Alt+G'],
     ['view','Switch PC / Mobile view','Alt+W'],['settings','Settings','Alt+T'],['keys','Shortcut Keys list','Alt+K']];
   function kbBadges(){
@@ -4901,6 +4988,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(a==='share')return actDoc('share');
     if(a==='open_last'){if(lastDoc&&DATA.docs.indexOf(lastDoc)>=0){openPreview(lastDoc);return true}return false}
     if(a==='r_daybook'){go('report','books','bk:day');return true}
+    if(a==='r_manual'){go('report','books','bk:man');return true}
     if(a==='r_price'){go('inventory','stock','st:sprice');return true}
     if(a==='r_group'){go('report','ledger','led:grp');return true}
     if(a==='abort')return kclick('abortBtn');
@@ -4924,7 +5012,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!$('pvModal').hidden&&pv){if(P)printDoc(pv);else shareDoc(pv);return true}
     if(tab==='voucher'&&!$('v-form').hidden&&!EDIT&&!isBlank(S[cur])&&kclick(P?'printBtn':'shareBtn'))return true;
     if(inAgg()&&!aggBlank(AG())&&kclick(P?'printBtn':'shareBtn'))return true;
-    var ids=P?['vrPrint','lgPrint','stPrint','dbPrint','osPrint','cbPrint','plPrint','gpPrint','fyPrint']:['vrShare','lgShare','stShare','dbShare','osShare','cbShare','plShare','gpShare','fyShare'];
+    var ids=P?['vrPrint','lgPrint','stPrint','dbPrint','mdPrint','osPrint','cbPrint','plPrint','gpPrint','fyPrint']:['vrShare','lgShare','stShare','dbShare','mdShare','osShare','cbShare','plShare','gpShare','fyShare'];
     for(var i=0;i<ids.length;i++){if(kclick(ids[i]))return true}
     if(lastDoc&&DATA.docs.indexOf(lastDoc)>=0&&lastDoc.status!=='Cancelled'){if(P)printDoc(lastDoc);else shareDoc(lastDoc);return true}
     return false;
@@ -5238,7 +5326,30 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     DATA.docs.push(d);DATA.counters[t]=counter(t)+1;txnDone(d);
     $('dbModal').hidden=true;renderDayBook();toast('Entry saved in the day book.');
   });
-  function openVi(n){var d=DATA&&DATA.docs[+n.getAttribute('data-vi')];if(!d)return;if(d.type==='led')openLedgerEntry(d);else openDoc(+n.getAttribute('data-vi'))}
+  var vsIx=-1;
+  function showVsum(i){
+    var d=DATA.docs[i];if(!d)return;
+    if(d.type==='led'){openLedgerEntry(d);return}
+    var T=TYPES[d.type],h='',kv=function(k,v){return v===''||v==null?'':'<span>'+esc(k)+'</span><span>'+esc(v)+'</span>'};
+    vsIx=i;$('vsTitle').textContent=T.short+' '+d.no;
+    h+='<div class="card meta" style="grid-template-columns:auto 1fr">'+kv('Date (B.S.)',dmy(d.date))+kv('Date (A.D.)',adSl(bsToAD(dmy(d.date)))||'')+kv('Voucher',T.short+' '+d.no)+kv(d.type==='jnl'?'Debit':'Party',d.type==='jnl'?'':(d.party||''))+(d.party2&&d.type!=='jnl'?kv('Other party',d.party2):'')+kv('Mode',d.mode||'')+kv('Status',d.status&&d.status!=='Active'?d.status:'')+kv('Entered by',d.by||'')+kv('Remarks',d.remarks||'')+'</div>';
+    if(d.type==='jnl')h+='<div class="card reg">'+jlines(d).map(function(l){return '<div class="line"><span>'+(l.s==='d'?'Dr ':'Cr ')+esc(l.p)+'</span><span>'+fmt(l.a)+'</span></div>'}).join('')+'</div>';
+    if(T.kind==='items'){
+      if((d.items||[]).length){
+        h+='<div class="sheet lgwrap"><div style="min-width:340px"><div class="lg lgh" style="grid-template-columns:2.4fr 1.2fr 1fr 1.2fr"><div class="c">Item</div><div class="c r">Qty</div><div class="c r">Rate</div><div class="c r">Amount</div></div>'+
+          d.items.map(function(it){return '<div class="lg" style="grid-template-columns:2.4fr 1.2fr 1fr 1.2fr"><div class="c">'+esc(it.item)+(it.batch?' <small>(batch '+esc(it.batch)+')</small>':'')+'</div><div class="c r">'+fq(num(it.qty))+' '+esc(uOf(it.item,it.unit))+'</div><div class="c r">'+fmt(num(it.rate))+'</div><div class="c r">'+fmt(amount(it))+'</div></div>'}).join('')+'</div></div>';
+      }else h+='<div class="note">Bill without stock items.</div>';
+      if(d.disc)h+='<div class="note">Discount: '+fmt(d.disc)+'</div>';
+    }
+    if(d.alloc&&d.alloc.length)h+='<div class="note">Against: '+esc(d.alloc.map(function(a){return a.no+' ('+fmt(a.amt)+')'}).join(', '))+'</div>';
+    h+='<div class="card total"><div class="big"><span>Total</span><b>'+fmt(d.total)+'</b></div></div>';
+    $('vsBody').innerHTML=h;$('vsModal').hidden=false;$('vsModal').scrollTop=0;
+  }
+  $('vsClose').addEventListener('click',function(){$('vsModal').hidden=true});
+  function vsGo(){var i=vsIx;$('vsModal').hidden=true;if(i>=0)openDoc(i)}
+  $('vsOpen').addEventListener('click',vsGo);$('vsBody').addEventListener('click',vsGo);
+  $('vsBody').addEventListener('keydown',function(e){if(e.key==='Enter')vsGo()});
+  function openVi(n){var d=DATA&&DATA.docs[+n.getAttribute('data-vi')];if(!d)return;if(d.type==='led')openLedgerEntry(d);else showVsum(+n.getAttribute('data-vi'))}
   document.addEventListener('click',function(e){var n=e.target.closest('.lg[data-vi]');if(n&&!e.target.closest('#lsList'))openVi(n)});
   document.addEventListener('keydown',function(e){if(e.key==='Enter'){var n=e.target.closest&&e.target.closest('.lg[data-vi]');if(n)openVi(n)}});
   $('lgOut').addEventListener('click',function(e){var le=e.target.closest('.lg[data-i]');if(le){openLedgerEntry(DATA.docs[+le.getAttribute('data-i')]);return}var n=e.target.closest('[data-p]');if(n){$('lgParty').value=n.getAttribute('data-p');renderLedger();window.scrollTo(0,0)}});
@@ -5527,6 +5638,414 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     try{var ml=document.createElement('link');ml.rel='manifest';ml.href='manifest.webmanifest';document.head.appendChild(ml)}catch(e){}
     if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
   }
+
+  /* ---------- formulas in number boxes (type = then a formula) ---------- */
+  var FXPCT=false;
+  function fxEval(src,ans){
+    var s=String(src).replace(/^\s*=/,'').replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-'),t=[],i=0,m,re=/\s*(?:(\d+\.?\d*(?:e[+-]?\d+)?|\.\d+)|([A-Za-z]+)|([-+*\/^%(),]))/y;
+    while(i<s.length){
+      if(/^\s*$/.test(s.slice(i)))break;
+      re.lastIndex=i;m=re.exec(s);if(!m||m.index!==i)throw new Error('check the formula');
+      if(m[1]!=null)t.push({n:parseFloat(m[1])});else if(m[2])t.push({w:m[2].toUpperCase()});else t.push({o:m[3]});
+      i=re.lastIndex;
+    }
+    var p=0;
+    function pk(){return t[p]}
+    function op(c){var x=t[p];if(x&&x.o===c){p++;return true}return false}
+    function expr(){
+      var v=term();
+      for(;;){
+        if(pk()&&(pk().o==='+'||pk().o==='-')){
+          var o=t[p++].o;FXPCT=false;var r=term();
+          if(FXPCT&&FXCALC)r=v*r;
+          v=o==='+'?v+r:v-r;FXPCT=false;
+        }else break;
+      }
+      return v;
+    }
+    function term(){
+      var v=unary();
+      for(;;){
+        if(pk()&&(pk().o==='*'||pk().o==='/')){
+          var o=t[p++].o,r=unary();
+          if(o==='/'){if(r===0)throw new Error('cannot divide by zero');v=v/r}else v=v*r;FXPCT=false;
+        }else break;
+      }
+      return v;
+    }
+    function unary(){
+      var v=pow();
+      return v;
+    }
+    function pow(){
+      var v=un2();
+      while(op('^')){var r=un2();v=Math.pow(v,r);FXPCT=false}
+      return v;
+    }
+    function un2(){
+      if(op('-'))return -un2();
+      if(op('+'))return un2();
+      return post();
+    }
+    function post(){
+      var v=prim();
+      while(op('%')){v=v/100;FXPCT=true}
+      return v;
+    }
+    function args(){
+      var a=[];
+      if(!op('('))throw new Error('missing (');
+      if(op(')'))return a;
+      for(;;){a.push(expr());if(op(','))continue;if(op(')'))break;throw new Error('missing )')}
+      return a;
+    }
+    function prim(){
+      var x=t[p++];
+      if(!x)throw new Error('formula is incomplete');
+      if(x.n!=null){FXPCT=false;return x.n}
+      if(x.o==='('){var v=expr();if(!op(')'))throw new Error('missing )');return v}
+      if(x.w){
+        var w=x.w;
+        if(w==='PI')return Math.PI;
+        if(w==='ANS')return ans||0;
+        var a=args(),f={
+          SUM:function(){return a.reduce(function(q,z){return q+z},0)},
+          MIN:function(){return Math.min.apply(null,a)},MAX:function(){return Math.max.apply(null,a)},
+          AVERAGE:function(){return a.reduce(function(q,z){return q+z},0)/a.length},
+          ROUND:function(){var k=Math.pow(10,a[1]||0);return Math.round(a[0]*k)/k},
+          ROUNDUP:function(){var k=Math.pow(10,a[1]||0);return Math.ceil(a[0]*k-1e-9)/k},
+          ROUNDDOWN:function(){var k=Math.pow(10,a[1]||0);return Math.floor(a[0]*k+1e-9)/k},
+          ABS:function(){return Math.abs(a[0])},
+          SQRT:function(){if(a[0]<0)throw new Error('square root of a negative number');return Math.sqrt(a[0])},
+          INT:function(){return Math.floor(a[0])},POWER:function(){return Math.pow(a[0],a[1])},
+          MOD:function(){if(!a[1])throw new Error('cannot divide by zero');return a[0]-a[1]*Math.floor(a[0]/a[1])}
+        };
+        f.AVG=f.AVERAGE;f.SQ=f.SQRT;
+        if(!f[w])throw new Error('unknown function '+w);
+        if(!a.length&&w!=='SUM')throw new Error(w+' needs numbers');
+        return f[w]();
+      }
+      throw new Error('check the formula');
+    }
+    var r=expr();
+    if(p<t.length)throw new Error('check the formula');
+    if(!isFinite(r))throw new Error('result is not a number');
+    return Math.round(r*1e9)/1e9;
+  }
+  var FXCALC=false;
+  function fxCalc(src,ans){FXCALC=true;try{return fxEval(src,ans)}finally{FXCALC=false}}
+  function isNumIn(el){return el&&el.tagName==='INPUT'&&(el.getAttribute('inputmode')==='decimal'||el.hasAttribute('data-fx'))}
+  function fxApply(el){
+    if(!/^\s*=/.test(el.value))return true;
+    try{
+      var r=fxEval(el.value);el.value=String(Math.round(r*1e6)/1e6);
+      el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;
+    }catch(e){toast('Formula: '+e.message);return false}
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!=='Tab')return;
+    var el=e.target;
+    if(isNumIn(el)&&/^\s*=/.test(el.value)&&!fxApply(el)){e.preventDefault();e.stopPropagation()}
+  },true);
+  document.addEventListener('focusout',function(e){var el=e.target;if(isNumIn(el)&&/^\s*=/.test(el.value))fxApply(el)},true);
+
+  /* ---------- Utility tab ---------- */
+  var UT={mem:0,ans:0,hist:[],cal:{mode:'bs',y:0,m:0,sel:''}};
+  var BSM=['Baisakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+  var ADM=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var WDN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  function renderUtility(){
+    var s=sub.split(':')[1]||'calc';
+    ['calc','cal','den','notes','help'].forEach(function(k){$('u-'+k).hidden=k!==s});
+    if(s==='calc')calcInit();else if(s==='cal')calInit();else if(s==='den')denInit('ud');else if(s==='notes')notesRender();else if(s==='help')helpRender();
+  }
+  /* calculator */
+  var CXK=[['MC','m'],['MR','m'],['M+','m'],['M-','m'],['C','c'],['⌫','b'],['(','t'],[')','t'],['√','r'],['x²','q'],['^','t'],['÷','t'],
+    ['7','t'],['8','t'],['9','t'],['×','t'],['4','t'],['5','t'],['6','t'],['−','t'],['1','t'],['2','t'],['3','t'],['+','t'],
+    ['0','t'],['.','t'],['%','t'],['=','e'],['±','n'],['1/x','i'],['π','p'],['Ans','a']];
+  function calcInit(){
+    if(!$('cxPad').firstChild)$('cxPad').innerHTML=CXK.map(function(k,i){var c=/[÷×−+^]/.test(k[0])?'op':(k[1]==='e'?'eq':'');return '<button type="button" class="'+c+'" data-cx="'+i+'">'+k[0]+'</button>'}).join('');
+    cxShow();
+  }
+  function cxShow(){
+    var v=$('cxIn').value,o='';
+    if(v.trim()){try{var r=fxCalc(v,UT.ans);o='= '+fmtN(r)}catch(e){o=''}}
+    $('cxOut').textContent=o;$('cxMem').textContent=UT.mem?'Memory: '+fmtN(UT.mem):'';
+    $('cxHist').innerHTML=UT.hist.length?UT.hist.slice().reverse().map(function(h,i){return '<div class="lg" data-cxh="'+(UT.hist.length-1-i)+'" style="cursor:pointer;display:flex;justify-content:space-between;gap:8px"><span>'+esc(h.e)+'</span><b>'+esc(fmtN(h.r))+'</b></div>'}).join(''):'<div class="note" style="margin:0">Your calculations will appear here.</div>';
+  }
+  function fmtN(n){return n.toLocaleString('en-IN',{maximumFractionDigits:8})}
+  function cxEq(){
+    var el=$('cxIn'),v=el.value;if(!v.trim())return;
+    try{var r=fxCalc(v,UT.ans);UT.ans=r;UT.hist.push({e:v,r:r});if(UT.hist.length>40)UT.hist.shift();el.value=String(r);cxShow()}catch(e){toast('Calculator: '+e.message)}
+  }
+  function cxKey(i){
+    var k=CXK[i],el=$('cxIn'),v=el.value,t=k[0];
+    if(k[1]==='t')el.value=v+(t==='−'?'-':t);
+    else if(k[1]==='c')el.value='';
+    else if(k[1]==='b')el.value=v.slice(0,-1);
+    else if(k[1]==='e')return cxEq();
+    else if(k[1]==='r')el.value=v+'SQRT(';
+    else if(k[1]==='q')el.value=v+'^2';
+    else if(k[1]==='p')el.value=v+'PI';
+    else if(k[1]==='a')el.value=v+'ANS';
+    else if(k[1]==='n'){if(v.trim())el.value='-('+v+')'}
+    else if(k[1]==='i'){if(v.trim())el.value='1/('+v+')'}
+    else if(k[1]==='m'){
+      var cur=0;try{cur=v.trim()?fxCalc(v,UT.ans):UT.ans}catch(e){}
+      if(t==='MC')UT.mem=0;else if(t==='MR')el.value=v+String(UT.mem);else if(t==='M+')UT.mem+=cur;else UT.mem-=cur;
+    }
+    cxShow();
+  }
+  $('cxPad').addEventListener('click',function(e){var b=e.target.closest('[data-cx]');if(b)cxKey(+b.getAttribute('data-cx'))});
+  $('cxIn').addEventListener('input',cxShow);
+  $('cxIn').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();cxEq()}});
+  $('cxHist').addEventListener('click',function(e){var r=e.target.closest('[data-cxh]');if(r){$('cxIn').value=UT.hist[+r.getAttribute('data-cxh')].e;cxShow()}});
+  $('cxHClear').addEventListener('click',function(){UT.hist=[];cxShow()});
+  $('cxCopy').addEventListener('click',function(){
+    var v=$('cxIn').value,r;try{r=String(fxCalc(v,UT.ans))}catch(e){r=v}
+    try{navigator.clipboard.writeText(r).then(function(){toast('Copied '+r)},function(){toast('Could not copy.')})}catch(e){toast('Could not copy.')}
+  });
+  /* calendar and converter */
+  function adIsoOf(ms){var t=new Date(ms);return t.getUTCFullYear()+'-'+p2(t.getUTCMonth()+1)+'-'+p2(t.getUTCDate())}
+  function calInit(){
+    var c=UT.cal;
+    if(!c.y){var t=todayBS().split('/');c.y=+t[0];c.m=+t[1];if(!BS[c.y]){c.y=2082;c.m=1}}
+    calDraw();
+  }
+  function calDraw(){
+    var c=UT.cal,bs=c.mode==='bs',cells=[],td=todayBS(),ta=todayAD(),title,i;
+    $('caMode').textContent=bs?'Show A.D. calendar':'Show B.S. calendar';
+    var ys=[];
+    if(bs){for(i=2070;i<=2090;i++)ys.push(i)}else{for(i=2013;i<=2034;i++)ys.push(i)}
+    $('caY').innerHTML=ys.map(function(y){return '<option value="'+y+'"'+(y===c.y?' selected':'')+'>'+y+(bs?' B.S.':'')+'</option>'}).join('');
+    $('caM').innerHTML=(bs?BSM:ADM).map(function(n,k){return '<option value="'+(k+1)+'"'+(k+1===c.m?' selected':'')+'>'+n+'</option>'}).join('');
+    var first,n,wd;
+    if(bs){
+      first=Date.parse(bsToAD(c.y+'/'+p2(c.m)+'/01')+'T00:00:00Z');n=BS[c.y][c.m-1];
+    }else{first=Date.UTC(c.y,c.m-1,1);n=lastDayAD(c.y,c.m)}
+    wd=new Date(first).getUTCDay();
+    for(i=0;i<wd;i++)cells.push('<div></div>');
+    for(i=0;i<n;i++){
+      var iso=adIsoOf(first+i*864e5),b=bs?c.y+'/'+p2(c.m)+'/'+p2(i+1):adToBS(iso),big,small,key=bs?b:iso;
+      if(bs){var q=iso.split('-');big=i+1;small=(+q[2]===1?ADM[+q[1]-1].slice(0,3)+' ':'')+(+q[2])}
+      else{var bp=b?b.split('/'):null;big=i+1;small=bp?((+bp[2]===1?BSM[+bp[1]-1].slice(0,3)+' ':'')+(+bp[2])):''}
+      var isT=bs?b===td:iso===ta,sat=((wd+i)%7)===6;
+      cells.push('<div class="d'+(isT?' today':'')+(sat?' sat':'')+(c.sel===key?' sel':'')+'" data-cd="'+key+'"><div class="b">'+big+'</div><div class="s">'+esc(small)+'</div></div>');
+    }
+    $('caGrid').innerHTML='<div class="cal">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function(d,k){return '<div class="h'+(k===6?' sat':'')+'">'+d+'</div>'}).join('')+cells.join('')+'</div>';
+    var a1=bs?bsToAD(c.y+'/'+p2(c.m)+'/01'):'',a2=bs?adIsoOf(first+(n-1)*864e5):'';
+    $('caNote').textContent=bs?('A.D. '+a1.slice(0,7)+' to '+a2.slice(0,7)+'. Saturday is the weekly holiday. Tap a date to convert it below.'):'Small numbers are B.S. dates. Tap a date to convert it below.';
+  }
+  $('caMode').addEventListener('click',function(){
+    var c=UT.cal;
+    if(c.mode==='bs'){var a=bsToAD(c.y+'/'+p2(c.m)+'/01').split('-');c.mode='ad';c.y=+a[0];c.m=+a[1]}
+    else{var b=adToBS(c.y+'-'+p2(c.m)+'-15');if(b){var q=b.split('/');c.y=+q[0];c.m=+q[1]}else{c.y=2082;c.m=1}c.mode='bs'}
+    c.sel='';calDraw();
+  });
+  function calStep(d){
+    var c=UT.cal;c.m+=d;if(c.m<1){c.m=12;c.y--}if(c.m>12){c.m=1;c.y++}
+    if(c.mode==='bs'){if(!BS[c.y]){c.y=Math.max(2070,Math.min(2090,c.y));c.m=d<0?1:12}}else{c.y=Math.max(2013,Math.min(2034,c.y))}
+    calDraw();
+  }
+  $('caPrev').addEventListener('click',function(){calStep(-1)});$('caNext').addEventListener('click',function(){calStep(1)});
+  $('caY').addEventListener('change',function(){UT.cal.y=+$('caY').value;if(UT.cal.mode==='bs'&&!BS[UT.cal.y])UT.cal.y=2082;calDraw()});
+  $('caM').addEventListener('change',function(){UT.cal.m=+$('caM').value;calDraw()});
+  $('caToday').addEventListener('click',function(){var c=UT.cal;if(c.mode==='bs'){var t=todayBS().split('/');c.y=+t[0];c.m=+t[1]}else{var a=todayAD().split('-');c.y=+a[0];c.m=+a[1]}c.sel='';calDraw()});
+  $('caGrid').addEventListener('click',function(e){
+    var d=e.target.closest('[data-cd]');if(!d)return;
+    UT.cal.sel=d.getAttribute('data-cd');$('ccIn').value=UT.cal.sel.replace(/-/g,'/');ccShow();calDraw();
+  });
+  function dateInfo(v){
+    var b=normBS(v);if(!b)return null;var a=bsToAD(b);if(!a)return null;
+    var q=a.split('-'),wd=new Date(Date.UTC(+q[0],+q[1]-1,+q[2])).getUTCDay(),bp=b.split('/'),t=todayAD().split('-');
+    var diff=Math.round((Date.UTC(+q[0],+q[1]-1,+q[2])-Date.UTC(+t[0],+t[1]-1,+t[2]))/864e5);
+    return {bs:b,ad:a,wd:WDN[wd],bsTxt:BSM[+bp[1]-1]+' '+(+bp[2])+', '+bp[0]+' B.S.',adTxt:ADM[+q[1]-1]+' '+(+q[2])+', '+q[0]+' A.D.',diff:diff,ms:Date.UTC(+q[0],+q[1]-1,+q[2])};
+  }
+  function ccShow(){
+    var v=$('ccIn').value.trim(),o=$('ccOut');
+    if(!v){o.innerHTML='';return}
+    var i=dateInfo(v);
+    if(!i){o.innerHTML='<div class="note" style="margin:0">Enter a valid date. B.S. 2070 to 2090 (A.D. 2013 to 2034) is supported.</div>';return}
+    o.innerHTML='<div class="note" style="margin:0;line-height:1.9"><b>B.S.:</b> '+esc(i.bs)+' ('+esc(i.bsTxt)+')<br><b>A.D.:</b> '+esc(adSl(i.ad))+' ('+esc(i.adTxt)+')<br><b>Day:</b> '+i.wd+'<br>'+(i.diff===0?'Today':(i.diff>0?i.diff+' days from today':(-i.diff)+' days ago'))+'</div>';
+  }
+  $('ccIn').addEventListener('input',ccShow);
+  function cdShow(){
+    var a=dateInfo($('cdA').value),b=dateInfo($('cdB').value),o=$('cdOut');
+    if(!a||!b){o.innerHTML='';return}
+    var d=Math.round((b.ms-a.ms)/864e5);
+    o.innerHTML='<div class="note" style="margin:0"><b>'+Math.abs(d)+' days</b>'+(d<0?' (second date is earlier)':'')+' &middot; about '+(Math.abs(d)/30.4).toFixed(1)+' months</div>';
+  }
+  $('cdA').addEventListener('input',cdShow);$('cdB').addEventListener('input',cdShow);
+  /* denomination counter (shared by Utility and manual day book) */
+  var DEN=[1000,500,100,50,20,10,5,2,1];
+  function denHtml(p,cnt){
+    cnt=cnt||{};
+    return DEN.map(function(d){return '<div class="dnr"><b>Rs '+d+'</b><input class="n" type="text" inputmode="decimal" data-fx="1" data-den="'+p+'" data-dv="'+d+'" value="'+esc(cnt[d]||'')+'" placeholder="0 notes" aria-label="Number of Rs '+d+' notes"><span class="a" id="'+p+'_a'+d+'"></span></div>'}).join('')+
+      '<div class="dnr"><b>Other</b><input class="n" type="text" inputmode="decimal" data-fx="1" data-den="'+p+'" data-dv="oth" value="'+esc(cnt.oth||'')+'" placeholder="coins / other Rs" aria-label="Other amount"><span class="a"></span></div>'+
+      '<div class="dnr" style="border-top:2px solid var(--line);padding-top:8px"><b>Total</b><span id="'+p+'_n" class="note" style="margin:0"></span><span class="a" id="'+p+'_t"></span></div>';
+  }
+  function denRead(p){
+    var cnt={},tot=0,notes=0;
+    qa('[data-den="'+p+'"]').forEach(function(el){
+      var k=el.getAttribute('data-dv'),v=el.value,x=0;
+      if(/^\s*=/.test(v)){try{x=fxEval(v)}catch(e){x=0}}else x=num(v);
+      if(v.trim())cnt[k]=v.trim();
+      if(k==='oth')tot+=x;else{tot+=x*(+k);notes+=x;var a=$(p+'_a'+k);if(a)a.textContent=x?fmt(x*(+k)):''}
+    });
+    var t=$(p+'_t');if(t)t.textContent='Rs '+fmt(r2(tot));var n=$(p+'_n');if(n)n.textContent=notes?notes+' notes':'';
+    return {cnt:cnt,total:r2(tot)};
+  }
+  function denInit(p){
+    var box=$('udBox');
+    if(!box.firstChild)box.innerHTML=denHtml('ud',get('eb_den',{}));
+    denRead('ud');
+  }
+  document.addEventListener('input',function(e){
+    var el=e.target,p=el.getAttribute&&el.getAttribute('data-den');if(!p)return;
+    var r=denRead(p);
+    if(p==='ud')set('eb_den',r.cnt);
+    else if(p==='md'){$('mdCash').value=Object.keys(r.cnt).length?String(r.total):'';mdRender()}
+  });
+  $('udClear').addEventListener('click',function(){qa('[data-den="ud"]').forEach(function(el){el.value=''});denRead('ud');set('eb_den',{})});
+  /* reminder notes */
+  function notesArr(){if(!Array.isArray(DATA.cfg.notes))DATA.cfg.notes=[];return DATA.cfg.notes}
+  function notesSave(){DATA.cfg.at=stamp();saveData();later('bk',queueAuto)}
+  function notesRender(){
+    var a=notesArr().slice(),td=todayBS();
+    a.sort(function(x,y){if(!!x.done!==!!y.done)return x.done?1:-1;return (y.at||'')<(x.at||'')?-1:((y.at||'')>(x.at||'')?1:0)});
+    $('rmList').innerHTML=a.length?a.map(function(n){
+      var late=n.due&&!n.done&&n.due<td,today=n.due&&!n.done&&n.due===td;
+      return '<div class="rmi'+(n.done?' done':'')+'"><input type="checkbox" data-rm="'+n.id+'"'+(n.done?' checked':'')+' aria-label="Done" style="margin-top:4px"><div style="flex:1"><span>'+esc(n.t)+'</span><div class="due'+(late?' late':'')+'">'+(n.due?(late?'Overdue: ':(today?'Today: ':'Remind on: '))+esc(n.due):'')+(n.by?' &middot; '+esc(n.by):'')+' &middot; '+esc(showStamp(n.at))+'</div></div><button class="btn2" data-rmx="'+n.id+'" type="button" style="flex:0;min-width:0;padding:6px 10px">Delete</button></div>';
+    }).join(''):'<div class="note" style="margin:0">No notes yet. Add a reminder above.</div>';
+  }
+  $('rmAdd').addEventListener('click',function(){
+    var t=$('rmText').value.trim(),dv=$('rmDue').value.trim(),due='';
+    if(!t){toast('Type the note first.');return}
+    if(dv){due=normBS(dv);if(!due){toast('Enter a valid reminder date or leave it blank.');return}}
+    notesArr().push({id:newUid(),t:t,due:due,done:false,at:stamp(),by:user.username});
+    $('rmText').value='';$('rmDue').value='';notesSave();notesRender();
+  });
+  $('rmText').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('rmAdd').click()}});
+  $('rmList').addEventListener('click',function(e){
+    var x=e.target.closest('[data-rmx]');
+    if(x){var id=x.getAttribute('data-rmx');DATA.cfg.notes=notesArr().filter(function(n){return n.id!==id});notesSave();notesRender()}
+  });
+  $('rmList').addEventListener('change',function(e){
+    var c=e.target.closest('[data-rm]');if(!c)return;
+    notesArr().forEach(function(n){if(n.id===c.getAttribute('data-rm')){n.done=c.checked;n.at=stamp()}});notesSave();notesRender();
+  });
+  /* help in several languages */
+  var HELP={
+    en:[['Getting started','First time: tap Create account and choose a username and password. This person becomes the owner (admin). Then create your company (name, address, PAN). You can keep many companies. On another device, sign in with the same username.'],
+      ['Add On: set up basics first','Open Add On to add Ledgers (parties, banks, expense names), Stock items (name, unit, opening stock and rate), Units and Users. Keep party and item names in English. Put opening cash and bank balance in Settings.'],
+      ['Vouchers','The Voucher tab has Sales, Purchase, Receipt, Payment and Journal. Choose the date (B.S. or A.D.), party, items with quantity and rate, and any discount. For a cash deal choose Cash and the bill settles itself. Press Save & New, or Share / Print. In any number box you can type a formula starting with =, for example =12*4.5+10, then press Enter.'],
+      ['Reports','A/C Report has sales, purchase, ledger, outstanding and Books (day book, manual day book, cash / bank, profit and loss). Tap any row to go deeper: report, then party, then voucher summary, then the voucher. Latest entries are shown first.'],
+      ['Inventory','See stock summary, item statement, purchase and sales price lists and expiry alerts. Add stock items in Add On.'],
+      ['Manual day book','Books, then Manual day book: choose the day, count your notes, compare with the expected cash and save. Any difference is shown as short or excess.'],
+      ['Backup and Google Drive','In Settings, Company, connect Google Drive to back up and to sync your devices. Also download a backup file from time to time.'],
+      ['Shortcuts and Utility','Settings, Shortcut Keys lists every key; you can change and print them. Utility has a calculator, B.S. / A.D. calendar with converter, cash counter and reminder notes.']],
+    ne:[['सुरु गर्ने तरिका',"पहिलो पटक: 'Create account' थिचेर युजरनेम र पासवर्ड राख्नुहोस् (यो व्यक्ति मालिक/एडमिन हुन्छ)। त्यसपछि कम्पनी बनाउनुहोस् (नाम, ठेगाना, प्यान)। धेरै कम्पनी राख्न सकिन्छ। अर्को उपकरणमा पनि सोही युजरनेमले लगइन गर्नुहोस्।"],
+      ['Add On: पहिले आधारभूत विवरण','Add On खोलेर लेजर (पार्टी, बैंक, खर्चका नाम), स्टक सामान (नाम, एकाइ, सुरुको स्टक र दर), एकाइ र युजर थप्नुहोस्। पार्टी र सामानको नाम अंग्रेजीमै राख्नुहोस्। सुरुको नगद/बैंक सेटिङमा राख्नुहोस्।'],
+      ['भौचर','Voucher ट्याबमा बिक्री, खरिद, रसिद, भुक्तानी, जर्नल छन्। मिति (वि.सं. वा ई.सं.), पार्टी, सामान, परिमाण र दर राख्नुहोस्। नगद कारोबार भए Cash रोज्नुहोस् — बिल आफैं चुक्ता हुन्छ। Save & New वा Share/Print थिच्नुहोस्। कुनै पनि अंकको खानामा = बाट सुरु गरी सूत्र लेख्न सकिन्छ, जस्तै =12*4.5+10 र Enter थिच्नुहोस्।'],
+      ['रिपोर्ट','A/C Report मा बिक्री, खरिद, लेजर, बाँकी र बुक्स (डे बुक, म्यानुअल डे बुक, नगद/बैंक, नाफा-नोक्सान) छन्। कुनै पनि लाइन थिचेर तल-तल जान सकिन्छ: रिपोर्ट → पार्टी → भौचर सारांश → भौचर। नयाँ प्रविष्टि माथि देखिन्छ।'],
+      ['इन्भेन्टरी','स्टक सारांश, सामानको विवरण, खरिद/बिक्री मूल्य सूची र म्याद सकिने सूचना हेर्न सकिन्छ। सामान Add On मा थप्नुहोस्।'],
+      ['म्यानुअल डे बुक','Books → Manual day book मा दिन छान्नुहोस्, नोट गनेर नगद गन्नुहोस्, अपेक्षित नगदसँग मिलान गर्नुहोस् र सुरक्षित गर्नुहोस्। फरक भए घटी वा बढी देखिन्छ।'],
+      ['ब्याकअप र ड्राइभ','Settings → Company मा Google Drive जोडेर ब्याकअप र उपकरणहरूबीच सिंक गर्न सकिन्छ। बेलाबेला ब्याकअप फाइल पनि डाउनलोड गर्नुहोस्।'],
+      ['सर्टकट र युटिलिटी','Settings → Shortcut Keys मा सबै किहरू देखिन्छन्, बदल्न र प्रिन्ट गर्न सकिन्छ। Utility मा क्यालकुलेटर, वि.सं./ई.सं. पात्रो र मिति रूपान्तरण, नगद गणना र रिमाइन्डर छन्।']],
+    hi:[['शुरू करना',"पहली बार: 'Create account' दबाकर यूज़रनेम और पासवर्ड बनाएँ (यह व्यक्ति मालिक/एडमिन होगा)। फिर कंपनी बनाएँ (नाम, पता, PAN)। कई कंपनियाँ रख सकते हैं। दूसरे डिवाइस पर भी उसी यूज़रनेम से लॉगिन करें।"],
+      ['Add On: पहले बुनियादी जानकारी','Add On खोलकर लेजर (पार्टी, बैंक, खर्च के नाम), स्टॉक आइटम (नाम, यूनिट, शुरुआती स्टॉक और दर), यूनिट और यूज़र जोड़ें। पार्टी और आइटम के नाम अंग्रेज़ी में ही रखें। शुरुआती नकद/बैंक Settings में भरें।'],
+      ['वाउचर','Voucher टैब में बिक्री, खरीद, रसीद, भुगतान, जर्नल हैं। तारीख (वि.सं. या ई.सं.), पार्टी, आइटम, मात्रा और दर भरें। नकद लेन-देन हो तो Cash चुनें — बिल अपने आप चुकता हो जाएगा। Save & New या Share/Print दबाएँ। किसी भी संख्या वाले खाने में = से शुरू करके सूत्र लिख सकते हैं, जैसे =12*4.5+10 और Enter दबाएँ।'],
+      ['रिपोर्ट','A/C Report में बिक्री, खरीद, लेजर, बकाया और बुक्स (डे बुक, मैनुअल डे बुक, नकद/बैंक, लाभ-हानि) हैं। किसी भी पंक्ति को दबाकर और गहराई में जाएँ: रिपोर्ट → पार्टी → वाउचर सार → वाउचर। नई प्रविष्टियाँ ऊपर दिखती हैं।'],
+      ['इन्वेंटरी','स्टॉक सार, आइटम विवरण, खरीद/बिक्री मूल्य सूची और एक्सपायरी अलर्ट देखें। आइटम Add On में जोड़ें।'],
+      ['मैनुअल डे बुक','Books → Manual day book में दिन चुनें, नोट गिनकर नकद दर्ज करें, अपेक्षित नकद से मिलान करें और सेव करें। अंतर होने पर कम या ज़्यादा दिखता है।'],
+      ['बैकअप और ड्राइव','Settings → Company में Google Drive जोड़कर बैकअप और डिवाइस सिंक करें। समय-समय पर बैकअप फाइल भी डाउनलोड करें।'],
+      ['शॉर्टकट और यूटिलिटी','Settings → Shortcut Keys में सभी कीज़ दिखती हैं, बदल और प्रिंट कर सकते हैं। Utility में कैलकुलेटर, वि.सं./ई.सं. कैलेंडर और तारीख बदलना, नकद गिनती और रिमाइंडर हैं।']]
+  };
+  var HLANG=[['en','English'],['ne','नेपाली (Nepali)'],['hi','हिन्दी (Hindi)'],['mai','Maithili'],['new','Nepal Bhasa'],['bho','Bhojpuri'],['ur','Urdu'],['bn','Bengali'],['gu','Gujarati'],['mr','Marathi'],['ta','Tamil'],['te','Telugu'],['zh-CN','Chinese'],['ar','Arabic'],['es','Spanish'],['fr','French'],['ja','Japanese'],['ko','Korean']];
+  function hlangGet(){return get('eb_helplang','en')}
+  function helpRender(){
+    var L=hlangGet(),h=HELP[L]||HELP.en;
+    $('hpLang').innerHTML=HLANG.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===L?' selected':'')+'>'+esc(x[1])+'</option>'}).join('');
+    var built=!!HELP[L];
+    $('hpNote').innerHTML=built?'':'This language is not stored in the app. The English text is shown. Tap Translate under any section to open it in Google Translate (needs internet).';
+    var all=HELP.en.map(function(x){return x[0]+'\n'+x[1]}).join('\n\n');
+    $('hpBody').innerHTML=h.map(function(x,i){
+      var link=built?'':' <a href="https://translate.google.com/?sl=en&tl='+L+'&op=translate&text='+encodeURIComponent(x[0]+'\n'+x[1])+'" target="_blank" rel="noopener">Translate</a>';
+      return '<div class="card hpc"><h3>'+(i+1)+'. '+esc(x[0])+link+'</h3><p>'+esc(x[1])+'</p></div>';
+    }).join('')+(built?'':'<div class="note"><a href="https://translate.google.com/?sl=en&tl='+L+'&op=translate&text='+encodeURIComponent(all.slice(0,4500))+'" target="_blank" rel="noopener">Translate the whole help</a></div>');
+  }
+  $('hpLang').addEventListener('change',function(){set('eb_helplang',$('hpLang').value);helpRender()});
+  /* shortcut list: print / share */
+  function keysReport(){
+    var rows=KEYS.map(function(x){return [x[1],kcombo(x[0])||'None']});
+    rows.push(['Enter','OK, choose highlighted item, go to next box'],['Tab / Shift+Tab','Next / previous box'],['Esc','Close the screen or go back']);
+    return {file:'ShortcutKeys',title:'KEYBOARD SHORTCUTS',info:[(co&&co.name)||'MEDBOOKS',kcfg().on?'Shortcuts are ON':'Shortcuts are OFF'],cols:[{h:'Action',w:4,al:'l'},{h:'Keys',w:2.2,al:'l'}],rows:rows,minw:420};
+  }
+  $('scPrint').addEventListener('click',function(){var r=keysReport();printCanvas(drawTable(r),r.file)});
+  $('scShare').addEventListener('click',function(){var r=keysReport();shareCanvas(drawTable(r),r.file,r.title)});
+  /* manual day book */
+  function mdDate(){return normBS($('mdDate').value)||''}
+  function mdStore(){if(!DATA.cfg.mdb||typeof DATA.cfg.mdb!=='object')DATA.cfg.mdb={};return DATA.cfg.mdb}
+  function mdCalc(day){
+    var open=num(DATA.cfg.openCash),inn=0,out=0,list=[];
+    DATA.docs.forEach(function(d,i){
+      if(!live(d)||(d.type!=='rec'&&d.type!=='pay'&&d.type!=='exp')||d.mode!=='Cash')return;
+      var dt=dmy(d.date),a=d.type==='rec'?d.total:0,b=d.type==='rec'?0:d.total;
+      if(dt<day)open=r2(open+a-b);
+      else if(dt===day){inn=r2(inn+a);out=r2(out+b);list.push({d:d,i:i,a:a,b:b})}
+    });
+    list.sort(function(x,y){return y.i-x.i});
+    return {open:open,inn:inn,out:out,exp:r2(open+inn-out),list:list};
+  }
+  function mdReport(){
+    var day=mdDate();
+    if(!day)return {empty:'Enter a valid date to see the day book.'};
+    var c=mdCalc(day),has=$('mdCash').value.trim()!=='',got=has?r2(num($('mdCash').value)):null,diff=has?r2(got-c.exp):null,ad=bsToAD(day);
+    var rows=c.list.map(function(o){var d=o.d;return [dShort(d)+' '+d.no,(d.party||'')+(d.remarks?' ('+d.remarks+')':''),o.a?fmt(o.a):'',o.b?fmt(o.b):'']});
+    if(!rows.length)rows.push(['','No cash entries on this day','','']);
+    var info=['Date: '+day+' B.S.'+(ad?' ('+adSl(ad)+' A.D.)':''),'Opening cash: Rs '+fmt(c.open),'Cash in: Rs '+fmt(c.inn)+'   Cash out: Rs '+fmt(c.out),'Expected closing cash: Rs '+fmt(c.exp)];
+    if(has)info.push('Cash counted: Rs '+fmt(got)+'   '+(diff===0?'TALLY (no difference)':(diff<0?'SHORT by Rs '+fmt(-diff):'EXCESS by Rs '+fmt(diff))));
+    if($('mdRem').value.trim())info.push('Remarks: '+$('mdRem').value.trim());
+    return {file:'ManualDayBook_'+day.replace(/\//g,'-'),title:'MANUAL DAY BOOK',info:info,cols:[{h:'Voucher',w:1.6,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'Cash in',w:1.2,al:'r'},{h:'Cash out',w:1.2,al:'r'}],rows:rows,totals:[['','Total',fmt(c.inn),fmt(c.out)]],minw:520,
+      foot:'Cash entries are receipts, payments and expenses with mode Cash. Latest first.',_c:c,_got:got,_diff:diff};
+  }
+  function mdRender(){showReport($('mdOut'),$('mdBtns'),mdReport())}
+  function mdLoad(){
+    var day=mdDate(),rec=day?mdStore()[day]:null;
+    $('mdDen').innerHTML=denHtml('md',rec&&rec.cnt);
+    $('mdCash').value=rec&&rec.cash!=null?String(rec.cash):'';$('mdRem').value=rec&&rec.rem||'';
+    $('mdDenBox').open=!!(rec&&rec.cnt&&Object.keys(rec.cnt).length);
+    denRead('md');mdRender();mdList();
+  }
+  function mdList(){
+    var st=mdStore(),ks=Object.keys(st).sort().reverse();
+    $('mdList').innerHTML=ks.length?ks.map(function(k){var r=st[k],df=r.diff||0;
+      return '<div class="lg" data-mdk="'+k+'" style="cursor:pointer;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>'+esc(k)+'</b> &middot; expected '+fmt(r.exp||0)+' &middot; counted '+fmt(r.cash||0)+'</span><span style="font-weight:700;color:'+(df===0?'inherit':'#c0392b')+'">'+(df===0?'Tally':(df<0?'Short ':'Excess ')+fmt(Math.abs(df)))+'</span><small style="width:100%;color:var(--muted)">'+esc(r.by||'')+' &middot; '+esc(showStamp(r.at))+(r.rem?' &middot; '+esc(r.rem):'')+'</small></div>';
+    }).join(''):'<div class="note" style="margin:0">No saved day books yet.</div>';
+  }
+  function renderManual(){
+    if(!$('mdDate').value)$('mdDate').value=todayBS();
+    if($('mdDate').getAttribute('data-ld')!==mdDate()){$('mdDate').setAttribute('data-ld',mdDate());mdLoad()}else{mdRender();mdList()}
+  }
+  function mdShift(n){
+    var day=mdDate()||todayBS(),a=bsToAD(day);if(!a)return;
+    var q=a.split('-'),t=Date.UTC(+q[0],+q[1]-1,+q[2])+n*864e5,b=adToBS(adIsoOf(t));if(b){$('mdDate').value=b;renderManual()}
+  }
+  $('mdPrev').addEventListener('click',function(){mdShift(-1)});$('mdNext').addEventListener('click',function(){mdShift(1)});
+  $('mdToday').addEventListener('click',function(){$('mdDate').value=todayBS();renderManual()});
+  ['input','change'].forEach(function(ev){$('mdDate').addEventListener(ev,function(){if(mdDate())renderManual();else mdRender()})});
+  $('mdCash').addEventListener('input',mdRender);$('mdRem').addEventListener('input',mdRender);
+  $('mdList').addEventListener('click',function(e){var r=e.target.closest('[data-mdk]');if(r){$('mdDate').value=r.getAttribute('data-mdk');renderManual();window.scrollTo(0,0)}});
+  $('mdSave').addEventListener('click',function(){
+    var day=mdDate();if(!day){toast('Enter a valid date.');return}
+    if(isLocked(day)){toast(lockMsg());return}
+    var cv=$('mdCash').value.trim();if(!cv){toast('Enter the cash counted in hand, or use the note counter.');return}
+    if(/^\s*=/.test(cv)&&!fxApply($('mdCash')))return;
+    var r=mdReport(),dn=denRead('md');
+    mdStore()[day]={cash:r2(num($('mdCash').value)),cnt:dn.cnt,rem:$('mdRem').value.trim(),open:r._c.open,inn:r._c.inn,out:r._c.out,exp:r._c.exp,diff:r2(num($('mdCash').value)-r._c.exp),by:user.username,at:stamp()};
+    DATA.cfg.at=stamp();saveData();later('bk',queueAuto);mdLoad();toast('Day book saved for '+day+'.');
+  });
+  repBtn('mdShare',mdReport,true);repBtn('mdPrint',mdReport,false);
 
   /* ---------- start ---------- */
   (function boot(){

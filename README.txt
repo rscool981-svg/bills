@@ -66,3 +66,5 @@ Version 20: ledger Excel format (voucher row + item rows, import and export, one
 Version 21: Excel registers for all sales / purchases / returns / receipts / payments / journals (voucher row + item rows), import and export, matching entry sheets.
 
 Version 22: cash transactions on sales/purchase/returns (automatic cash receipt/payment), tap-through drill-down from reports (item > party > voucher), no discount by default, Pcs default unit, ledger list hides zero-balance parties.
+
+v23: All reports newest first; voucher summary before opening a voucher; type = formulas in number boxes (e.g. =12*4.5+10); Utility tab (calculator, B.S./A.D. calendar and converter, cash note counter, reminder notes, Help in English/Nepali/Hindi); Manual day book with cash reconciliation (A/C Report > Books); print/share list of shortcut keys.
