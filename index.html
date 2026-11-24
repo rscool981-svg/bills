@@ -50,6 +50,9 @@ header.top h1{margin:0;font-size:19px;letter-spacing:.03em;text-transform:upperc
 label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 label.chk{display:flex;gap:10px;align-items:flex-start;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
 label.chk input{width:auto;margin-top:3px}
+div.chk{display:flex;gap:12px;align-items:flex-start;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+div.chk input{width:24px;height:24px;margin:0;flex:0 0 auto}
+div.chk span{user-select:none}
 input,select{
   width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);
   border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0;
@@ -287,7 +290,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full"><label for="party" id="partyLbl">Party name</label><input id="party" data-sug="party" type="text" placeholder="Name" autocomplete="off" maxlength="60"></div>
       <div class="full" id="party2Wrap" hidden><label for="party2">Credit ledger (Cr)</label><input id="party2" data-sug="party" type="text" placeholder="Name" autocomplete="off" maxlength="60"></div>
       <div class="full" id="refWrap" hidden><label for="ref">Against bill no. (optional)</label><input id="ref" type="text" autocomplete="off" maxlength="20"></div>
-      <div class="full" id="cashWrap" hidden><label class="chk"><input type="checkbox" id="vCash"> <span id="cashTxt"></span></label></div>
+      <div class="full" id="cashWrap" hidden><div class="chk"><input type="checkbox" id="vCash" aria-labelledby="cashTxt"> <span id="cashTxt"></span></div></div>
       <div class="full" id="discMWrap"><label for="discM">Discount</label><select id="discM"><option value="none">No discount</option><option value="bill">Bill-wise (on the whole bill)</option><option value="item">Item-wise (on each item)</option></select></div>
       <div class="full" id="stkWrap"><label for="stkM">Stock</label><select id="stkM"><option value="1">Update stock (default)</option><option value="0">Without stock (no effect on stock)</option></select></div>
     </div>
@@ -338,7 +341,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div><label for="agDate">Date (B.S.) yyyy/mm/dd</label><input id="agDate" type="text" inputmode="numeric" placeholder="2083/07/22" autocomplete="off" maxlength="10"></div>
       <div><label for="agDateAd">Date (A.D.) yyyy/mm/dd</label><input id="agDateAd" type="text" inputmode="numeric" placeholder="2026/11/08" autocomplete="off" maxlength="10"></div>
       <div class="full"><label for="agRem">Remarks (optional, copied to every bill)</label><input id="agRem" type="text" autocomplete="off" maxlength="100"></div>
-      <div class="full" id="agCashWrap" hidden><label class="chk"><input type="checkbox" id="agCash"> <span id="agCashTxt"></span></label></div>
+      <div class="full" id="agCashWrap" hidden><div class="chk"><input type="checkbox" id="agCash" aria-labelledby="agCashTxt"> <span id="agCashTxt"></span></div></div>
       <div class="full" id="agStkWrap"><label for="agStk">Stock</label><select id="agStk"><option value="1">Update stock (default)</option><option value="0">Without stock: party and amount only</option></select></div>
     </div>
     <h2>Parties and items</h2>
@@ -464,7 +467,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     </div>
     <div id="mdOut"></div>
     <div class="btns" id="mdBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="mdShare" type="button">Share</button><button class="btn2" id="mdPrint" type="button">Print</button></div>
-    <h2>Saved day books (latest first)</h2>
+    <h2>Saved day books (oldest first)</h2>
     <div class="card" id="mdList"></div>
   </section>
 
@@ -1116,7 +1119,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   var grp='sales',EDIT=null,modOK=false,agDocs=[],MINROWS=6,wc=null;
   function uname(){return user.username.toLowerCase()}
   function setKeys(){K.data='eb_cdata_'+co.id;K.draft='eb_cdraft_'+co.id+'_'+uname();K.bk='eb_cbk_'+co.id;K.dr='eb_cdrive_'+co.id;K.dl='eb_cdl_'+co.id}
-  function saveUsers(){set('eb_users',users);try{if(acctSnap()){saveData();later('bk',queueAuto)}}catch(e){}}
+  function saveUsers(){set('eb_users',users);try{if(acctSnap()){saveData();queueAuto()}}catch(e){}}
   function saveCos(){set('eb_companies',companies)}
   var MASTER={gmail:'rscool981@gmail.com',m:'p',salt:'934951290873688416785483427939',h:'0079cbcfc8e84581f53bc06be21b5ef65ce18f3b80ddb6e2a2a7cfa07dd228b4'};
   function isMasterName(n){n=String(n||'').trim().toLowerCase();return n==='master'||n===MASTER.gmail}
@@ -2356,13 +2359,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     var lg=curLedger();
     var h='<h2>'+esc(lg.name)+'</h2><div class="sheet lgwrap"><div style="min-width:364px"><div class="lg lgh"><div class="c">Date</div><div class="c">Particulars</div><div class="c r">Debit</div><div class="c r">Credit</div><div class="c r">Balance</div></div>';
-    var lrows=lg.rows.slice().reverse(),lpi=pgInfo('lgOut',lrows.length,'L|'+lg.name+'|'+lrows.length,false),lbar=pgBar('lgOut',lrows.length,lpi);
+    if(lg.showOpen)h+='<div class="lg lgb"><div class="c"></div><div class="c">Opening balance</div><div class="c r"></div><div class="c r"></div><div class="c r">'+esc(balTxt(lg.open))+'</div></div>';
+    var lpi=pgInfo('lgOut',lg.rows.length,'L|'+lg.name+'|'+lg.rows.length,true),lbar=pgBar('lgOut',lg.rows.length,lpi);
     PGR.lgOut=renderLedger;
     h=lbar+h;
-    (lrows.length>25&&PSZ?lrows.slice(lpi.a,lpi.b):lrows).forEach(function(r){
+    (lg.rows.length>25&&PSZ?lg.rows.slice(lpi.a,lpi.b):lg.rows).forEach(function(r){
       h+='<div class="lg"'+(r.led?' data-i="'+r.i+'" style="cursor:pointer" role="button"':' data-vi="'+r.i+'" style="cursor:pointer" role="button"')+'><div class="c">'+esc(dmy(r.date))+'</div><div class="c">'+esc(r.part)+'</div><div class="c r">'+(r.dr?fmt(r.dr):'')+'</div><div class="c r">'+(r.cr?fmt(r.cr):'')+'</div><div class="c r">'+esc(balTxt(r.bal))+'</div></div>';
     });
-    if(lg.showOpen&&(!(lrows.length>25&&PSZ)||lpi.p>=lpi.pages-1))h+='<div class="lg lgb"><div class="c"></div><div class="c">Opening balance</div><div class="c r"></div><div class="c r"></div><div class="c r">'+esc(balTxt(lg.open))+'</div></div>';
     if(!lg.rows.length&&!lg.showOpen)h+='<div class="lg"><div class="c" style="grid-column:1/-1">No entries for this party.</div></div>';
     h+='<div class="lg lgt"><div class="c"></div><div class="c r" style="justify-content:flex-end">Total</div><div class="c r">'+fmt(lg.totDr)+'</div><div class="c r">'+fmt(lg.totCr)+'</div><div class="c r">'+esc(balTxt(lg.close))+'</div></div></div></div>';
     h+='<div class="card total"><div class="big"><span>Closing balance</span><b class="'+(lg.close>0?'dr':(lg.close<0?'cr':''))+'">'+esc(balTxt(lg.close))+'</b></div><div class="note" style="margin:0">'+(lg.close>0?'To receive from '+esc(lg.name):(lg.close<0?'To pay to '+esc(lg.name):'Settled'))+'</div></div>';
@@ -2473,7 +2476,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     });
     var nm=buy?'PURCHASE PRICE LIST':'SALES PRICE LIST';
     if(!out.length)return {empty:'No '+(buy?'purchase':'sales')+' prices found for this choice. Change the item, party or dates above.'};
-    out.sort(function(a,b){var x=a.item.toLowerCase(),y=b.item.toLowerCase();return x<y?-1:(x>y?1:(a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)))});
+    out.sort(function(a,b){var x=a.item.toLowerCase(),y=b.item.toLowerCase();return x<y?-1:(x>y?1:(a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)))});
     var info=[periodTxt(from,to)];if(iq)info.push('Item: '+$('stItem').value.trim());if(pq)info.push('Party: '+$('stParty').value.trim());
     if(iq){var rs=out.map(function(x){return x.rate}),last=out.slice().sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)}).pop();info.push('Lowest Rs '+fmt(Math.min.apply(null,rs))+'   Highest Rs '+fmt(Math.max.apply(null,rs))+'   Latest Rs '+fmt(last.rate))}
     var rows=out.map(function(x){var r=[x.item,x.dt,x.party,x.no,fq(x.q)+' '+uOf(x.item,x.unit),fmt(x.rate)];r.i=x.i;return r});
@@ -2497,9 +2500,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         return summaryReport(ms,from,to,'STOCK ITEMS MATCHING "'+item+'"');
       }
       var u=' '+uOf(r.name,r.unit),rows=[];
-      var o0=['','Opening balance','','','',fq(r.open)+u];o0.b=true;
-      r.rows.slice().reverse().forEach(function(x){var rr=[x.date,x.part,x.inq?fq(x.inq)+u:'',x.outq?fq(x.outq)+u:'',x.rate?fmt(x.rate):'',fq(x.bal)+u];rr.i=x.i;rows.push(rr)});
-      if(from||r.open)rows.push(o0);
+      var o0=['','Opening balance','','','',fq(r.open)+u];o0.b=true;if(from||r.open)rows.push(o0);
+      r.rows.forEach(function(x){var rr=[x.date,x.part,x.inq?fq(x.inq)+u:'',x.outq?fq(x.outq)+u:'',x.rate?fmt(x.rate):'',fq(x.bal)+u];rr.i=x.i;rows.push(rr)});
       var avgS=r.soldQty?r2(r.soldVal/r.soldQty):0;
       return {file:'Stock_'+(safeName(r.name)||'Item')+'_'+(to||'All').replace(/\//g,'-'),title:'STOCK ITEM STATEMENT',
         info:['Item: '+r.name+' ('+uOf(r.name,r.unit)+')',periodTxt(from,to),'Sold: '+fq(r.soldQty)+u+' for Rs '+fmt(r.soldVal)+(r.soldQty?' (average Rs '+fmt(avgS)+')':''),'Closing stock: '+fq(r.close)+u],
@@ -2545,7 +2547,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var from=normBS($('dbFrom').value)||'',to=normBS($('dbTo').value)||'';
     var list=[];
     DATA.docs.forEach(function(d,i){if(!live(d))return;var dt=dmy(d.date);if(from&&dt<from)return;if(to&&dt>to)return;list.push({d:d,i:i,dt:dt})});
-    list.sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:(b.i-a.i))});
+    list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:(a.i-b.i))});
     var sums={};ORDER.forEach(function(t){sums[t]=0});
     var rows=list.map(function(o){
       var d=o.d;sums[d.type]=r2(sums[d.type]+d.total);
@@ -2646,13 +2648,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var rows=[],tp=0,cols=[{h:'Party',w:2.2,al:'l'},{h:'Date',w:1.3,al:'l'},{h:'Bill',w:1.3,al:'l'},{h:'Amount',w:1.2,al:'r'},{h:'Settled',w:1.2,al:'r'},{h:'Pending',w:1.2,al:'r'},{h:'Days',w:.8,al:'r'}];
       all.forEach(function(o){
         if(k0&&pkey(o.name)!==k0)return;
-        var bills=o.inv.filter(function(b){return r2(b.total-b.paid)>0.004}).reverse();if(!bills.length)return;
+        var bills=o.inv.filter(function(b){return r2(b.total-b.paid)>0.004});if(!bills.length)return;
         var sp=0;
         bills.forEach(function(b){var bd=b.date?bsDays(b.date):null,p=r2(b.total-b.paid);sp=r2(sp+p);var br=[o.name,b.date||'Opening',b.no,fmt(b.total),fmt(r2(b.paid)),fmt(p),(bd!=null&&nd!=null)?String(nd-bd):''],bix=-1;DATA.docs.forEach(function(d,di){if(bix<0&&live(d)&&d.no===b.no&&pkey(d.party)===pkey(o.name))bix=di});if(bix>=0)br.i=bix;else br.dr={k:'pv',party:o.name};rows.push(br)});
         var tr=['Total - '+o.name+(o.advance>0.004?' (advance '+fmt(o.advance)+')':''),'','','','',fmt(sp),''];tr.b=true;tr.dr={k:'pv',party:o.name};rows.push(tr);tp=r2(tp+sp);
       });
       if(!rows.length)return {empty:'Nothing is pending'+(pq?' for "'+pq+'"':'')+' ('+lab.toLowerCase()+').'};
-      return {file:'Outstanding_'+(kind==='rec'?'Receivable':'Payable')+'_'+on.replace(/\//g,'-'),title:'OUTSTANDING BILLS - '+lab.toUpperCase(),info:['As on '+on+'   |   Bill-wise, newest first'+(pq?'   |   Party: '+pq:'')],
+      return {file:'Outstanding_'+(kind==='rec'?'Receivable':'Payable')+'_'+on.replace(/\//g,'-'),title:'OUTSTANDING BILLS - '+lab.toUpperCase(),info:['As on '+on+'   |   Bill-wise, oldest first'+(pq?'   |   Party: '+pq:'')],
         cols:cols,rows:rows,totals:[['Total pending','','','','',fmt(tp),'']],minw:760,
         foot:'Receipts and payments that name a bill settle that bill. Money not tied to a bill settles the oldest bills first.'};
     }
@@ -2719,7 +2721,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var cr=[o.dt,dShort(d)+' '+d.no+' - '+(d.party||'')+(d.remarks?' ('+d.remarks+')':''),inn?fmt(inn):'',out?fmt(out):'',fmt(bal)];cr.i=o.i;rows.push(cr);
     });
     if(!rows.length&&!open&&!from)return {empty:'No '+(bank?'bank':'cash')+' entries yet. Receipts, payments and expenses with this mode appear here.'};
-    var o0=['','Opening balance','','',fmt(open)];o0.b=true;rows.reverse();rows.push(o0);
+    var o0=['','Opening balance','','',fmt(open)];o0.b=true;rows.unshift(o0);
     var nm=bank?'BANK BOOK':'CASH BOOK';
     return {file:(bank?'BankBook_':'CashBook_')+(from||'Start').replace(/\//g,'-')+'_to_'+(to||'Today').replace(/\//g,'-'),title:nm,info:[periodTxt(from,to),'Closing balance: Rs '+fmt(bal)],
       cols:[{h:'Date',w:1.4,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'In',w:1.2,al:'r'},{h:'Out',w:1.2,al:'r'},{h:'Balance',w:1.4,al:'r'}],
@@ -2794,7 +2796,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(pq&&pkey(d.party)!==pq)return;
       list.push({d:d,i:i,dt:dt,sg:(net&&(d.type==='sret'||d.type==='pret'))?-1:1});
     });
-    list.sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)});
+    list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});
     if(!list.length)return {empty:'No '+VNAME[kind].toLowerCase()+' vouchers in this period.'};
     var info=[periodTxt(from,to)];if(pq)info.push('Party: '+$('vrParty').value.trim());
     var base=VNAME[kind]+'_by_'+by+'_'+(from||'Start').replace(/\//g,'-')+'_to_'+(to||'Today').replace(/\//g,'-'),tot=0,rows=[],cols,totals,title,minw=560;
@@ -2875,7 +2877,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     if(x.k==='ipv'){
       var kk=pkey(x.item),pp=pkey(x.party==='(no party)'?'':x.party),ix=[];
-      stockMoves().slice().sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)}).forEach(function(mv){
+      stockMoves().forEach(function(mv){
         if(mv.key!==kk||pkey(mv.party)!==pp||!inPer(mv.dt,x.from,x.to)||(x.types&&x.types.indexOf(mv.type)<0))return;
         var r=[mv.dt,TYPES[mv.type].short+' '+mv.no,fq(mv.inq||mv.outq)+' '+mv.unit,fmt(mv.rate),fmt(r2((mv.inq||mv.outq)*mv.rate))];r.i=mv.i;rows.push(r);ix.push(mv.i);tot=r2(tot+(mv.inq||mv.outq)*mv.rate);
       });
@@ -2883,13 +2885,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     if(x.k==='pv'){
       var lg=ledgerFor(x.party,x.from||'',x.to||'');
-      lg.rows.slice().reverse().forEach(function(r){var rr=[dmy(r.date),r.part,r.dr?fmt(r.dr):'',r.cr?fmt(r.cr):'',balTxt(r.bal)];rr.i=r.i;rows.push(rr)});
+      lg.rows.forEach(function(r){var rr=[dmy(r.date),r.part,r.dr?fmt(r.dr):'',r.cr?fmt(r.cr):'',balTxt(r.bal)];rr.i=r.i;rows.push(rr)});
       return {title:lg.name,info:['Ledger entries. Tap one to open its voucher.'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'Debit',w:1.1,al:'r'},{h:'Credit',w:1.1,al:'r'},{h:'Balance',w:1.3,al:'r'}],rows:rows,totals:[['','Closing','','',balTxt(lg.close)]],minw:560};
     }
     // 'dl': a list of vouchers
     var ixs=x.ix||[];
     if(!x.ix){DATA.docs.forEach(function(d,i){if(!live(d)||x.types.indexOf(d.type)<0)return;if(!inPer(dmy(d.date),x.from,x.to))return;if(x.head&&pkey(d.party)!==pkey(x.head))return;ixs.push(i)})}
-    ixs.slice().sort(function(a,b){var da=dmy(DATA.docs[a].date),db=dmy(DATA.docs[b].date);return da<db?1:(da>db?-1:b-a)}).forEach(function(i){var d=DATA.docs[i];if(!d)return;var r=[dmy(d.date),dShort(d)+' '+d.no,d.party||'',fmt(d.total)];r.i=i;rows.push(r);tot=r2(tot+d.total)});
+    ixs.slice().sort(function(a,b){var da=dmy(DATA.docs[a].date),db=dmy(DATA.docs[b].date);return da<db?-1:(da>db?1:a-b)}).forEach(function(i){var d=DATA.docs[i];if(!d)return;var r=[dmy(d.date),dShort(d)+' '+d.no,d.party||'',fmt(d.total)];r.i=i;rows.push(r);tot=r2(tot+d.total)});
     return {title:x.title||'Vouchers',info:['Tap a voucher to open it'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Voucher',w:1.7,al:'l'},{h:'Party',w:2.4,al:'l'},{h:'Amount',w:1.3,al:'r'}],rows:rows,totals:[['','Total','',fmt(tot)]],minw:520,single:rows.length===1?rows[0].i:null};
   }
   function drillShow(){
@@ -3089,8 +3091,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(bal!=null)P.txt(balTxt(bal),E[5]-8,y+25,'right','bold 17px '+F);
       y+=h;
     }
-    lg.rows.slice().reverse().forEach(function(r){row(dmy(r.date),r.part,r.dr,r.cr,r.bal,false)});
     if(lg.showOpen)row('','Opening balance',0,0,lg.open,true);
+    lg.rows.forEach(function(r){row(dmy(r.date),r.part,r.dr,r.cr,r.bal,false)});
     P.box(E[0],E[2],y,42,'#e3efec');P.box(E[2],E[3],y,42,'#e3efec');P.box(E[3],E[4],y,42,'#e3efec');P.box(E[4],E[5],y,42,'#e3efec');
     P.txt('Total',E[2]-8,y+29,'right','bold 19px '+F);
     P.txt(fmt(lg.totDr),E[3]-8,y+29,'right','bold 19px '+F);P.txt(fmt(lg.totCr),E[4]-8,y+29,'right','bold 19px '+F);
@@ -3245,8 +3247,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(q&&hay.indexOf(q)<0)return;
       out.push(i);
     });
-    out.sort(function(a,b){var x=dmy(DATA.docs[a].date),y=dmy(DATA.docs[b].date);return x<y?1:(x>y?-1:b-a)});
-    var cut2=false,lpi2=pgInfo('lsList',out.length,'V|'+q+'|'+t+'|'+out.length,false),lbar2=pgBar('lsList',out.length,lpi2);PGR.lsList=renderList;
+    out.sort(function(a,b){var x=dmy(DATA.docs[a].date),y=dmy(DATA.docs[b].date);return x<y?-1:(x>y?1:a-b)});
+    var cut2=false,lpi2=pgInfo('lsList',out.length,'V|'+q+'|'+t+'|'+out.length,true),lbar2=pgBar('lsList',out.length,lpi2);PGR.lsList=renderList;
     var outAll=out;if(out.length>25&&PSZ)out=out.slice(lpi2.a,lpi2.b);
     $('lsList').innerHTML=outAll.length?lbar2+out.map(function(i){
       var d=DATA.docs[i];
@@ -4810,7 +4812,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         if(h===rec.h){
           okAuth();set('eb_last',rec.username);if(rec.m!=='p'&&canSha())setPw(p,rec);
           gmailGate(rec).then(function(r){if(r===true)afterLogin(rec);else authErr(r)});
-        }else{failAuth();authErr('Wrong username or password.')}
+        }else{failAuth();authErr('Wrong username or password. If the password was just changed on another device, open the app there with internet first so it can sync, then try again.')}
       });
       return;
     }
@@ -4968,12 +4970,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   document.addEventListener('focusin',function(e){var t=e.target;if(!t.getAttribute)return;if(t.getAttribute('data-sug'))sugShow(t);else if(t.getAttribute('data-hist')&&t.tagName==='INPUT')histShow(t);else sugHide()});
   document.addEventListener('click',function(e){var t=e.target;if(t.getAttribute&&t.getAttribute('data-hist')&&t.tagName==='INPUT')histShow(t)});
   document.addEventListener('input',function(e){var t=e.target;if(!t.getAttribute)return;if(t.getAttribute('data-sug'))sugShow(t);else if(t.getAttribute('data-hist'))sugHide()});
+  var sugPickAt=0;
+  document.addEventListener('click',function(e){if(Date.now()-sugPickAt<600){e.preventDefault();e.stopPropagation()}},true);
   document.addEventListener('pointerdown',function(e){
     var d=e.target.closest&&e.target.closest('#sug div');
     if(d&&sugEl){
       e.preventDefault();var el=sugEl,v=d.getAttribute('data-v'),rt=d.getAttribute('data-r');
       if(v==null&&rt==null)return;
-      el.value=v!=null?v:rt;sugHide();
+      el.value=v!=null?v:rt;sugHide();sugPickAt=Date.now();
       el.dispatchEvent(new Event('input',{bubbles:true}));
       if(v!=null&&el.getAttribute('data-f')==='item'){var rw=el.closest('.g,.ag'),ri=rw&&rw.querySelector('[data-f="qty"]');if(ri)setTimeout(function(){ri.focus()},30)}
     }else if(!(e.target.getAttribute&&(e.target.getAttribute('data-sug')||e.target.getAttribute('data-hist'))))sugHide();
@@ -5628,7 +5632,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(!ok)return;
       pwDialog('set','New password','Choose your new password.').then(function(p){
         if(p==null)return;
-        setPw(p,user).then(function(){logAct('Password','Changed own password');saveData();later('bk',queueAuto);toast('Password changed.')});
+        setPw(p,user).then(function(){logAct('Password','Changed own password');saveData();queueAuto();toast('Password changed.')});
       });
     });
   });
@@ -5640,7 +5644,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(!isRp){showAuth('access',{username:u.username});return}
       pwDialog('set','New password for '+u.username,'Choose the new password for this user.').then(function(p){
         if(p==null)return;
-        setPw(p,u).then(function(){logAct('Password','Changed password of '+u.username);saveData();later('bk',queueAuto);toast('Password changed for '+u.username+'.')});
+        setPw(p,u).then(function(){logAct('Password','Changed password of '+u.username);saveData();queueAuto();toast('Password changed for '+u.username+'.')});
       });
     });
   });
@@ -6037,7 +6041,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['10. Voucher > Payment and Expense','Payment: money you give a supplier. Expense: shop costs without a supplier, such as rent or salary; choose the head.\nExample: Expense, head Rent, Rs 15,000, Cash.','voucher|payment|pay'],
       ['11. Voucher > Journal','Moves value between ledgers without cash. Add debit and credit ledgers; Total Dr must equal Total Cr.\nExample: write off 200 of Sita: Dr Discount allowed 200, Cr Sita 200.','voucher|journal|jnl'],
       ['12. Typing formulas in number boxes','In any quantity, rate, amount or discount box type = and a formula, then press Enter or Tab. It supports + - * / ^ %, brackets, SUM MIN MAX AVERAGE ROUND ABS SQRT.\nExample: =12*4.5+10 gives 64. =ROUND(100/3,2) gives 33.33.',''],
-      ['13. A/C Report > Sales, Purchase, Returns, Receipt, Payment, Expense','Each has By date, By item (or mode / head) and By party. Choose the period at the top. Tap any row to go deeper: report, then party or item, then a summary of the voucher (date, party, bill no., quantity, rate), then the full voucher. Latest entries come first.\nExample: Sales > By item > tap Paracetamol > tap Ram > tap the bill.','report|sales|sale:item'],
+      ['13. A/C Report > Sales, Purchase, Returns, Receipt, Payment, Expense','Each has By date, By item (or mode / head) and By party. Choose the period at the top. Tap any row to go deeper: report, then party or item, then a summary of the voucher (date, party, bill no., quantity, rate), then the full voucher. Oldest entries come first, newest at the bottom.\nExample: Sales > By item > tap Paracetamol > tap Ram > tap the bill.','report|sales|sale:item'],
       ['14. A/C Report > Ledger','By party name: statement of one party; leave the name empty to see only parties with a balance. By group: totals of a group. Outstanding: bills still to receive or pay. Ageing: how old the unpaid bills are.\nExample: type "Ram" to see every bill and receipt with running balance.','report|ledger|led:party'],
       ['15. A/C Report > Books','Day book: every entry of a period. Manual day book: pick a day, count your cash notes, compare with the expected cash and save; difference shows Short or Excess. Cash / Bank: cash book and bank book. Profit & Loss: income and expenses with gross profit.\nExample: Manual day book for today, count 1000 x 5 + 500 x 3, save.','report|books|bk:man'],
       ['16. A/C Report > User-wise (owner only)','User summary: how many vouchers each user made and their amounts. User vouchers: list by user and type. Who changed what: when and by whom any voucher, ledger, stock item or setting was created, edited, cancelled or deleted.\nExample: choose user "operator1" and see yesterday\'s edits.','report|users|us:log'],
@@ -6065,7 +6069,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['१०. भौचर > भुक्तानी र खर्च','भुक्तानी: आपूर्तिकर्तालाई दिएको पैसा। खर्च: भाडा, तलब जस्ता खर्च; शीर्षक रोज्नुहोस्।\nउदाहरण: खर्च, शीर्षक भाडा, १५,००० नगद।','voucher|payment|pay'],
       ['११. भौचर > जर्नल','नगद बिना एक लेजरबाट अर्कोमा रकम सार्छ। जम्मा Dr र जम्मा Cr बराबर हुनुपर्छ।\nउदाहरण: सीताको २०० छुट: Dr छुट २००, Cr सीता २००।','voucher|journal|jnl'],
       ['१२. अंकको खानामा सूत्र लेख्ने','परिमाण, दर, रकम, छुटको खानामा = लेखेर सूत्र लेख्नुहोस्, अनि Enter वा Tab थिच्नुहोस्।\nउदाहरण: =12*4.5+10 ले ६४ दिन्छ।',''],
-      ['१३. खाता रिपोर्ट > बिक्री, खरिद, फिर्ता, रसिद, भुक्तानी, खर्च','मिति, सामान (वा तरिका/शीर्षक) र पार्टी अनुसार हेर्न सकिन्छ। कुनै लाइन थिचेर तल-तल जानुहोस्: रिपोर्ट → पार्टी/सामान → भौचर सारांश → पूरा भौचर। नयाँ माथि देखिन्छ।\nउदाहरण: बिक्री > सामान अनुसार > Paracetamol > राम > बिल।','report|sales|sale:item'],
+      ['१३. खाता रिपोर्ट > बिक्री, खरिद, फिर्ता, रसिद, भुक्तानी, खर्च','मिति, सामान (वा तरिका/शीर्षक) र पार्टी अनुसार हेर्न सकिन्छ। कुनै लाइन थिचेर तल-तल जानुहोस्: रिपोर्ट → पार्टी/सामान → भौचर सारांश → पूरा भौचर। पुरानो माथि, नयाँ तल देखिन्छ।\nउदाहरण: बिक्री > सामान अनुसार > Paracetamol > राम > बिल।','report|sales|sale:item'],
       ['१४. खाता रिपोर्ट > लेजर','पार्टी अनुसार: एक पार्टीको विवरण (नाम खाली राखे बाँकी भएका पार्टी मात्र)। समूह अनुसार, बाँकी (लिन/तिर्न बाँकी बिल) र पुरानो बाँकी (Ageing)।\nउदाहरण: "Ram" लेख्दा सबै बिल, रसिद र बाँकी देखिन्छ।','report|ledger|led:party'],
       ['१५. खाता रिपोर्ट > बुक्स','डे बुक: अवधिका सबै प्रविष्टि। म्यानुअल डे बुक: दिन छानेर नोट गन्ने, अपेक्षित नगदसँग मिलाउने र सुरक्षित गर्ने; फरक भए घटी/बढी देखिन्छ। नगद/बैंक बुक। नाफा-नोक्सान।\nउदाहरण: आजको म्यानुअल डे बुकमा १००० x ५ + ५०० x ३ गन्ने।','report|books|bk:man'],
       ['१६. खाता रिपोर्ट > प्रयोगकर्ता अनुसार (मालिक मात्र)','प्रयोगकर्ता सारांश, प्रयोगकर्ताका भौचर, र कसले कहिले के बदल्यो (भौचर, लेजर, सामान, सेटिङ)।\nउदाहरण: प्रयोगकर्ता operator1 छानेर हिजोको परिवर्तन हेर्नुहोस्।','report|users|us:log'],
@@ -6093,7 +6097,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['10. वाउचर > भुगतान और खर्च','भुगतान: सप्लायर को दिया पैसा। खर्च: किराया, वेतन जैसे खर्च; मद चुनें।\nउदाहरण: खर्च, मद किराया, 15,000 नकद।','voucher|payment|pay'],
       ['11. वाउचर > जर्नल','बिना नकद एक लेजर से दूसरे में रकम बदलता है। कुल Dr और कुल Cr बराबर होने चाहिए।\nउदाहरण: सीता की 200 छूट: Dr छूट 200, Cr सीता 200।','voucher|journal|jnl'],
       ['12. संख्या वाले खानों में सूत्र','मात्रा, दर, रकम, छूट के खाने में = लिखकर सूत्र लिखें, फिर Enter या Tab दबाएँ।\nउदाहरण: =12*4.5+10 से 64 मिलता है।',''],
-      ['13. A/C रिपोर्ट > बिक्री, खरीद, वापसी, रसीद, भुगतान, खर्च','तारीख, आइटम (या तरीका/मद) और पार्टी के अनुसार देखें। किसी भी पंक्ति को दबाकर गहराई में जाएँ: रिपोर्ट → पार्टी/आइटम → वाउचर सार → पूरा वाउचर। नया ऊपर दिखता है।\nउदाहरण: बिक्री > आइटम अनुसार > Paracetamol > राम > बिल।','report|sales|sale:item'],
+      ['13. A/C रिपोर्ट > बिक्री, खरीद, वापसी, रसीद, भुगतान, खर्च','तारीख, आइटम (या तरीका/मद) और पार्टी के अनुसार देखें। किसी भी पंक्ति को दबाकर गहराई में जाएँ: रिपोर्ट → पार्टी/आइटम → वाउचर सार → पूरा वाउचर। पुराना ऊपर, नए नीचे दिखते हैं।\nउदाहरण: बिक्री > आइटम अनुसार > Paracetamol > राम > बिल।','report|sales|sale:item'],
       ['14. A/C रिपोर्ट > लेजर','पार्टी अनुसार: एक पार्टी का विवरण (नाम खाली हो तो केवल बकाया वाली पार्टियाँ)। समूह अनुसार, बकाया और उम्र अनुसार बकाया (Ageing)।\nउदाहरण: "Ram" लिखने पर सभी बिल, रसीद और शेष दिखता है।','report|ledger|led:party'],
       ['15. A/C रिपोर्ट > बुक्स','डे बुक: अवधि की सभी प्रविष्टियाँ। मैनुअल डे बुक: दिन चुनें, नोट गिनें, अपेक्षित नकद से मिलाएँ और सेव करें; अंतर हो तो कम/ज़्यादा दिखता है। नकद/बैंक बुक। लाभ-हानि।\nउदाहरण: आज की मैनुअल डे बुक में 1000 x 5 + 500 x 3 गिनें।','report|books|bk:man'],
       ['16. A/C रिपोर्ट > यूज़र अनुसार (केवल मालिक)','यूज़र सार, यूज़र के वाउचर, और किसने कब क्या बदला (वाउचर, लेजर, आइटम, सेटिंग)।\nउदाहरण: यूज़र operator1 चुनकर कल के बदलाव देखें।','report|users|us:log'],
@@ -6147,7 +6151,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(dt<day)open=r2(open+a-b);
       else if(dt===day){inn=r2(inn+a);out=r2(out+b);list.push({d:d,i:i,a:a,b:b})}
     });
-    list.sort(function(x,y){return y.i-x.i});
+    list.sort(function(x,y){return x.i-y.i});
     return {open:open,inn:inn,out:out,exp:r2(open+inn-out),list:list};
   }
   function mdReport(){
@@ -6160,7 +6164,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(has)info.push('Cash counted: Rs '+fmt(got)+'   '+(diff===0?'TALLY (no difference)':(diff<0?'SHORT by Rs '+fmt(-diff):'EXCESS by Rs '+fmt(diff))));
     if($('mdRem').value.trim())info.push('Remarks: '+$('mdRem').value.trim());
     return {file:'ManualDayBook_'+day.replace(/\//g,'-'),title:'MANUAL DAY BOOK',info:info,cols:[{h:'Voucher',w:1.6,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'Cash in',w:1.2,al:'r'},{h:'Cash out',w:1.2,al:'r'}],rows:rows,totals:[['','Total',fmt(c.inn),fmt(c.out)]],minw:520,
-      foot:'Cash entries are receipts, payments and expenses with mode Cash. Latest first.',_c:c,_got:got,_diff:diff};
+      foot:'Cash entries are receipts, payments and expenses with mode Cash. Oldest first.',_c:c,_got:got,_diff:diff};
   }
   function mdRender(){showReport($('mdOut'),$('mdBtns'),mdReport())}
   function mdLoad(){
@@ -6171,7 +6175,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     denRead('md');mdRender();mdList();
   }
   function mdList(){
-    var st=mdStore(),ks=Object.keys(st).sort().reverse();
+    var st=mdStore(),ks=Object.keys(st).sort();
     $('mdList').innerHTML=ks.length?ks.map(function(k){var r=st[k],df=r.diff||0;
       return '<div class="lg" data-mdk="'+k+'" style="cursor:pointer;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>'+esc(k)+'</b> &middot; expected '+fmt(r.exp||0)+' &middot; counted '+fmt(r.cash||0)+'</span><span style="font-weight:700;color:'+(df===0?'inherit':'#c0392b')+'">'+(df===0?'Tally':(df<0?'Short ':'Excess ')+fmt(Math.abs(df)))+'</span><small style="width:100%;color:var(--muted)">'+esc(r.by||'')+' &middot; '+esc(showStamp(r.at))+(r.rem?' &middot; '+esc(r.rem):'')+'</small></div>';
     }).join(''):'<div class="note" style="margin:0">No saved day books yet.</div>';
@@ -6280,10 +6284,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(d.type==='sale')o.s=r2(o.s+d.total);else if(d.type==='sret')o.s=r2(o.s-d.total);else if(d.type==='pur')o.p=r2(o.p+d.total);else if(d.type==='pret')o.p=r2(o.p-d.total);
       else if(d.type==='rec')o.r=r2(o.r+d.total);else if(d.type==='pay')o.y=r2(o.y+d.total);else if(d.type==='exp')o.e=r2(o.e+d.total);
     });
-    var ks=Object.keys(m).sort().reverse(),T={s:0,p:0,r:0,y:0,e:0};
+    var ks=Object.keys(m).sort(),T={s:0,p:0,r:0,y:0,e:0};
     if(!ks.length)return {empty:'No transactions in this period.'};
     var rows=ks.map(function(k){var o=m[k],q=k.split('/');for(var z in T)T[z]=r2(T[z]+o[z]);return [BSM[+q[1]-1]+' '+q[0],fmt(o.s),fmt(o.p),fmt(r2(o.s-o.p)),fmt(o.r),fmt(o.y),fmt(o.e)]});
-    return {file:'MonthlyTrend',title:'MONTHLY TREND',info:[periodTxt(from,to),'Latest month first. Sales and purchases are net of returns.'],
+    return {file:'MonthlyTrend',title:'MONTHLY TREND',info:[periodTxt(from,to),'Oldest month first. Sales and purchases are net of returns.'],
       cols:[{h:'Month (B.S.)',w:1.8,al:'l'},{h:'Sales',w:1.2,al:'r'},{h:'Purchase',w:1.2,al:'r'},{h:'Sales - Purchase',w:1.3,al:'r'},{h:'Receipts',w:1.2,al:'r'},{h:'Payments',w:1.2,al:'r'},{h:'Expenses',w:1.2,al:'r'}],rows:rows,totals:[['Total',fmt(T.s),fmt(T.p),fmt(r2(T.s-T.p)),fmt(T.r),fmt(T.y),fmt(T.e)]],minw:760};
   }
   function anProfit(from,to,N){
@@ -6353,9 +6357,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         if(d.auto)return;if(uq&&(d.by||'')!==uq)return;if(tq&&d.type!==tq)return;var dt=dmy(d.date);if(!inPer(dt,from,to))return;list.push({d:d,i:i,dt:dt});
       });
       if(!list.length)return {empty:'No vouchers match.'};
-      list.sort(function(a,b){return a.dt<b.dt?1:(a.dt>b.dt?-1:b.i-a.i)});var tot=0;
+      list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});var tot=0;
       var rows=list.map(function(o){var d=o.d;if(live(d))tot=r2(tot+d.total);var r=[o.dt,dShort(d)+' '+d.no,d.party||'',fmt(d.total)+(live(d)?'':' (cancelled)'),d.by||'',showStamp(d.saved),d.edits?(d.editedBy||'')+' '+showStamp(d.edited):''];r.i=o.i;return r});
-      return {file:'UserWise_Vouchers',title:'USER-WISE VOUCHERS',info:[periodTxt(from,to),'User: '+(uq||'All')+'   Type: '+(tq?TYPES[tq].short:'All')+'   Total (live): Rs '+fmt(tot),'Latest first. Tap a row to open the voucher.'],
+      return {file:'UserWise_Vouchers',title:'USER-WISE VOUCHERS',info:[periodTxt(from,to),'User: '+(uq||'All')+'   Type: '+(tq?TYPES[tq].short:'All')+'   Total (live): Rs '+fmt(tot),'Oldest first. Tap a row to open the voucher.'],
         cols:[{h:'Date',w:1.2,al:'l'},{h:'Voucher',w:1.6,al:'l'},{h:'Party',w:1.8,al:'l'},{h:'Amount',w:1.3,al:'r'},{h:'Entered by',w:1.1,al:'l'},{h:'Entered at',w:1.5,al:'l'},{h:'Last edit',w:1.8,al:'l'}],rows:rows,minw:900};
     }
     var ev=[];
@@ -6367,9 +6371,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     (DATA.cfg.log||[]).forEach(function(l){ev.push({at:l.at,by:l.by,a:l.k,w:l.w})});
     ev=ev.filter(function(e){if(uq&&e.by!==uq)return false;var b=atBS(e.at);return !b||inPer(b,from,to)});
     if(!ev.length)return {empty:'No activity found for this selection.'};
-    ev.sort(function(a,b){return a.at<b.at?1:(a.at>b.at?-1:0)});
-    var rows2=ev.slice(0,2000).map(function(e){var r=[showStamp(e.at),e.by,e.a,e.w];if(e.i!=null)r.i=e.i;return r});
-    return {file:'EditLog',title:'WHO CHANGED WHAT AND WHEN',info:[periodTxt(from,to),'User: '+(uq||'All')+'. Vouchers, ledgers, stock items and settings. Latest first.'],
+    ev.sort(function(a,b){return a.at<b.at?-1:(a.at>b.at?1:0)});
+    var rows2=ev.slice(-2000).map(function(e){var r=[showStamp(e.at),e.by,e.a,e.w];if(e.i!=null)r.i=e.i;return r});
+    return {file:'EditLog',title:'WHO CHANGED WHAT AND WHEN',info:[periodTxt(from,to),'User: '+(uq||'All')+'. Vouchers, ledgers, stock items and settings. Oldest first.'],
       cols:[{h:'When',w:1.5,al:'l'},{h:'User',w:1.1,al:'l'},{h:'Action',w:1.3,al:'l'},{h:'Details',w:4,al:'l'}],rows:rows2,minw:760,foot:ev.length>2000?'Showing the latest 2000 of '+ev.length+' events.':''};
   }
   function renderUsers2(){
@@ -6392,7 +6396,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(o.del||o.kind!==kind)return false;if(st==='open'&&o.done)return false;if(st==='done'&&!o.done)return false;
       if(q&&(o.party||'').toLowerCase().indexOf(q)<0&&!(o.lines||[]).some(function(l){return (l.item||'').toLowerCase().indexOf(q)>=0}))return false;return true;
     });
-    a.sort(function(x,y){var dx=dmy(x.date),dy=dmy(y.date);return dx<dy?1:(dx>dy?-1:((y.at||'')<(x.at||'')?-1:1))});
+    a.sort(function(x,y){var dx=dmy(x.date),dy=dmy(y.date);return dx<dy?-1:(dx>dy?1:((x.at||'')<(y.at||'')?-1:1))});
     $('obOut').innerHTML='<h2>'+(kind==='c'?'Customer orders':'Supplier orders')+' ('+a.length+')</h2>'+(a.length?a.map(function(o){
       var items=(o.lines||[]).map(function(l){return esc(l.item)+' '+esc(fq(num(l.qty)))+' '+esc(l.unit||'')}).join(', ');
       return '<div class="card" data-ob="'+o.id+'" style="cursor:pointer"><b>'+esc(o.no)+'</b> &middot; '+esc(dmy(o.date))+' &middot; '+esc(o.party||'(no party)')+' <span class="tag '+(o.done?'grn':'')+'">'+(o.done?'Completed':'Open')+'</span><div class="note" style="margin:4px 0 0">'+items+'</div>'+(o.rem?'<div class="note" style="margin:2px 0 0">'+esc(o.rem)+'</div>':'')+'</div>';
@@ -6470,7 +6474,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 ['Save','सुरक्षित गर्नुहोस्','सेव करें'],['Save & New','सुरक्षित गरी नयाँ','सेव और नया'],['Cancel','रद्द','रद्द करें'],['Cancel voucher','भौचर रद्द','वाउचर रद्द'],['Close','बन्द','बंद करें'],['Back','पछाडि','वापस'],['Abort','छोड्नुहोस्','छोड़ें'],['Share','सेयर','शेयर'],['Print','प्रिन्ट','प्रिंट'],['Delete','मेट्नुहोस्','हटाएँ'],['Edit','सम्पादन','संपादित'],['Add','थप्नुहोस्','जोड़ें'],['Download','डाउनलोड','डाउनलोड'],['Import','आयात','इम्पोर्ट'],['Export','निर्यात','एक्सपोर्ट'],['Settings','सेटिङ','सेटिंग्स'],['Switch','परिवर्तन','बदलें'],['Log out','लगआउट','लॉग आउट'],['Log in','लगइन','लॉग इन'],['PC view','पीसी दृश्य','पीसी व्यू'],['Mobile view','मोबाइल दृश्य','मोबाइल व्यू'],
 ['Date (B.S.)','मिति (वि.सं.)','तारीख (वि.सं.)'],['Date (A.D.)','मिति (ई.सं.)','तारीख (ई.सं.)'],['From (B.S. or A.D.)','देखि (वि.सं. वा ई.सं.)','से (वि.सं. या ई.सं.)'],['To (B.S. or A.D.)','सम्म (वि.सं. वा ई.सं.)','तक (वि.सं. या ई.सं.)'],['Period','अवधि','अवधि'],['Party','पार्टी','पार्टी'],['Party name','पार्टीको नाम','पार्टी का नाम'],['Item','सामान','आइटम'],['Items','सामानहरू','आइटम'],['Amount','रकम','रकम'],['Amount (Rs)','रकम (रु)','रकम (रु)'],['Quantity','परिमाण','मात्रा'],['Rate','दर','दर'],['Discount','छुट','छूट'],['Total','जम्मा','कुल'],['Remarks','टिप्पणी','टिप्पणी'],['Remarks (optional)','टिप्पणी (ऐच्छिक)','टिप्पणी (वैकल्पिक)'],['Mode','तरिका','तरीका'],['Cash','नगद','नकद'],['Bank transfer','बैंक ट्रान्सफर','बैंक ट्रांसफर'],['Cheque','चेक','चेक'],['QR / Wallet','क्यूआर / वालेट','क्यूआर / वॉलेट'],['Other','अन्य','अन्य'],['Phone','फोन','फोन'],['Address','ठेगाना','पता'],['Password','पासवर्ड','पासवर्ड'],['Username','युजरनेम','यूज़रनेम'],['Confirm password','पासवर्ड पुष्टि','पासवर्ड की पुष्टि'],['Role','भूमिका','भूमिका'],['Group','समूह','समूह'],['Show','देखाउनुहोस्','दिखाएँ'],['Details','विवरण','विवरण'],['Note','नोट','नोट'],['Book','बुक','बुक'],['Date','मिति','तारीख'],['Voucher number','भौचर नम्बर','वाउचर नंबर'],['Voucher type','भौचरको प्रकार','वाउचर प्रकार'],['Particulars','विवरण','विवरण'],['Debit','डेबिट','डेबिट'],['Credit','क्रेडिट','क्रेडिट'],['Balance','बाँकी','शेष'],
 ['Cash in hand (Rs)','हातमा नगद (रु)','हाथ में नकद (रु)'],['Bank balance (Rs)','बैंक मौज्दात (रु)','बैंक शेष (रु)'],['Opening cash and bank','सुरुको नगद र बैंक','शुरुआती नकद और बैंक'],['Company details','कम्पनी विवरण','कंपनी विवरण'],['Company name','कम्पनीको नाम','कंपनी का नाम'],['Company name (shown on bills)','कम्पनीको नाम (बिलमा देखिन्छ)','कंपनी का नाम (बिल पर दिखेगा)'],['Fiscal year','आर्थिक वर्ष','वित्तीय वर्ष'],['Backup and restore','ब्याकअप र पुनर्स्थापना','बैकअप और रीस्टोर'],['Backup now','अहिले ब्याकअप','अभी बैकअप'],['Version','संस्करण','वर्जन'],['Version (screen layout)','संस्करण (स्क्रिन बनावट)','वर्जन (स्क्रीन लेआउट)'],['Shortcut Keys','सर्टकट किहरू','शॉर्टकट कीज़'],['Shortcut keys','सर्टकट किहरू','शॉर्टकट कीज़'],['Language','भाषा','भाषा'],['Print list','सूची प्रिन्ट','सूची प्रिंट'],['Share list','सूची सेयर','सूची शेयर'],['Reset all to default','सबै पूर्वनिर्धारित गर्नुहोस्','सब डिफ़ॉल्ट करें'],
-['Save this day book','यो डे बुक सुरक्षित','यह डे बुक सेव करें'],['Saved day books (latest first)','सुरक्षित डे बुक (नयाँ पहिले)','सेव डे बुक (नए पहले)'],['Cash counted in hand (Rs)','हातमा गनेको नगद (रु)','हाथ में गिना नकद (रु)'],['Count notes (denomination counter)','नोट गन्नुहोस्','नोट गिनें'],['Cash denomination counter','नगद नोट गणक','नकद नोट गिनती'],['Previous day','अघिल्लो दिन','पिछला दिन'],['Next day','अर्को दिन','अगला दिन'],
+['Save this day book','यो डे बुक सुरक्षित','यह डे बुक सेव करें'],['Saved day books (oldest first)','सुरक्षित डे बुक (पुराना पहिले)','सेव डे बुक (नए पहले)'],['Cash counted in hand (Rs)','हातमा गनेको नगद (रु)','हाथ में गिना नकद (रु)'],['Count notes (denomination counter)','नोट गन्नुहोस्','नोट गिनें'],['Cash denomination counter','नगद नोट गणक','नकद नोट गिनती'],['Previous day','अघिल्लो दिन','पिछला दिन'],['Next day','अर्को दिन','अगला दिन'],
 ['Add staff','कर्मचारी थप्नुहोस्','स्टाफ जोड़ें'],['Staff of this company','यस कम्पनीका कर्मचारी','इस कंपनी का स्टाफ'],['Owner: everything','मालिक: सबै अधिकार','मालिक: सभी अधिकार'],['Viewer: reports only','हेर्ने: रिपोर्ट मात्र','व्यूअर: केवल रिपोर्ट'],['Operator: enter vouchers (choose below)','सञ्चालक: भौचर प्रविष्टि (तल रोज्नुहोस्)','ऑपरेटर: वाउचर प्रविष्टि (नीचे चुनें)'],['Change my password','मेरो पासवर्ड बदल्नुहोस्','मेरा पासवर्ड बदलें'],
 ['New order','नयाँ अर्डर','नया ऑर्डर'],['+ New order','+ नयाँ अर्डर','+ नया ऑर्डर'],['Save order','अर्डर सुरक्षित','ऑर्डर सेव'],['Mark completed','पूरा भयो चिन्ह','पूरा हुआ'],['Open orders','खुला अर्डर','खुले ऑर्डर'],['Completed orders','पूरा भएका अर्डर','पूरे ऑर्डर'],['All orders','सबै अर्डर','सभी ऑर्डर'],['+ Add item','+ सामान थप्नुहोस्','+ आइटम जोड़ें'],['How many to list','कति वटा देखाउने','कितने दिखाएँ'],
 ['Recent vouchers','हालका भौचर','हाल के वाउचर'],['Open voucher','भौचर खोल्नुहोस्','वाउचर खोलें'],['Voucher details','भौचर विवरण','वाउचर विवरण'],['Modify voucher','भौचर परिमार्जन','वाउचर संशोधन'],['Modify or cancel a voucher','भौचर परिमार्जन वा रद्द','वाउचर संशोधन या रद्द'],['Share all bills','सबै बिल सेयर','सभी बिल शेयर'],['Settle bills (optional)','बिल चुक्ता (ऐच्छिक)','बिल चुकता (वैकल्पिक)'],['Date converter','मिति रूपान्तरण','तारीख बदलें'],['Ledger groups','लेजर समूह','लेजर समूह'],['Stock items (with opening stock)','स्टक सामान (सुरुको स्टकसहित)','स्टॉक आइटम (शुरुआती स्टॉक सहित)'],['Settings','सेटिङ','सेटिंग्स'],['Go To','जानुहोस्','जाएँ'],
