@@ -86,3 +86,7 @@ Tick "Log out this member" to stop a member at any time. After the renewal date 
 Reminders: use the Gmail / WhatsApp buttons (they open a ready message; you press Send). The app cannot send by itself without a server.
 IMPORTANT: after every change press "Download members.json" and upload it to GitHub next to index.html. Devices read it when online and remember it for offline.
 Back up the member list from the Members tab (it is stored only on your device).
+
+v30 - More imports (Add On > Import / Export > Import > What to import)
+New separate imports: Ageing / outstanding report, Stock groups, Order book. Own named templates work for all of them.
+Duplicates are blocked: same name (items, parties, groups), same voucher number, same date + party + amount, same order.

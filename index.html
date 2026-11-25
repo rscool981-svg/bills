@@ -833,7 +833,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <div class="btns"><button class="btn2 prim" id="ieExGo" type="button">Export</button></div>
   <h2>Import</h2>
   <div class="card meta">
-    <div class="full"><label for="ieImWhat">What to import</label><select id="ieImWhat"><option value="items">Stock items (with opening stock)</option><option value="parties">Parties and ledgers (with opening balance)</option><option value="txn">Any vouchers / ledger with transactions (type in a column)</option><option value="txn:sale">Sales bills (with or without stock)</option><option value="txn:pur">Purchase bills (with or without stock)</option><option value="txn:sret">Sales returns</option><option value="txn:pret">Purchase returns</option><option value="txn:rec">Receipt vouchers</option><option value="txn:pay">Payment vouchers</option><option value="txn:jnl">Journal vouchers</option></select></div>
+    <div class="full"><label for="ieImWhat">What to import</label><select id="ieImWhat"><option value="items">Stock items (with opening stock)</option><option value="parties">Parties and ledgers (with opening balance)</option><option value="ageing">Ageing / outstanding report (party balances)</option><option value="sgroup">Stock groups (item to group)</option><option value="orders">Order book (customer / supplier orders)</option><option value="txn">Any vouchers / ledger with transactions (type in a column)</option><option value="txn:sale">Sales bills (with or without stock)</option><option value="txn:pur">Purchase bills (with or without stock)</option><option value="txn:sret">Sales returns</option><option value="txn:pret">Purchase returns</option><option value="txn:rec">Receipt vouchers</option><option value="txn:pay">Payment vouchers</option><option value="txn:jnl">Journal vouchers</option></select></div>
     <div class="full"><label for="ieImFile">File: Excel, CSV, photo or PDF</label><input id="ieImFile" type="file" accept=".xlsx,.csv,.txt,.pdf,image/*"></div>
     <div class="full"><label class="chk"><input type="checkbox" id="ieNoStock"> Transactions: do not change stock (use when the opening stock already includes them)</label></div>
     <div class="full note" style="margin:0">Use the same columns as the template. Names that already exist are skipped, never overwritten. You see a preview before anything is saved. Photos and PDFs are read with the photo reader below.</div>
@@ -4017,6 +4017,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     parties:{name:['name','party','partyname','ledger','ledgername','account','accountname'],phone:['phone','mobile','contact','phoneno'],pan:['pan','panno','vat','panvat'],address:['address','location'],open:['openingbalance','opening','balance','amount'],side:['drcr','side','type'],_req:['name']},
     txn:{date:['datebs','date','miti','billdate','invoicedate','voucherdate','bsdate','transactiondate'],type:['type','voucher','vouchertype','vchtype'],no:['number','no','voucherno','billno','vchno','invoiceno','invoicenumber'],party:['party','partyname','name','ledger','debitledger','customer','customername','supplier','suppliername','buyer','accountname'],party2:['creditledgerjournal','creditledger','party2','crledger'],item:['item','itemname','particulars','medicine','medicinename','product','productname','goods','description'],qty:['qty','quantity','nos'],unit:['unit','packunit','uom'],rate:['rate','price','salesrate','purchaserate'],amount:['amount','total','netamount','value','lineamount'],mode:['mode','paymentmode'],remarks:['remarks','narration','note'],batch:['batch','batchno','batchnumber'],exp:['expiry','exp','expirydate','expdate','expiredate'],mrp:['mrp','maxretailprice'],_req:['date','party']}
   };
+  IM_SPEC.ageing={name:['party','partyname','name','ledger','ledgername','account','accountname','customer','supplier','particulars'],open:['outstanding','outstandingamount','dueamount','due','balancedue','pending','pendingamount','balance','closingbalance','total','amount','openingbalance'],side:['drcr','side','type'],phone:['phone','mobile','contact','phoneno'],_req:['name','open']};
+  IM_SPEC.sgroup={name:['item','itemname','name','stockitem','product','productname','medicine','particulars'],group:['group','stockgroup','itemgroup','category','under','parent','groupname'],_req:['name','group']};
+  IM_SPEC.orders={date:['date','datebs','miti','orderdate'],kind:['type','kind','ordertype','customersupplier'],party:['party','partyname','customer','supplier','name','ledger'],item:['item','itemname','medicine','product','particulars'],qty:['qty','quantity','nos'],unit:['unit','uom'],rem:['remarks','narration','note'],no:['orderno','order','number','no'],_req:['party','item','qty']};
   function mapCols(hrow,spec){
     var m={},used={};
     Object.keys(spec).forEach(function(k){
@@ -4074,6 +4077,40 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         var key=pkey(name);if(seen[key]||findParty(key)){P.skip++;return}seen[key]=1;
         P.add.push({name:name,phone:txt(cell(r,m,'phone')),pan:txt(cell(r,m,'pan')),address:txt(cell(r,m,'address')),open:r2(Math.abs(nv(cell(r,m,'open')))),side:/^\s*c/i.test(txt(cell(r,m,'side')))?'Cr':'Dr'});
       });
+    }else if(what==='ageing'){
+      body.forEach(function(r,i){
+        var name=txt(cell(r,m,'name'));if(!name)return;
+        var raw=nv(cell(r,m,'open'));if(!raw)return;
+        var key=pkey(name);if(seen[key]||findParty(key)){P.skip++;return}seen[key]=1;
+        var sd=txt(cell(r,m,'side')),cr=/^\s*c/i.test(sd)||(!sd&&raw<0);
+        P.add.push({name:name,phone:txt(cell(r,m,'phone')),pan:'',address:'',open:r2(Math.abs(raw)),side:cr?'Cr':'Dr'});
+      });
+      P.what='parties';P.label='parties with outstanding balance';
+    }else if(what==='sgroup'){
+      body.forEach(function(r,i){
+        var name=txt(cell(r,m,'name')),gr=txt(cell(r,m,'group'));if(!name&&!gr)return;
+        var it=findItem(pkey(name));
+        if(!it){P.errs.push('Row '+(hi+i+2)+': item "'+name+'" is not in your stock list. Import stock items first.');return}
+        if(!gr){P.errs.push('Row '+(hi+i+2)+': group is empty.');return}
+        if(seen[pkey(name)]||String(it.sg||'').toLowerCase()===gr.toLowerCase()){P.skip++;return}seen[pkey(name)]=1;
+        P.add.push({name:it.name,group:gr});
+      });
+    }else if(what==='orders'){
+      var og={},oo=[];
+      body.forEach(function(r,i){
+        var rn=hi+i+2,party=txt(cell(r,m,'party')),it=txt(cell(r,m,'item')),q=nv(cell(r,m,'qty'));
+        if(!party&&!it)return;
+        if(!party||!it||!(q>0)){P.errs.push('Row '+rn+': party, item and quantity are all needed.');return}
+        var dv=cell(r,m,'date'),dt=txt(dv)===''?todayBS():(typeof dv==='number'&&dv>20000?serialToBS(dv):normBS(txt(dv)));
+        if(!dt){P.errs.push('Row '+rn+': date "'+txt(dv)+'" not understood.');return}
+        var kd=/^\s*(s|p)/i.test(txt(cell(r,m,'kind')))?'s':'c',no=txt(cell(r,m,'no')),k=[kd,dt,pkey(party),no].join('|');
+        var g=og[k];if(!g){g=og[k]={kind:kd,date:dt,party:party,rem:'',lines:[],row:rn,done:false};oo.push(k)}
+        var rm=txt(cell(r,m,'rem'));if(rm&&!g.rem)g.rem=rm;
+        g.lines.push({item:it,qty:String(q),unit:txt(cell(r,m,'unit')),rem:''});
+      });
+      var sig=function(o){return o.kind+'|'+o.date+'|'+pkey(o.party)+'|'+o.lines.map(function(l){return pkey(l.item)+':'+num(l.qty)}).sort().join(',')};
+      var have={};obArr().forEach(function(o){if(!o.del)have[sig(o)]=1});
+      oo.forEach(function(k){var g=og[k],sg=sig(g);if(have[sg]){P.skip++;return}have[sg]=1;P.add.push(g)});
     }else{
       var groups={},order=[];
       body.forEach(function(r,i){
@@ -4116,6 +4153,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
           d.total=g.amt;if(g.ty==='jnl')d.party2=g.party2;else d.mode=g.mode||'Cash';
           if(g.ty==='jnl'&&!g.party2){P.errs.push('Row '+g.row+': journal needs a credit ledger.');return}
         }
+        var dsig=function(x){return [x.type,x.date,pkey(x.party),pkey(x.party2||''),r2(x.total)].join('|')};
+        if(!P._have){P._have={};DATA.docs.forEach(function(x){if(x.status!=='Cancelled')P._have[dsig(x)]=1})}
+        if(P._have[dsig(d)]){P.skip++;return}P._have[dsig(d)]=1;
         d._no=g.no;P.add.push(d);
       });
     }
@@ -4123,11 +4163,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function ieShowPlan(P,src){
     if(P.fatal){$('ieImOut').innerHTML='<div class="note err">'+esc(P.fatal)+'</div>';IM=null;return}
-    var names={items:'stock items',parties:'parties',txn:'vouchers'};
-    var h='<h2>Preview</h2><div class="card"><b>'+P.add.length+' '+names[P.what]+' will be added</b> (read from '+src+').'+(P.skip?'<div class="note">'+P.skip+' already exist and will be skipped.</div>':'')+'</div>';
+    var names={items:'stock items',parties:P.label||'parties',txn:'vouchers',sgroup:'stock item groups',orders:'orders'};
+    var h='<h2>Preview</h2><div class="card"><b>'+P.add.length+' '+names[P.what]+' will be added</b> (read from '+src+').'+(P.skip?'<div class="note">'+P.skip+' already exist (same name, number, or same date, party and amount) and will be skipped, so nothing is duplicated.</div>':'')+'</div>';
     if(P.add.length){
-      var cl=P.what==='txn'?['Date','Type','Party','Amount']:(P.what==='items'?['Item','Unit','Open','Rate']:['Name','Phone','Open','Dr/Cr']);
-      var rows=P.add.slice(0,8).map(function(x){return P.what==='txn'?[x.date,TYPES[x.type].short,x.party,fmt(x.total)]:(P.what==='items'?[x.name,x.unit,String(x.open),fmt(x.rate)]:[x.name,x.phone,fmt(x.open),x.side])});
+      var cl=P.what==='txn'?['Date','Type','Party','Amount']:(P.what==='items'?['Item','Unit','Open','Rate']:(P.what==='sgroup'?['Item','Group','','']:(P.what==='orders'?['Date','Kind','Party','Lines']:['Name','Phone','Open','Dr/Cr'])));
+      var rows=P.add.slice(0,8).map(function(x){if(P.what==='sgroup')return [x.name,x.group,'',''];if(P.what==='orders')return [x.date,x.kind==='c'?'Customer':'Supplier',x.party,String(x.lines.length)];return P.what==='txn'?[x.date,TYPES[x.type].short,x.party,fmt(x.total)]:(P.what==='items'?[x.name,x.unit,String(x.open),fmt(x.rate)]:[x.name,x.phone,fmt(x.open),x.side])});
       h+=htmlTable({cols:cl.map(function(c,i){return {h:c,w:i===0||i===2?2:1,al:i===3?'r':'l'}}),rows:rows,totals:[],minw:420})+(P.add.length>8?'<div class="note">...and '+(P.add.length-8)+' more.</div>':'');
     }
     if(P.opens&&P.opens.length)h+='<div class="note">'+P.opens.length+' new ledger(s) will be created with the opening balance from the file: '+esc(P.opens.slice(0,4).map(function(o){return o.name+' '+fmt(o.open)+' '+o.side}).join(', '))+'.</div>';
@@ -4151,6 +4191,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       (P.opens||[]).forEach(function(o){if(!findParty(pkey(o.name))){DATA.parties.push(o);n++}});
       if(P.what==='items'){P.add.forEach(function(r){if(findItem(pkey(r.name)))return;DATA.items.push(r);addUnit(r.unit);n++});fillUnitDl()}
       else if(P.what==='parties'){P.add.forEach(function(r){if(findParty(pkey(r.name)))return;DATA.parties.push(r);n++})}
+      else if(P.what==='sgroup'){P.add.forEach(function(r){var it=findItem(pkey(r.name));if(!it||String(it.sg||'').toLowerCase()===r.group.toLowerCase())return;it.sg=r.group;n++})}
+      else if(P.what==='orders'){var c=DATA.cfg.obc=DATA.cfg.obc||{c:0,s:0},ot=stamp();P.add.forEach(function(g){c[g.kind]=(c[g.kind]||0)+1;obArr().push({id:newUid(),kind:g.kind,date:g.date,party:g.party,rem:g.rem,lines:g.lines,done:false,no:(g.kind==='c'?'CO-':'SO-')+pad(c[g.kind],4),at:ot,by:user.username});n++});DATA.cfg.at=ot}
       else{
         var ns=$('ieNoStock').checked,now=stamp();
         P.add.forEach(function(d){
@@ -4312,6 +4354,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     for(var i=0;i<N*2;i++)lr.push(LH.map(function(h,j){return {v:'',s:j===0?4:(j>=4&&j!==5&&j!==2&&j!==3?3:2)}}));
     sh.push({n:'Ledger sheet',freeze:3,w:LCW,r:lr});
     sh.push({n:'Stock items sheet',freeze:1,w:[30,10,12,10,10,12,14,14],r:[hdr(TPL.items.H)].concat(blank(N,function(){return TPL.items.H.map(function(h,j){return {v:'',s:j>=2&&j<=4?3:2}})}))});
+    ['ageing','sgroup','orders'].forEach(function(k){sh.push({n:TPL[k].n+' sheet',freeze:1,w:TPL[k].H.map(function(){return 20}),r:[hdr(TPL[k].H)].concat(TPL[k].R.map(function(r){return r.map(function(v){return {v:v,s:typeof v==='number'?3:2}})}),blank(N,function(){return TPL[k].H.map(function(){return {v:'',s:2}})}))})});
     sh.push({n:'Ledgers sheet',freeze:1,w:[30,14,14,28,16,10],r:[hdr(TPL.parties.H)].concat(blank(N,function(){return TPL.parties.H.map(function(h,j){return {v:'',s:j===4?3:2}})}))});
     return xlsxFromSheets(sh);
   }
@@ -4320,6 +4363,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     parties:{n:'Ledgers',H:['Name','Phone','PAN','Address','Opening balance','Dr / Cr'],R:[['Ram Medical','9800000000','123456789','Kathmandu',5000,'Dr']]},
     txn:{n:'Vouchers',H:['Date (B.S.)','Type','Number','Party','Credit ledger (journal)','Item','Qty','Unit','Rate','Amount','Mode','Remarks'],R:[['2083/08/01','Sales','','Ram Medical','','Paracetamol 500',10,'Strip',12,'','',''],['2083/08/01','Sales','','Ram Medical','','Cetamol',5,'Strip',20,'','',''],['2083/08/02','Purchase','','ABC Distributors','','Cetamol',50,'Strip',15,'','',''],['2083/08/03','Sales (no stock)','','Shyam Store','','','','','',2500,'Credit',''],['2083/08/04','Receipt','','Ram Medical','','','','','',500,'Cash',''],['2083/08/04','Payment','','ABC Distributors','','','','','',750,'Bank',''],['2083/08/05','Journal','','Debit ledger','Credit ledger','','','','',300,'','']]}
   };
+  TPL.ageing={n:'Ageing',H:['Party','Outstanding amount','Dr / Cr','Phone'],R:[['Ram Medical',12500,'Dr','9800000000'],['ABC Distributors',30000,'Cr','']]};
+  TPL.sgroup={n:'Stock groups',H:['Item','Stock group'],R:[['Paracetamol 500','Analgesic'],['Azithro 500','Antibiotic']]};
+  TPL.orders={n:'Orders',H:['Order date','Type (Customer/Supplier)','Party','Item','Qty','Unit','Remarks'],R:[['2083/08/05','Customer','Ram Medical','Paracetamol 500',20,'Strip',''],['2083/08/05','Customer','Ram Medical','Azithro 500',5,'Strip','']]};
   var TPL_T={sale:['Sales','Sales bills: one row per item. Rows with the same date, party and number make one bill. Leave Item empty and fill Amount for a bill without stock.'],pur:['Purchase','Purchase bills: same layout as Sales.'],sret:['Sales return','Sales returns: same layout as Sales.'],pret:['Purchase return','Purchase returns: same layout as Sales.'],rec:['Receipt','Receipt: Date, Party, Amount, Mode (Cash/Bank).'],pay:['Payment','Payment: Date, Party, Amount, Mode.'],jnl:['Journal','Journal: Date, Debit ledger in Party, Credit ledger, Amount.']};
   function tplRows(t){
     var ty=TPL_T[t],ex;
@@ -6098,7 +6144,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['23. Go To','The Go To button (bottom right, or Alt+/) opens a search over every tab, menu and sub-menu. Type a word and press Enter.\nExample: type "slow" and Enter to open Analysis > Slow stock.',''],
       ['24. Backup, Google Drive and several devices','Settings > Company: connect Google Drive to back up and to share the same company between devices. Passwords and user permissions travel with the company data, so a change made on one device reaches the others the next time they sync with Drive (open the app while online). Download a backup file now and then.\nExample: owner changes staff1 password on the shop PC; staff1 phone gets it after the next sync.','s:co'],
       ['25. Users, roles and permissions','Only the owner (and app admin) can add staff, change roles and passwords, and each change asks for the owner password. Owner: everything. Operator: chosen voucher types. Viewer: reports only. You can also hide Reports or Inventory for a person.\nExample: cashier = Operator with only Sales and Receipt.','a:user'],
-      ['26. Import from Excel with column mapping','Add On > Import / Export > Import. You can use your OWN Excel file; you do not need to change its headings.\n1) Choose what to import (stock items, parties and ledgers, or vouchers: Sales, Purchase, Receipt...).\n2) Choose the file. A workbook can have many worksheets: pick the one you want in "Which worksheet to import". "Automatic" reads every worksheet that matches a voucher format.\n3) Pick the row that holds the column titles. For each box of the app (Item name, Unit, Opening stock, Rate, Batch, Expiry, MRP...) choose the column of your file. The app suggests matches; change any that are wrong. Boxes marked * must be mapped. Unit, batch, expiry, MRP and packing are optional: each has a tick box; untick it (or leave "Not in my file") to skip that column.\n4) Tap Show preview, check the first rows and any warnings, then Import (owner password). Existing names are skipped, never overwritten.\nTo keep a mapping under your own name, type a name under "Save the choices above as a template" and tap Save template. Next time choose it in "My import template". Templates are kept per import type (stock, parties, each voucher kind) and are shared with all devices of the company. The app also remembers the last mapping for files with the same titles.\nExample: sheet "Stock List" with columns Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: choose sheet Stock List, then Medicine for Item name, Qty on hand for Opening stock, and so on. Expiry may be a real Excel date or text like 08/2027.\nLedger statements and voucher registers in the app\'s own format are read automatically without mapping.','a:ie']
+      ['26. Import from Excel with column mapping','Add On > Import / Export > Import. You can use your OWN Excel file; you do not need to change its headings.\n1) Choose what to import (stock items, parties and ledgers, or vouchers: Sales, Purchase, Receipt...).\n2) Choose the file. A workbook can have many worksheets: pick the one you want in "Which worksheet to import". "Automatic" reads every worksheet that matches a voucher format.\n3) Pick the row that holds the column titles. For each box of the app (Item name, Unit, Opening stock, Rate, Batch, Expiry, MRP...) choose the column of your file. The app suggests matches; change any that are wrong. Boxes marked * must be mapped. Unit, batch, expiry, MRP and packing are optional: each has a tick box; untick it (or leave "Not in my file") to skip that column.\n4) Tap Show preview, check the first rows and any warnings, then Import (owner password). Existing names are skipped, never overwritten.\nTo keep a mapping under your own name, type a name under "Save the choices above as a template" and tap Save template. Next time choose it in "My import template". Templates are kept per import type (stock, parties, each voucher kind) and are shared with all devices of the company. The app also remembers the last mapping for files with the same titles.\nExample: sheet "Stock List" with columns Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: choose sheet Stock List, then Medicine for Item name, Qty on hand for Opening stock, and so on. Expiry may be a real Excel date or text like 08/2027.\nLedger statements and voucher registers in the app\'s own format are read automatically without mapping.\n\nMore imports, each chosen separately in "What to import": Ageing / outstanding report (party balances), Stock groups (item to group), Order book, plus stock, ledgers and every voucher type. Each has its own template, and you can save your own named template for each. Nothing is duplicated: items, parties and stock groups that already exist, vouchers with the same number, vouchers with the same date, party and amount, and orders with the same party, date and items are skipped.','a:ie']
     ],
     ne:[
       ['१. सुरु गर्ने तरिका',"पहिलो पटक Create account थिचेर युजरनेम र पासवर्ड राख्नुहोस्; यो व्यक्ति मालिक/एडमिन हुन्छ। त्यसपछि कम्पनीको नाम, ठेगाना र प्यान राख्नुहोस्। धेरै कम्पनी राख्न सकिन्छ, Switch ले बदल्छ।\nउदाहरण: युजरनेम ram, कम्पनी \"राम मेडिकल हल\"। अर्को फोन वा कम्प्युटरमा सोही युजरनेमले लगइन गर्नुहोस्।",''],
@@ -6126,7 +6172,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['२३. Go To (जानुहोस्)','दायाँ तल Go To बटन वा Alt+/ थिचेर कुनै पनि ट्याब, मेनु, उपमेनु खोज्नुहोस् र Enter थिच्नुहोस्।\nउदाहरण: "slow" लेखेर Enter।',''],
       ['२४. ब्याकअप, गुगल ड्राइभ र धेरै उपकरण','सेटिङ > कम्पनीमा गुगल ड्राइभ जोडेपछि ब्याकअप हुन्छ र उपकरणहरूबीच डेटा मिल्छ। पासवर्ड र अनुमति पनि कम्पनीको डेटासँगै जान्छ; अर्को उपकरणमा अर्को पटक इन्टरनेटमा सिंक हुँदा लागु हुन्छ।','s:co'],
       ['२५. प्रयोगकर्ता र अनुमति','मालिक/एडमिनले मात्र कर्मचारी थप्न, भूमिका र पासवर्ड बदल्न सक्छ; हरेक परिवर्तनमा मालिकको पासवर्ड सोधिन्छ। मालिक: सबै। सञ्चालक: रोजेका भौचर। हेर्ने: रिपोर्ट मात्र।','a:user'],
-      ['२६. एक्सेलबाट आयात (स्तम्भ मिलान सहित)','Add On > Import / Export > Import। तपाईंको आफ्नै एक्सेल फाइल प्रयोग गर्न सकिन्छ; शीर्षक बदल्न पर्दैन।\n१) के आयात गर्ने रोज्नुहोस् (सामान, पार्टी/लेजर वा भौचर)।\n२) फाइल रोज्नुहोस्। एउटा फाइलमा धेरै वर्कशीट भए "Which worksheet to import" बाट चाहिएको शीट रोज्नुहोस्।\n३) शीर्षक भएको पङ्क्ति रोज्नुहोस्। एपका हरेक खाना (सामानको नाम, एकाइ, सुरुको स्टक, दर, ब्याच, म्याद, MRP...) का लागि आफ्नो फाइलको स्तम्भ रोज्नुहोस्। * भएका अनिवार्य हुन्; ब्याच, म्याद, MRP ऐच्छिक हुन्, चाहिँदैन भने "Not in my file" छोड्नुहोस्।\n४) Show preview थिचेर जाँच्नुहोस्, त्यसपछि Import (मालिकको पासवर्ड)। पहिलेदेखि भएका नाम नमेटिई छोडिन्छन्।\nआफ्नै नाम दिएर मिलान सुरक्षित गर्न "Save the choices above as a template" मा नाम लेखेर Save template थिच्नुहोस्; अर्को पटक "My import template" बाट रोज्नुहोस्। टेम्प्लेट आयातको प्रकार अनुसार छुट्टै रहन्छ र कम्पनीका सबै उपकरणमा चल्छ।\nउदाहरण: शीट "Stock List" मा Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट रोजेर Medicine लाई सामानको नाम, Qty on hand लाई सुरुको स्टक मिलाउनुहोस्।','a:ie']
+      ['२६. एक्सेलबाट आयात (स्तम्भ मिलान सहित)','Add On > Import / Export > Import। तपाईंको आफ्नै एक्सेल फाइल प्रयोग गर्न सकिन्छ; शीर्षक बदल्न पर्दैन।\n१) के आयात गर्ने रोज्नुहोस् (सामान, पार्टी/लेजर वा भौचर)।\n२) फाइल रोज्नुहोस्। एउटा फाइलमा धेरै वर्कशीट भए "Which worksheet to import" बाट चाहिएको शीट रोज्नुहोस्।\n३) शीर्षक भएको पङ्क्ति रोज्नुहोस्। एपका हरेक खाना (सामानको नाम, एकाइ, सुरुको स्टक, दर, ब्याच, म्याद, MRP...) का लागि आफ्नो फाइलको स्तम्भ रोज्नुहोस्। * भएका अनिवार्य हुन्; ब्याच, म्याद, MRP ऐच्छिक हुन्, चाहिँदैन भने "Not in my file" छोड्नुहोस्।\n४) Show preview थिचेर जाँच्नुहोस्, त्यसपछि Import (मालिकको पासवर्ड)। पहिलेदेखि भएका नाम नमेटिई छोडिन्छन्।\nआफ्नै नाम दिएर मिलान सुरक्षित गर्न "Save the choices above as a template" मा नाम लेखेर Save template थिच्नुहोस्; अर्को पटक "My import template" बाट रोज्नुहोस्। टेम्प्लेट आयातको प्रकार अनुसार छुट्टै रहन्छ र कम्पनीका सबै उपकरणमा चल्छ।\nउदाहरण: शीट "Stock List" मा Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट रोजेर Medicine लाई सामानको नाम, Qty on hand लाई सुरुको स्टक मिलाउनुहोस्।\n\nअन्य आयात: एजिङ/बाँकी रिपोर्ट, स्टक समूह, अर्डर बुक, स्टक, लेजर र सबै भौचर, \"What to import\" बाट छुट्टाछुट्टै। सबैको आफ्नै टेम्प्लेट बनाउन सकिन्छ। दोहोरो डाटा आयात हुँदैन।','a:ie']
     ],
     hi:[
       ['1. शुरू करना',"पहली बार Create account दबाकर यूज़रनेम और पासवर्ड बनाएँ; यह व्यक्ति मालिक/एडमिन होगा। फिर कंपनी का नाम, पता और PAN भरें। कई कंपनियाँ रख सकते हैं, Switch से बदलें।\nउदाहरण: यूज़रनेम ram, कंपनी \"राम मेडिकल हॉल\"। दूसरे फोन/पीसी पर उसी यूज़रनेम से लॉगिन करें।",''],
@@ -6154,7 +6200,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['23. Go To (जाएँ)','दाएँ नीचे Go To बटन या Alt+/ दबाकर किसी भी टैब, मेनू, उप-मेनू को खोजें और Enter दबाएँ।\nउदाहरण: "slow" लिखकर Enter।',''],
       ['24. बैकअप, गूगल ड्राइव और कई डिवाइस','सेटिंग्स > कंपनी में गूगल ड्राइव जोड़ने से बैकअप होता है और डिवाइस के बीच डेटा मिलता है। पासवर्ड और अनुमतियाँ भी कंपनी डेटा के साथ जाती हैं; दूसरे डिवाइस पर अगली बार इंटरनेट पर सिंक होने पर लागू होती हैं।','s:co'],
       ['25. यूज़र और अनुमतियाँ','केवल मालिक/एडमिन स्टाफ जोड़ सकता है, भूमिका और पासवर्ड बदल सकता है; हर बदलाव पर मालिक का पासवर्ड पूछा जाता है। मालिक: सब। ऑपरेटर: चुने वाउचर। व्यूअर: केवल रिपोर्ट।','a:user'],
-      ['26. एक्सेल से इम्पोर्ट (कॉलम मैपिंग के साथ)','Add On > Import / Export > Import। आप अपनी ही एक्सेल फ़ाइल इस्तेमाल कर सकते हैं; हेडिंग बदलने की ज़रूरत नहीं।\n1) क्या इम्पोर्ट करना है चुनें (आइटम, पार्टी/लेजर या वाउचर)।\n2) फ़ाइल चुनें। एक फ़ाइल में कई वर्कशीट हों तो "Which worksheet to import" में ज़रूरी शीट चुनें।\n3) शीर्षक वाली पंक्ति चुनें। ऐप के हर खाने (आइटम नाम, यूनिट, शुरुआती स्टॉक, दर, बैच, एक्सपायरी, MRP...) के लिए अपनी फ़ाइल का कॉलम चुनें। * वाले ज़रूरी हैं; बैच, एक्सपायरी, MRP वैकल्पिक हैं, न चाहिए तो "Not in my file" रहने दें।\n4) Show preview दबाकर जाँचें, फिर Import (मालिक का पासवर्ड)। पहले से मौजूद नाम छोड़ दिए जाते हैं।\nअपने नाम से मैपिंग सेव करने के लिए "Save the choices above as a template" में नाम लिखकर Save template दबाएँ; अगली बार "My import template" से चुनें। टेम्पलेट इम्पोर्ट के प्रकार के अनुसार अलग रहते हैं और कंपनी के सभी डिवाइस पर चलते हैं।\nउदाहरण: शीट "Stock List" में Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट चुनकर Medicine को आइटम नाम और Qty on hand को शुरुआती स्टॉक से जोड़ें।','a:ie']
+      ['26. एक्सेल से इम्पोर्ट (कॉलम मैपिंग के साथ)','Add On > Import / Export > Import। आप अपनी ही एक्सेल फ़ाइल इस्तेमाल कर सकते हैं; हेडिंग बदलने की ज़रूरत नहीं।\n1) क्या इम्पोर्ट करना है चुनें (आइटम, पार्टी/लेजर या वाउचर)।\n2) फ़ाइल चुनें। एक फ़ाइल में कई वर्कशीट हों तो "Which worksheet to import" में ज़रूरी शीट चुनें।\n3) शीर्षक वाली पंक्ति चुनें। ऐप के हर खाने (आइटम नाम, यूनिट, शुरुआती स्टॉक, दर, बैच, एक्सपायरी, MRP...) के लिए अपनी फ़ाइल का कॉलम चुनें। * वाले ज़रूरी हैं; बैच, एक्सपायरी, MRP वैकल्पिक हैं, न चाहिए तो "Not in my file" रहने दें।\n4) Show preview दबाकर जाँचें, फिर Import (मालिक का पासवर्ड)। पहले से मौजूद नाम छोड़ दिए जाते हैं।\nअपने नाम से मैपिंग सेव करने के लिए "Save the choices above as a template" में नाम लिखकर Save template दबाएँ; अगली बार "My import template" से चुनें। टेम्पलेट इम्पोर्ट के प्रकार के अनुसार अलग रहते हैं और कंपनी के सभी डिवाइस पर चलते हैं।\nउदाहरण: शीट "Stock List" में Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट चुनकर Medicine को आइटम नाम और Qty on hand को शुरुआती स्टॉक से जोड़ें।\n\nअन्य इम्पोर्ट: एजिंग/बकाया रिपोर्ट, स्टॉक ग्रुप, ऑर्डर बुक, स्टॉक, लेजर और सभी वाउचर, \"What to import\" से अलग-अलग। हर एक का अपना टेम्पलेट बना सकते हैं। डुप्लिकेट डाटा इम्पोर्ट नहीं होता।','a:ie']
     ]
   };
   var HLANG=[['en','English'],['ne','नेपाली (Nepali)'],['hi','हिन्दी (Hindi)'],['mai','Maithili'],['new','Nepal Bhasa'],['bho','Bhojpuri'],['ur','Urdu'],['bn','Bengali'],['gu','Gujarati'],['mr','Marathi'],['ta','Tamil'],['te','Telugu'],['zh-CN','Chinese'],['ar','Arabic'],['es','Spanish'],['fr','French'],['ja','Japanese'],['ko','Korean']];
@@ -6717,6 +6763,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   /* ---------- import mapping (choose worksheet, header row and columns, like Tally) ---------- */
   var IMF=null;
   var IM_LBL={
+    ageing:{name:'Party / ledger name',open:'Outstanding amount',side:'Dr / Cr (optional)',phone:'Phone (optional)'},
+    sgroup:{name:'Item name',group:'Stock group'},
+    orders:{date:'Order date',kind:'Customer or supplier order',party:'Party',item:'Item',qty:'Quantity',unit:'Unit (optional)',rem:'Remarks (optional)',no:'Order number'},
     items:{name:'Item name',unit:'Unit',open:'Opening stock quantity',rate:'Rate',mrp:'MRP (optional)',pack:'Packing (optional)',obatch:'Batch no. (optional)',oexp:'Expiry (optional)'},
     parties:{name:'Party / ledger name',phone:'Phone',pan:'PAN / VAT no.',address:'Address',open:'Opening balance',side:'Dr / Cr'},
     txn:{date:'Date (B.S. or A.D.)',type:'Voucher type',no:'Voucher number',party:'Party (ledger)',party2:'Credit ledger (journal only)',item:'Item',qty:'Quantity',unit:'Unit',rate:'Rate',amount:'Amount',mode:'Payment mode',remarks:'Remarks / narration',batch:'Batch no. (optional)',exp:'Expiry (optional)',mrp:'MRP (optional)'}
