@@ -127,6 +127,8 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .hpc{margin-top:10px}.hpc h3{margin:0 0 4px;font-size:15px}.hpc p{margin:0;line-height:1.7}
 .cac{flex-wrap:nowrap}.cac .btn2{flex:0 0 auto;min-width:0;padding:10px 12px}.cac select{flex:1;min-width:0}.cac #caM{flex:1.7}
 .gtFab{position:fixed;right:12px;bottom:calc(var(--navh,56px) + 74px + env(safe-area-inset-bottom,0px));z-index:12;border:0;border-radius:999px;padding:10px 16px;background:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}body.pc .gtFab{bottom:84px}.gtOn{background:var(--soft)}#gtList .line{padding:10px 8px}
+.imt{border-collapse:collapse;font-size:12px}.imt th,.imt td{border:1px solid var(--line);padding:3px 6px;text-align:left;white-space:nowrap}.imt th{background:var(--soft)}
+.mbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:8px}
 /* bars */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(64px,1fr);overflow-x:auto;background:var(--card);border-top:1px solid var(--line);
   height:calc(var(--navh) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
@@ -554,6 +556,34 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div id="obOut"></div>
   </section>
 
+  <section id="v-members" hidden>
+    <div class="card" style="margin-top:12px"><b>Members (visible only to the app admin)</b>
+      <div class="note" style="margin:4px 0 0">Keep every customer here. After the renewal date plus the grace days (7) the app logs that member out automatically on their devices, once you have published the list (see "Publish" below). Tick "Log out this member" to log someone out at any time.</div></div>
+    <div id="mbStats" class="card"></div>
+    <div id="mbDue"></div>
+    <div class="btns"><button class="btn2 prim" id="mbAdd" type="button">+ Add member</button><button class="btn2" id="mbXl" type="button">Download Excel list</button><button class="btn2" id="mbBkp" type="button">Backup (.json)</button><label class="btn2" style="text-align:center;cursor:pointer">Restore backup<input id="mbRest" type="file" accept=".json,application/json" style="display:none"></label></div>
+    <div class="card meta" id="mbForm" hidden>
+      <div class="full"><label for="mbName">Member name</label><input id="mbName" type="text" maxlength="60" autocomplete="off"></div>
+      <div class="full"><label for="mbMail">Gmail (the company Gmail or the owner's Gmail used in the app)</label><input id="mbMail" type="email" autocomplete="off" autocapitalize="none" placeholder="name@gmail.com"></div>
+      <div class="full"><label for="mbPhone">Phone / WhatsApp (optional)</label><input id="mbPhone" type="text" inputmode="tel" maxlength="20" autocomplete="off" placeholder="98XXXXXXXX"></div>
+      <div><label for="mbJoin">Date of joining (B.S. or A.D.)</label><input id="mbJoin" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div><label for="mbRenew">Renewal on (B.S. or A.D.)</label><input id="mbRenew" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div><label for="mbAmt">Amount (Rs)</label><input id="mbAmt" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div><label for="mbRem">Remarks</label><input id="mbRem" type="text" maxlength="100" autocomplete="off"></div>
+      <div class="full btns"><button class="btn2 prim" id="mbSave" type="button">Save member</button><button class="btn2" id="mbCancel" type="button">Cancel</button></div>
+    </div>
+    <div id="mbList" class="mbgrid"></div>
+    <h2>Reminder message</h2>
+    <div class="card"><textarea id="mbMsg" rows="4" style="width:100%"></textarea><div class="note">Words in braces are replaced: {name} {date} {amount} {grace}. Used by the Gmail and WhatsApp reminder buttons.</div></div>
+    <h2>Publish (makes the lock work on your members' devices)</h2>
+    <div class="card meta">
+      <div><label for="mbGrace">Grace days after the renewal date</label><input id="mbGrace" type="text" inputmode="numeric" maxlength="3" autocomplete="off"></div>
+      <div class="full"><div class="chk"><input type="checkbox" id="mbReq" aria-labelledby="mbReqT"><span id="mbReqT">Also lock companies that are NOT in this list (turn on only after every customer is added)</span></div></div>
+      <div class="full btns"><button class="btn2 prim" id="mbPub" type="button">Download members.json</button></div>
+      <div class="full note" style="margin:0">Upload the downloaded file <b>members.json</b> to your GitHub site, in the same place as index.html, replacing the old one. It holds only a scrambled form of each Gmail, the renewal date and the log-out tick; names, phone numbers and amounts never leave this tab. Devices read it when online, remember it, and also work from the remembered copy when offline. Do this again after every change you want your members to feel.</div>
+    </div>
+  </section>
+
   <section id="v-outstanding" hidden>
     <div class="card meta" style="margin-top:12px">
       <div><label for="osKind">Show</label><select id="osKind"><option value="rec">To receive</option><option value="pay">To pay</option></select></div>
@@ -604,6 +634,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <button type="button" data-t="modify">Modify</button>
   <button type="button" data-t="addon">Add On</button>
   <button type="button" data-t="utility">Utility</button>
+  <button type="button" data-t="members">Members</button>
 </nav>
 
 <!-- preview -->
@@ -623,6 +654,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <div class="card"><div id="obRows"></div><div class="btns"><button class="btn2" id="obAddRow" type="button">+ Add item</button></div><div class="note">Type any name. A name that is not in your stock list is added to the stock list when you save.</div></div>
   <div class="btns"><button class="btn2 prim" id="obSave" type="button">Save order</button><button class="btn2" id="obDone" type="button">Mark completed</button><button class="btn2" id="obShare" type="button">Share</button><button class="btn2" id="obPrint" type="button">Print</button><button class="btn2" id="obDel" type="button">Delete</button></div>
 </div></div>
+<div id="mbLock" hidden style="position:fixed;inset:0;z-index:99999;background:var(--bg,#fff);display:flex;align-items:center;justify-content:center;padding:20px"><div class="card" style="max-width:420px;text-align:center"><b id="mbLockMsg" style="font-size:18px"></b><p id="mbLockWhy" style="line-height:1.6"></p><div class="btns" style="justify-content:center"><button class="btn2" id="mbLockBkp" type="button">Download my data backup</button><button class="btn2" id="mbLockAgain" type="button">Check again</button><button class="btn2 prim" id="mbLockOut" type="button">Log out</button></div></div></div>
+<div id="mbBanner" hidden style="position:sticky;top:0;z-index:30;background:#fff3cd;color:#664d03;padding:8px 12px;font-weight:700;display:flex;gap:10px;align-items:center"><span></span><button class="btn2" id="mbBannerX" type="button" style="flex:0 0 auto;min-width:0;padding:4px 10px">Hide</button></div>
 <div class="modal l3" id="gtModal" hidden><div class="mi">
   <div class="mhead"><b>Go To</b><button class="btn2" id="gtClose" type="button">Close</button></div>
   <input id="gtQ" type="text" placeholder="Type to search any screen, e.g. sales, ledger, calendar" autocomplete="off" style="margin-bottom:8px">
@@ -806,7 +839,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div class="full note" style="margin:0">Use the same columns as the template. Names that already exist are skipped, never overwritten. You see a preview before anything is saved. Photos and PDFs are read with the photo reader below.</div>
   </div>
   <div class="btns"><button class="btn2" id="ieTpl" type="button">Download template for the choice above</button><button class="btn2" id="ieTplAll" type="button">Download all templates</button></div>
-  <div id="ieImOut"></div>
+  <div id="ieMapBox"></div><div id="ieImOut"></div>
   <h2>Photo reader</h2>
   <div class="card meta">
     <div class="full"><label for="ocrMethod">Read photos and PDFs with</label><select id="ocrMethod"><option value="">Not set up</option><option value="claude">Claude (your own API key): best for handwriting</option><option value="drive">Google Drive text reader: free, printed text works best</option></select></div>
@@ -1098,6 +1131,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       {k:'expense',l:'Expense',lv:[['exp:date','By date'],['exp:party','By head']]},{k:'users',l:'User-wise',lv:[['us:sum','User summary'],['us:vch','User vouchers'],['us:log','Who changed what']]}],
     inventory:[{k:'stock',l:'Stock',lv:[['st:sum','Stock summary'],['st:item','Stock by item'],['st:pprice','Purchase price list'],['st:sprice','Sales price list'],['st:exp','Expiry alert'],['st:grp','Stock by group']]},{k:'order',l:'Order book',lv:[['ob:cust','Customer orders'],['ob:sup','Supplier orders']]}],
     analysis:[{k:'an',l:'Analysis',lv:[['an:item','Sales by item'],['an:party','Sales by party'],['an:pur','Purchase by item'],['an:pparty','Purchase by party'],['an:grp','Stock groups'],['an:trend','Monthly trend'],['an:profit','Profit by item'],['an:slow','Slow stock']]}],
+    members:[{k:'mb',l:'Members',lv:[['mb:list','Members']]}],
     utility:[{k:'calc',l:'Calculator',lv:[['ut:calc','Calculator']]},{k:'cal',l:'Calendar',lv:[['ut:cal','Calendar']]},{k:'den',l:'Cash count',lv:[['ut:den','Cash count']]},{k:'notes',l:'Reminders',lv:[['ut:notes','Reminders']]},{k:'help',l:'Help',lv:[['ut:help','Help']]}],
     print:[{k:'print',l:'Print / Share',lv:[['pl','Vouchers']]}],
     modify:[{k:'modify',l:'Modify voucher',lv:[['md','Modify voucher']]}],
@@ -1429,13 +1463,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
 
   /* ---------- navigation ---------- */
-  function tabAllowed(t){var l=limOf();if(t==='voucher')return canEnter();if(t==='utility')return true;if(t==='analysis'&&l&&l.rep===false)return false;if(t==='modify'||t==='addon')return isOwner();if(t==='report'&&l&&l.rep===false)return false;if(t==='inventory'&&l&&l.inv===false)return false;return true}
+  function tabAllowed(t){var l=limOf();if(t==='voucher')return canEnter();if(t==='utility')return true;if(t==='members')return !!(user&&user.master);if(t==='analysis'&&l&&l.rep===false)return false;if(t==='modify'||t==='addon')return isOwner();if(t==='report'&&l&&l.rep===false)return false;if(t==='inventory'&&l&&l.inv===false)return false;return true}
   function grpOfLeaf(t,leaf){var m=MENU[t];for(var i=0;i<m.length;i++)for(var j=0;j<m[i].lv.length;j++)if(m[i].lv[j][0]===leaf)return m[i].k;return m[0].k}
   var NAVH=[],NAVBACK=false;
   function go(t,g,l){
     if(EDIT&&!(t==='voucher'&&(l||'')===EDIT.t)){S[EDIT.t]=EDIT.back;EDIT=null}
     if(t!=='modify')modOK=false;
     if(t==='modify'&&!modOK)return;
+    if(t==='members'&&!(user&&user.master))return;
     var m=menuOf(t),ls=lastSub[t]||{};if(!m.length)return;
     if(!g)g=ls.g||m[0].k;
     var gi=0;m.forEach(function(x,i){if(x.k===g)gi=i});
@@ -1456,7 +1491,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var isT=tab==='voucher'&&!!TYPES[sub],isAg=tab==='voucher'&&sub.indexOf('agg:')===0,den=(isT||isAg)&&!canEnter(),L=sub.split(':'),rep=tab==='report';
     $('v-denied').hidden=!den;
     $('v-form').hidden=!isT||den;$('v-agg').hidden=!isAg||den;
-    $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;$('v-utility').hidden=tab!=='utility';$('v-manual').hidden=!(rep&&sub==='bk:man');
+    $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;$('v-utility').hidden=tab!=='utility';$('v-members').hidden=tab!=='members';$('v-manual').hidden=!(rep&&sub==='bk:man');
     $('v-vrep').hidden=!(rep&&['sale','pur','sret','pret','rec','pay','exp'].indexOf(L[0])>=0);
     $('v-ledger').hidden=!(rep&&sub==='led:party');$('v-group').hidden=!(rep&&sub==='led:grp');
     $('v-outstanding').hidden=!(rep&&(sub==='led:out'||sub==='led:age'));
@@ -1475,6 +1510,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     else if(tab==='analysis')renderAnalysis();
     else if(rep&&sub.indexOf('us:')===0)renderUsers2();
     else if(tab==='utility')renderUtility();
+    else if(tab==='members'){if(user&&user.master)renderMembers();else $('v-members').hidden=true}
     else if(rep&&sub==='bk:man')renderManual();
     else if(rep&&sub==='bk:day')renderDayBook();
     else if(rep&&(sub==='led:out'||sub==='led:age'))renderOutstanding();
@@ -3934,18 +3970,18 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       return Promise.all([z.get('xl/workbook.xml'),z.get('xl/_rels/workbook.xml.rels'),z.get('xl/sharedStrings.xml')]).then(function(a){
         var wb=a[0]&&xmlDoc(a[0]),rl=a[1]&&xmlDoc(a[1]),ss=[];
         if(a[2]){var sd=xmlDoc(a[2]).getElementsByTagName('si');for(var i=0;i<sd.length;i++){var ts=sd[i].getElementsByTagName('t'),x='';for(var j=0;j<ts.length;j++)x+=ts[j].textContent;ss.push(x)}}
-        var paths=[];
+        var paths=[],snames=[];
         if(wb&&rl){
           var sh=wb.getElementsByTagName('sheet'),rs=rl.getElementsByTagName('Relationship');
           for(var si=0;si<sh.length;si++){
             var rid=sh[si].getAttribute('r:id')||sh[si].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
-            for(var ri=0;ri<rs.length;ri++)if(rs[ri].getAttribute('Id')===rid){var tg=rs[ri].getAttribute('Target').replace(/^\//,'');paths.push(tg.indexOf('xl/')===0?tg:'xl/'+tg)}
+            for(var ri=0;ri<rs.length;ri++)if(rs[ri].getAttribute('Id')===rid){var tg=rs[ri].getAttribute('Target').replace(/^\//,'');paths.push(tg.indexOf('xl/')===0?tg:'xl/'+tg);snames.push(sh[si].getAttribute('name')||'')}
           }
         }
         if(!paths.length)paths=z.names.filter(function(n){return /^xl\/worksheets\/sheet\d+\.xml$/.test(n)}).sort();
         return Promise.all(paths.map(function(pth){return z.get(pth)})).then(function(xs){
-          return xs.filter(Boolean).map(function(x){
-            var d=xmlDoc(x),rows=[],rw=d.getElementsByTagName('row');
+          return xs.map(function(x,xi){
+            if(!x)return null;var d=xmlDoc(x),rows=[],rw=d.getElementsByTagName('row');
             for(var i=0;i<rw.length;i++){
               var cs=rw[i].getElementsByTagName('c'),row=[];
               for(var j=0;j<cs.length;j++){
@@ -3956,8 +3992,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
               }
               if(row.some(function(x){return String(x).trim()!==''}))rows.push(row);
             }
+            rows.sname=snames[xi]||('Sheet '+(xi+1));
             return rows;
-          });
+          }).filter(Boolean);
         });
       });
     });
@@ -3976,9 +4013,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return Promise.reject(new Error('Choose an Excel (.xlsx), CSV, photo or PDF file.'));
   }
   var IM_SPEC={
-    items:{name:['item','itemname','name','stockitem','product','productname','particulars','description'],unit:['unit','uom'],open:['openingqty','openingstock','opening','qty','quantity','stock'],rate:['rate','price','salesrate','sellingrate','salerate'],mrp:['mrp'],pack:['packing','pack','packsize'],obatch:['openingbatch','batch','batchno'],oexp:['openingexpiry','expiry','exp','expirydate'],_req:['name']},
+    items:{name:['item','itemname','name','stockitem','product','productname','particulars','description','medicine','medicinename','drug','drugname','goods','itemdescription'],unit:['unit','uom','packunit','units','unitofmeasure'],open:['openingqty','openingstock','opening','qty','quantity','stock','qtyonhand','onhand','closingstock','stockqty','balanceqty','currentstock'],rate:['rate','price','salesrate','sellingrate','salerate','cost','costprice','purchaserate','purchaseprice','ptr'],mrp:['mrp','maxretailprice'],pack:['packing','pack','packsize'],obatch:['openingbatch','batch','batchno','batchnumber'],oexp:['openingexpiry','expiry','exp','expirydate','expdate','expiredate'],_req:['name']},
     parties:{name:['name','party','partyname','ledger','ledgername','account','accountname'],phone:['phone','mobile','contact','phoneno'],pan:['pan','panno','vat','panvat'],address:['address','location'],open:['openingbalance','opening','balance','amount'],side:['drcr','side','type'],_req:['name']},
-    txn:{date:['datebs','date','miti'],type:['type','voucher','vouchertype'],no:['number','no','voucherno','billno','vchno'],party:['party','partyname','name','ledger','debitledger'],party2:['creditledgerjournal','creditledger','party2','crledger'],item:['item','itemname','particulars'],qty:['qty','quantity'],unit:['unit'],rate:['rate','price'],amount:['amount','total','netamount'],mode:['mode','paymentmode'],remarks:['remarks','narration','note'],_req:['date','party']}
+    txn:{date:['datebs','date','miti','billdate','invoicedate','voucherdate','bsdate','transactiondate'],type:['type','voucher','vouchertype','vchtype'],no:['number','no','voucherno','billno','vchno','invoiceno','invoicenumber'],party:['party','partyname','name','ledger','debitledger','customer','customername','supplier','suppliername','buyer','accountname'],party2:['creditledgerjournal','creditledger','party2','crledger'],item:['item','itemname','particulars','medicine','medicinename','product','productname','goods','description'],qty:['qty','quantity','nos'],unit:['unit','packunit','uom'],rate:['rate','price','salesrate','purchaserate'],amount:['amount','total','netamount','value','lineamount'],mode:['mode','paymentmode'],remarks:['remarks','narration','note'],batch:['batch','batchno','batchnumber'],exp:['expiry','exp','expirydate','expdate','expiredate'],mrp:['mrp','maxretailprice'],_req:['date','party']}
   };
   function mapCols(hrow,spec){
     var m={},used={};
@@ -3994,6 +4031,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function cell(r,m,k){var i=m[k];return i===undefined?'':(r[i]==null?'':r[i])}
   function txt(v){return String(v==null?'':v).trim()}
+  function expTxt(v){if(typeof v==='number'&&v>20000){var t=new Date(Date.UTC(1899,11,30)+Math.round(v)*864e5);return p2(t.getUTCMonth()+1)+'/'+t.getUTCFullYear()}return txt(v)}
   function serialToBS(n){return normBS(new Date(Date.UTC(1899,11,30)+Math.round(n)*864e5).toISOString().slice(0,10))}
   var TYPE_ALIAS={salesnostock:'sale',purchasenostock:'pur',salesreturnnostock:'sret',purchasereturnnostock:'pret',sales:'sale',sale:'sale',salesentry:'sale',salesreturn:'sret',salereturn:'sret',sret:'sret',purchase:'pur',pur:'pur',purchaseentry:'pur',purchasereturn:'pret',pret:'pret',receipt:'rec',rec:'rec',payment:'pay',pay:'pay',expense:'exp',exp:'exp',journal:'jnl',jnl:'jnl',journalentry:'jnl',jv:'jnl'};
   function typeOf(v){
@@ -4001,15 +4039,22 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var l=vsList();for(var i=0;i<l.length;i++)if(hkey(l[i].name)===k)return l[i].base;
     return '';
   }
-  function planOf(what,rows,all){
+  function planOf(what,rows,all,cm){
     var forced='',lopens=null;if(/^txn:/.test(what)){forced=what.slice(4);what='txn'}
-    if(what==='txn'){
+    if(what==='txn'&&!cm){
       var lt=ledgerToTxn(all||[rows]);if(lt){rows=lt.rows;lopens=lt.opens}
       else{var rg=regToTxn([rows],forced);if(rg){if(rg.errs.length&&rg.rows.length<2)return {fatal:rg.errs[0]};rows=rg.rows}}
     }
-    var spec=IM_SPEC[what],hi=findHeader(rows,spec);
-    if(hi<0)return {fatal:'The first row must have column titles. Needed: '+spec._req.map(function(k){return k}).join(', ')+'. Download the template to see the layout.'};
-    var m=mapCols(rows[hi],spec),body=rows.slice(hi+1),P={what:what,add:[],skip:0,errs:[],note:'',opens:[]};
+    var spec=IM_SPEC[what],hi,m;
+    if(cm){
+      hi=cm.hi;m=cm.m;var miss=spec._req.filter(function(k){return m[k]===undefined});
+      if(miss.length)return {fatal:'Choose a column for: '+miss.map(function(k){return IM_LBL[what][k]}).join(', ')+'.'};
+    }else{
+      hi=findHeader(rows,spec);
+      if(hi<0)return {fatal:'The first row must have column titles. Needed: '+spec._req.map(function(k){return k}).join(', ')+'. Download the template to see the layout.'};
+      m=mapCols(rows[hi],spec);
+    }
+    var body=rows.slice(hi+1),P={what:what,add:[],skip:0,errs:[],note:'',opens:[]};
     (lopens||[]).forEach(function(o){if(!findParty(pkey(o.name))&&!P.opens.some(function(x){return pkey(x.name)===pkey(o.name)}))P.opens.push({name:o.name,phone:'',pan:'',address:'',open:r2(o.open),side:o.side})});
     var seen={};
     if(what==='items'){
@@ -4020,7 +4065,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         var mrp=nv(cell(r,m,'mrp'));if(mrp)rec.mrp=r2(mrp);
         var pk=txt(cell(r,m,'pack'));if(pk)rec.pack=pk;
         var ob=txt(cell(r,m,'obatch'));if(ob)rec.obatch=ob;
-        var ox=txt(cell(r,m,'oexp'));if(ox){var e=parseExp(ox);if(e)rec.oexp=e;else P.errs.push('Row '+(hi+i+2)+': expiry "'+ox+'" not understood, left empty.')}
+        var ox=expTxt(cell(r,m,'oexp'));if(ox){var e=parseExp(ox);if(e)rec.oexp=e;else P.errs.push('Row '+(hi+i+2)+': expiry "'+ox+'" not understood, left empty.')}
         P.add.push(rec);
       });
     }else if(what==='parties'){
@@ -4047,7 +4092,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
           if(!it){g.amt=r2(g.amt+am);return}
           if(!rt&&q&&am)rt=r2(am/q);if(!q&&am&&rt)q=am/rt;
           if(!q||!rt){P.errs.push('Row '+rn+': item "'+it+'" needs a quantity and a rate or amount.');return}
-          var line={item:it,qty:String(q),rate:String(rt)};var un=txt(cell(r,m,'unit'));if(un)line.unit=un;g.lines.push(line);
+          var line={item:it,qty:String(q),rate:String(rt)};var un=txt(cell(r,m,'unit'));if(un)line.unit=un;
+          var bt=txt(cell(r,m,'batch'));if(bt)line.batch=bt;
+          var ex=expTxt(cell(r,m,'exp'));if(ex){var pe=parseExp(ex);if(pe)line.exp=ex.replace(/^(\d{4})[\/.\-](\d{1,2})$/,function(a,y,mo){return p2(+mo)+'/'+y}).replace(/^(\d{1,2})[\/.\-](\d{4})$/,function(a,mo,y){return p2(+mo)+'/'+y});else P.errs.push('Row '+rn+': expiry "'+ex+'" not understood, left empty.')}
+          var mp=nv(cell(r,m,'mrp'));if(mp)line.mrp=String(r2(mp));
+          g.lines.push(line);
         }else g.amt=r2(g.amt+nv(cell(r,m,'amount')));
       });
       order.forEach(function(k){
@@ -4092,13 +4141,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var what=$('ieImWhat').value;
     $('ieImOut').innerHTML='<div class="note">Reading the file...</div>';IM=null;
     fileToRows(file,what.replace(/^txn:.*/,'txn')).then(function(r){
-      var P;
-      if(/^txn/.test(what)&&r.sheets){
-        var ps=[];if(r.all)ps.push(planOf(what,null,r.all));
-        r.sheets.forEach(function(sh){if(isLedgerSheet(sh)<0&&(isRegSheet(sh)>=0||findHeader(sh,IM_SPEC.txn)>=0))ps.push(planOf(what,sh))});
-        P=ps.filter(function(p){return !p.fatal}).reduce(function(a,b){if(!a)return b;a.add=a.add.concat(b.add);a.skip+=b.skip;a.errs=a.errs.concat(b.errs);a.opens=(a.opens||[]).concat(b.opens||[]);return a},null)||(ps[0]||planOf(what,r.rows));
-      }else P=planOf(what,r.rows,r.all);
-      ieShowPlan(P,r.src)}).catch(function(e){$('ieImOut').innerHTML='<div class="note err">'+esc(e.message||'Could not read the file.')+'</div>'});
+      ieMapStart(r)}).catch(function(e){$('ieMapBox').innerHTML='';$('ieImOut').innerHTML='<div class="note err">'+esc(e.message||'Could not read the file.')+'</div>'});
   }
   function ieCommit(){
     var P=IM;if(!P||(!P.add.length&&!(P.opens&&P.opens.length)))return;
@@ -4911,6 +4954,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     lastSub={};NAVH=[];EDIT=null;modOK=false;
     if(canEnter())go('voucher','sales','sale');else go('report','sales','sale:date');
     if(gesture)driveAutoSync();
+    try{mshipCheck(true)}catch(e){}
   }
   function logout(msg){
     flushLater();
@@ -6054,7 +6098,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['23. Go To','The Go To button (bottom right, or Alt+/) opens a search over every tab, menu and sub-menu. Type a word and press Enter.\nExample: type "slow" and Enter to open Analysis > Slow stock.',''],
       ['24. Backup, Google Drive and several devices','Settings > Company: connect Google Drive to back up and to share the same company between devices. Passwords and user permissions travel with the company data, so a change made on one device reaches the others the next time they sync with Drive (open the app while online). Download a backup file now and then.\nExample: owner changes staff1 password on the shop PC; staff1 phone gets it after the next sync.','s:co'],
       ['25. Users, roles and permissions','Only the owner (and app admin) can add staff, change roles and passwords, and each change asks for the owner password. Owner: everything. Operator: chosen voucher types. Viewer: reports only. You can also hide Reports or Inventory for a person.\nExample: cashier = Operator with only Sales and Receipt.','a:user'],
-      ['26. Import and Export with Excel','Add On > Import / Export. Download a template, fill it in Excel and import: ledgers, stock, vouchers, a single ledger or whole registers. Export gives the same formats.\nExample: import 300 stock items from one Excel sheet.','a:ie']
+      ['26. Import from Excel with column mapping','Add On > Import / Export > Import. You can use your OWN Excel file; you do not need to change its headings.\n1) Choose what to import (stock items, parties and ledgers, or vouchers: Sales, Purchase, Receipt...).\n2) Choose the file. A workbook can have many worksheets: pick the one you want in "Which worksheet to import". "Automatic" reads every worksheet that matches a voucher format.\n3) Pick the row that holds the column titles. For each box of the app (Item name, Unit, Opening stock, Rate, Batch, Expiry, MRP...) choose the column of your file. The app suggests matches; change any that are wrong. Boxes marked * must be mapped. Unit, batch, expiry, MRP and packing are optional: each has a tick box; untick it (or leave "Not in my file") to skip that column.\n4) Tap Show preview, check the first rows and any warnings, then Import (owner password). Existing names are skipped, never overwritten.\nTo keep a mapping under your own name, type a name under "Save the choices above as a template" and tap Save template. Next time choose it in "My import template". Templates are kept per import type (stock, parties, each voucher kind) and are shared with all devices of the company. The app also remembers the last mapping for files with the same titles.\nExample: sheet "Stock List" with columns Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: choose sheet Stock List, then Medicine for Item name, Qty on hand for Opening stock, and so on. Expiry may be a real Excel date or text like 08/2027.\nLedger statements and voucher registers in the app\'s own format are read automatically without mapping.','a:ie']
     ],
     ne:[
       ['१. सुरु गर्ने तरिका',"पहिलो पटक Create account थिचेर युजरनेम र पासवर्ड राख्नुहोस्; यो व्यक्ति मालिक/एडमिन हुन्छ। त्यसपछि कम्पनीको नाम, ठेगाना र प्यान राख्नुहोस्। धेरै कम्पनी राख्न सकिन्छ, Switch ले बदल्छ।\nउदाहरण: युजरनेम ram, कम्पनी \"राम मेडिकल हल\"। अर्को फोन वा कम्प्युटरमा सोही युजरनेमले लगइन गर्नुहोस्।",''],
@@ -6082,7 +6126,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['२३. Go To (जानुहोस्)','दायाँ तल Go To बटन वा Alt+/ थिचेर कुनै पनि ट्याब, मेनु, उपमेनु खोज्नुहोस् र Enter थिच्नुहोस्।\nउदाहरण: "slow" लेखेर Enter।',''],
       ['२४. ब्याकअप, गुगल ड्राइभ र धेरै उपकरण','सेटिङ > कम्पनीमा गुगल ड्राइभ जोडेपछि ब्याकअप हुन्छ र उपकरणहरूबीच डेटा मिल्छ। पासवर्ड र अनुमति पनि कम्पनीको डेटासँगै जान्छ; अर्को उपकरणमा अर्को पटक इन्टरनेटमा सिंक हुँदा लागु हुन्छ।','s:co'],
       ['२५. प्रयोगकर्ता र अनुमति','मालिक/एडमिनले मात्र कर्मचारी थप्न, भूमिका र पासवर्ड बदल्न सक्छ; हरेक परिवर्तनमा मालिकको पासवर्ड सोधिन्छ। मालिक: सबै। सञ्चालक: रोजेका भौचर। हेर्ने: रिपोर्ट मात्र।','a:user'],
-      ['२६. एक्सेलबाट आयात/निर्यात','Add On > Import / Export मा टेम्प्लेट डाउनलोड गरी एक्सेलमा भरेर आयात गर्नुहोस्: लेजर, सामान, भौचर।','a:ie']
+      ['२६. एक्सेलबाट आयात (स्तम्भ मिलान सहित)','Add On > Import / Export > Import। तपाईंको आफ्नै एक्सेल फाइल प्रयोग गर्न सकिन्छ; शीर्षक बदल्न पर्दैन।\n१) के आयात गर्ने रोज्नुहोस् (सामान, पार्टी/लेजर वा भौचर)।\n२) फाइल रोज्नुहोस्। एउटा फाइलमा धेरै वर्कशीट भए "Which worksheet to import" बाट चाहिएको शीट रोज्नुहोस्।\n३) शीर्षक भएको पङ्क्ति रोज्नुहोस्। एपका हरेक खाना (सामानको नाम, एकाइ, सुरुको स्टक, दर, ब्याच, म्याद, MRP...) का लागि आफ्नो फाइलको स्तम्भ रोज्नुहोस्। * भएका अनिवार्य हुन्; ब्याच, म्याद, MRP ऐच्छिक हुन्, चाहिँदैन भने "Not in my file" छोड्नुहोस्।\n४) Show preview थिचेर जाँच्नुहोस्, त्यसपछि Import (मालिकको पासवर्ड)। पहिलेदेखि भएका नाम नमेटिई छोडिन्छन्।\nआफ्नै नाम दिएर मिलान सुरक्षित गर्न "Save the choices above as a template" मा नाम लेखेर Save template थिच्नुहोस्; अर्को पटक "My import template" बाट रोज्नुहोस्। टेम्प्लेट आयातको प्रकार अनुसार छुट्टै रहन्छ र कम्पनीका सबै उपकरणमा चल्छ।\nउदाहरण: शीट "Stock List" मा Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट रोजेर Medicine लाई सामानको नाम, Qty on hand लाई सुरुको स्टक मिलाउनुहोस्।','a:ie']
     ],
     hi:[
       ['1. शुरू करना',"पहली बार Create account दबाकर यूज़रनेम और पासवर्ड बनाएँ; यह व्यक्ति मालिक/एडमिन होगा। फिर कंपनी का नाम, पता और PAN भरें। कई कंपनियाँ रख सकते हैं, Switch से बदलें।\nउदाहरण: यूज़रनेम ram, कंपनी \"राम मेडिकल हॉल\"। दूसरे फोन/पीसी पर उसी यूज़रनेम से लॉगिन करें।",''],
@@ -6110,7 +6154,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['23. Go To (जाएँ)','दाएँ नीचे Go To बटन या Alt+/ दबाकर किसी भी टैब, मेनू, उप-मेनू को खोजें और Enter दबाएँ।\nउदाहरण: "slow" लिखकर Enter।',''],
       ['24. बैकअप, गूगल ड्राइव और कई डिवाइस','सेटिंग्स > कंपनी में गूगल ड्राइव जोड़ने से बैकअप होता है और डिवाइस के बीच डेटा मिलता है। पासवर्ड और अनुमतियाँ भी कंपनी डेटा के साथ जाती हैं; दूसरे डिवाइस पर अगली बार इंटरनेट पर सिंक होने पर लागू होती हैं।','s:co'],
       ['25. यूज़र और अनुमतियाँ','केवल मालिक/एडमिन स्टाफ जोड़ सकता है, भूमिका और पासवर्ड बदल सकता है; हर बदलाव पर मालिक का पासवर्ड पूछा जाता है। मालिक: सब। ऑपरेटर: चुने वाउचर। व्यूअर: केवल रिपोर्ट।','a:user'],
-      ['26. एक्सेल से इम्पोर्ट/एक्सपोर्ट','Add On > Import / Export में टेम्पलेट डाउनलोड करें, एक्सेल में भरें और इम्पोर्ट करें: लेजर, आइटम, वाउचर।','a:ie']
+      ['26. एक्सेल से इम्पोर्ट (कॉलम मैपिंग के साथ)','Add On > Import / Export > Import। आप अपनी ही एक्सेल फ़ाइल इस्तेमाल कर सकते हैं; हेडिंग बदलने की ज़रूरत नहीं।\n1) क्या इम्पोर्ट करना है चुनें (आइटम, पार्टी/लेजर या वाउचर)।\n2) फ़ाइल चुनें। एक फ़ाइल में कई वर्कशीट हों तो "Which worksheet to import" में ज़रूरी शीट चुनें।\n3) शीर्षक वाली पंक्ति चुनें। ऐप के हर खाने (आइटम नाम, यूनिट, शुरुआती स्टॉक, दर, बैच, एक्सपायरी, MRP...) के लिए अपनी फ़ाइल का कॉलम चुनें। * वाले ज़रूरी हैं; बैच, एक्सपायरी, MRP वैकल्पिक हैं, न चाहिए तो "Not in my file" रहने दें।\n4) Show preview दबाकर जाँचें, फिर Import (मालिक का पासवर्ड)। पहले से मौजूद नाम छोड़ दिए जाते हैं।\nअपने नाम से मैपिंग सेव करने के लिए "Save the choices above as a template" में नाम लिखकर Save template दबाएँ; अगली बार "My import template" से चुनें। टेम्पलेट इम्पोर्ट के प्रकार के अनुसार अलग रहते हैं और कंपनी के सभी डिवाइस पर चलते हैं।\nउदाहरण: शीट "Stock List" में Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट चुनकर Medicine को आइटम नाम और Qty on hand को शुरुआती स्टॉक से जोड़ें।','a:ie']
     ]
   };
   var HLANG=[['en','English'],['ne','नेपाली (Nepali)'],['hi','हिन्दी (Hindi)'],['mai','Maithili'],['new','Nepal Bhasa'],['bho','Bhojpuri'],['ur','Urdu'],['bn','Bengali'],['gu','Gujarati'],['mr','Marathi'],['ta','Tamil'],['te','Telugu'],['zh-CN','Chinese'],['ar','Arabic'],['es','Spanish'],['fr','French'],['ja','Japanese'],['ko','Korean']];
@@ -6226,6 +6270,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(rc.mdb&&typeof rc.mdb==='object'){
       var m2=lc.mdb=lc.mdb||{};Object.keys(rc.mdb).forEach(function(k){if(!m2[k]||(rc.mdb[k].at||'')>(m2[k].at||'')){m2[k]=rc.mdb[k];ch=true}});
     }
+    if(rc.imtpl&&typeof rc.imtpl==='object'){var m3=lc.imtpl=lc.imtpl||{};Object.keys(rc.imtpl).forEach(function(k){if(!m3[k]||(rc.imtpl[k].at||'')>(m3[k].at||'')){m3[k]=rc.imtpl[k];ch=true}})}
     if(rc.obc){var o=lc.obc=lc.obc||{c:0,s:0};['c','s'].forEach(function(k){if((rc.obc[k]||0)>(o[k]||0)){o[k]=rc.obc[k];ch=true}})}
     return ch;
   }
@@ -6478,10 +6523,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 ['Add staff','कर्मचारी थप्नुहोस्','स्टाफ जोड़ें'],['Staff of this company','यस कम्पनीका कर्मचारी','इस कंपनी का स्टाफ'],['Owner: everything','मालिक: सबै अधिकार','मालिक: सभी अधिकार'],['Viewer: reports only','हेर्ने: रिपोर्ट मात्र','व्यूअर: केवल रिपोर्ट'],['Operator: enter vouchers (choose below)','सञ्चालक: भौचर प्रविष्टि (तल रोज्नुहोस्)','ऑपरेटर: वाउचर प्रविष्टि (नीचे चुनें)'],['Change my password','मेरो पासवर्ड बदल्नुहोस्','मेरा पासवर्ड बदलें'],
 ['New order','नयाँ अर्डर','नया ऑर्डर'],['+ New order','+ नयाँ अर्डर','+ नया ऑर्डर'],['Save order','अर्डर सुरक्षित','ऑर्डर सेव'],['Mark completed','पूरा भयो चिन्ह','पूरा हुआ'],['Open orders','खुला अर्डर','खुले ऑर्डर'],['Completed orders','पूरा भएका अर्डर','पूरे ऑर्डर'],['All orders','सबै अर्डर','सभी ऑर्डर'],['+ Add item','+ सामान थप्नुहोस्','+ आइटम जोड़ें'],['How many to list','कति वटा देखाउने','कितने दिखाएँ'],
 ['Recent vouchers','हालका भौचर','हाल के वाउचर'],['Open voucher','भौचर खोल्नुहोस्','वाउचर खोलें'],['Voucher details','भौचर विवरण','वाउचर विवरण'],['Modify voucher','भौचर परिमार्जन','वाउचर संशोधन'],['Modify or cancel a voucher','भौचर परिमार्जन वा रद्द','वाउचर संशोधन या रद्द'],['Share all bills','सबै बिल सेयर','सभी बिल शेयर'],['Settle bills (optional)','बिल चुक्ता (ऐच्छिक)','बिल चुकता (वैकल्पिक)'],['Date converter','मिति रूपान्तरण','तारीख बदलें'],['Ledger groups','लेजर समूह','लेजर समूह'],['Stock items (with opening stock)','स्टक सामान (सुरुको स्टकसहित)','स्टॉक आइटम (शुरुआती स्टॉक सहित)'],['Settings','सेटिङ','सेटिंग्स'],['Go To','जानुहोस्','जाएँ'],
-['Date (B.S.) yyyy/mm/dd','मिति (वि.सं.) yyyy/mm/dd','तारीख (वि.सं.) yyyy/mm/dd'],['Date (A.D.) yyyy/mm/dd','मिति (ई.सं.) yyyy/mm/dd','तारीख (ई.सं.) yyyy/mm/dd'],['Customer / party name','ग्राहक / पार्टीको नाम','ग्राहक / पार्टी का नाम'],['Qty','परिमाण','मात्रा'],['SN','क्र.सं.','क्र.सं.'],['Update stock (default)','स्टक अद्यावधिक (पूर्वनिर्धारित)','स्टॉक अपडेट (डिफ़ॉल्ट)'],['Without stock: party and amount only','स्टकबिना: पार्टी र रकम मात्र','स्टॉक बिना: केवल पार्टी और रकम'],['No discount','छुट छैन','कोई छूट नहीं'],['Fill from a photo','फोटोबाट भर्नुहोस्','फोटो से भरें'],['Fill from a photo of the notebook','कपीको फोटोबाट भर्नुहोस्','कॉपी की फोटो से भरें'],['Remove last row','अन्तिम पङ्क्ति हटाउनुहोस्','आखिरी पंक्ति हटाएँ'],['Net Total (Rs)','खुद जम्मा (रु)','शुद्ध कुल (रु)'],['Sub Total (Rs)','उप-जम्मा (रु)','उप-कुल (रु)'],['Rs','रु','रु'],['OK','ठीक छ','ठीक है'],['All dates','सबै मिति','सभी तारीख'],['All types','सबै प्रकार','सभी प्रकार'],['Custom dates','आफ्नै मिति','अपनी तारीख'],['This month','यो महिना','यह महीना'],['This fiscal year','यो आर्थिक वर्ष','यह वित्तीय वर्ष'],['Last fiscal year','गत आर्थिक वर्ष','पिछला वित्तीय वर्ष'],['As on (B.S. or A.D.)','मितिसम्म (वि.सं. वा ई.सं.)','तारीख तक (वि.सं. या ई.सं.)'],['To receive','लिन बाँकी','लेना बाकी'],['To pay','तिर्न बाँकी','देना बाकी'],['Total Dr','जम्मा डेबिट','कुल डेबिट'],['Total Cr','जम्मा क्रेडिट','कुल क्रेडिट'],['Debit (Dr)','डेबिट (Dr)','डेबिट (Dr)'],['Credit (Cr)','क्रेडिट (Cr)','क्रेडिट (Cr)'],['Ledger name','लेजरको नाम','लेजर का नाम'],['Ledger entry','लेजर प्रविष्टि','लेजर प्रविष्टि'],['Party (leave empty for all)','पार्टी (सबैको लागि खाली छोड्नुहोस्)','पार्टी (सभी के लिए खाली छोड़ें)'],['Party (empty = all parties)','पार्टी (खाली = सबै)','पार्टी (खाली = सभी)'],['Party (optional filter)','पार्टी (ऐच्छिक छान्नुहोस्)','पार्टी (वैकल्पिक फ़िल्टर)'],['Item (leave empty for all)','सामान (सबैको लागि खाली)','आइटम (सभी के लिए खाली)'],['Search party or item','पार्टी वा सामान खोज्नुहोस्','पार्टी या आइटम खोजें'],['Cash book (mode Cash)','नगद बुक (नगद तरिका)','नकद बुक (नकद तरीका)'],['Bank book (bank, cheque, QR, other)','बैंक बुक (बैंक, चेक, क्यूआर, अन्य)','बैंक बुक (बैंक, चेक, क्यूआर, अन्य)'],['Day book entry','डे बुक प्रविष्टि','डे बुक प्रविष्टि'],['+ Cash / bank IN entry','+ नगद / बैंक आम्दानी','+ नकद / बैंक आय'],['+ Cash / bank OUT entry','+ नगद / बैंक खर्च','+ नकद / बैंक खर्च'],['+ Next party','+ अर्को पार्टी','+ अगली पार्टी'],['Save entry','प्रविष्टि सुरक्षित','प्रविष्टि सेव'],['Delete entry','प्रविष्टि मेट्नुहोस्','प्रविष्टि हटाएँ'],['Close form','फारम बन्द','फॉर्म बंद'],['Add new','नयाँ थप्नुहोस्','नया जोड़ें'],['Add company','कम्पनी थप्नुहोस्','कंपनी जोड़ें'],['Add user','प्रयोगकर्ता थप्नुहोस्','यूज़र जोड़ें'],['Select company','कम्पनी छान्नुहोस्','कंपनी चुनें'],['Edit selected','छानिएका सम्पादन','चुने हुए संपादित करें'],['Download Excel','एक्सेल डाउनलोड','एक्सेल डाउनलोड'],['Download entry sheet','प्रविष्टि सिट डाउनलोड','प्रविष्टि शीट डाउनलोड'],['Import / Export','आयात / निर्यात','इम्पोर्ट / एक्सपोर्ट'],['What to import','के आयात गर्ने','क्या इम्पोर्ट करें'],['What to export','के निर्यात गर्ने','क्या एक्सपोर्ट करें'],['Share ledger','लेजर सेयर','लेजर शेयर'],['Print ledger','लेजर प्रिन्ट','लेजर प्रिंट'],['History','इतिहास','हिस्ट्री'],['Security','सुरक्षा','सुरक्षा'],['Auto-detect','आफैं पहिचान','स्वतः पहचान'],['PC version','पीसी संस्करण','पीसी वर्ज़न'],['Mobile version','मोबाइल संस्करण','मोबाइल वर्ज़न'],['Photo reader','फोटो रिडर','फोटो रीडर'],['Backup now','अहिले ब्याकअप','अभी बैकअप'],['Google Client ID','गुगल क्लाइन्ट आईडी','गूगल क्लाइंट आईडी'],['Phone (optional)','फोन (ऐच्छिक)','फोन (वैकल्पिक)'],['Address (optional)','ठेगाना (ऐच्छिक)','पता (वैकल्पिक)'],['PAN / VAT no.','प्यान / भ्याट नं.','पैन / वैट नं.'],['Not sold for (days)','नबिकेको दिन','बिना बिक्री दिन'],['Order for','अर्डर को लागि','ऑर्डर किसके लिए'],['Order date (B.S. or A.D.)','अर्डर मिति (वि.सं. वा ई.सं.)','ऑर्डर तारीख (वि.सं. या ई.सं.)'],['Customer (order received)','ग्राहक (प्राप्त अर्डर)','ग्राहक (प्राप्त ऑर्डर)'],['Supplier (order placed)','आपूर्तिकर्ता (दिएको अर्डर)','सप्लायर (दिया ऑर्डर)'],['Days between two dates','दुई मितिबीचका दिन','दो तारीखों के बीच दिन'],['Create account','खाता बनाउनुहोस्','खाता बनाएँ'],['Show A.D. calendar','ई.सं. पात्रो देखाउनुहोस्','ई.सं. कैलेंडर दिखाएँ'],['Show B.S. calendar','वि.सं. पात्रो देखाउनुहोस्','वि.सं. कैलेंडर दिखाएँ'],['Upload translated file','अनुवादित फाइल अपलोड','अनुवादित फ़ाइल अपलोड'],['Download phrase list','वाक्यांश सूची डाउनलोड','वाक्यांश सूची डाउनलोड'],['Remove my language','मेरो भाषा हटाउनुहोस्','मेरी भाषा हटाएँ'],['To','सम्म','तक'],['Order','अर्डर','ऑर्डर'],
+['Date (B.S.) yyyy/mm/dd','मिति (वि.सं.) yyyy/mm/dd','तारीख (वि.सं.) yyyy/mm/dd'],['Date (A.D.) yyyy/mm/dd','मिति (ई.सं.) yyyy/mm/dd','तारीख (ई.सं.) yyyy/mm/dd'],['Customer / party name','ग्राहक / पार्टीको नाम','ग्राहक / पार्टी का नाम'],['Qty','परिमाण','मात्रा'],['SN','क्र.सं.','क्र.सं.'],['Update stock (default)','स्टक अद्यावधिक (पूर्वनिर्धारित)','स्टॉक अपडेट (डिफ़ॉल्ट)'],['Without stock: party and amount only','स्टकबिना: पार्टी र रकम मात्र','स्टॉक बिना: केवल पार्टी और रकम'],['No discount','छुट छैन','कोई छूट नहीं'],['Fill from a photo','फोटोबाट भर्नुहोस्','फोटो से भरें'],['Fill from a photo of the notebook','कपीको फोटोबाट भर्नुहोस्','कॉपी की फोटो से भरें'],['Remove last row','अन्तिम पङ्क्ति हटाउनुहोस्','आखिरी पंक्ति हटाएँ'],['Net Total (Rs)','खुद जम्मा (रु)','शुद्ध कुल (रु)'],['Sub Total (Rs)','उप-जम्मा (रु)','उप-कुल (रु)'],['Rs','रु','रु'],['OK','ठीक छ','ठीक है'],['All dates','सबै मिति','सभी तारीख'],['All types','सबै प्रकार','सभी प्रकार'],['Custom dates','आफ्नै मिति','अपनी तारीख'],['This month','यो महिना','यह महीना'],['This fiscal year','यो आर्थिक वर्ष','यह वित्तीय वर्ष'],['Last fiscal year','गत आर्थिक वर्ष','पिछला वित्तीय वर्ष'],['As on (B.S. or A.D.)','मितिसम्म (वि.सं. वा ई.सं.)','तारीख तक (वि.सं. या ई.सं.)'],['To receive','लिन बाँकी','लेना बाकी'],['To pay','तिर्न बाँकी','देना बाकी'],['Total Dr','जम्मा डेबिट','कुल डेबिट'],['Total Cr','जम्मा क्रेडिट','कुल क्रेडिट'],['Debit (Dr)','डेबिट (Dr)','डेबिट (Dr)'],['Credit (Cr)','क्रेडिट (Cr)','क्रेडिट (Cr)'],['Ledger name','लेजरको नाम','लेजर का नाम'],['Ledger entry','लेजर प्रविष्टि','लेजर प्रविष्टि'],['Party (leave empty for all)','पार्टी (सबैको लागि खाली छोड्नुहोस्)','पार्टी (सभी के लिए खाली छोड़ें)'],['Party (empty = all parties)','पार्टी (खाली = सबै)','पार्टी (खाली = सभी)'],['Party (optional filter)','पार्टी (ऐच्छिक छान्नुहोस्)','पार्टी (वैकल्पिक फ़िल्टर)'],['Item (leave empty for all)','सामान (सबैको लागि खाली)','आइटम (सभी के लिए खाली)'],['Search party or item','पार्टी वा सामान खोज्नुहोस्','पार्टी या आइटम खोजें'],['Cash book (mode Cash)','नगद बुक (नगद तरिका)','नकद बुक (नकद तरीका)'],['Bank book (bank, cheque, QR, other)','बैंक बुक (बैंक, चेक, क्यूआर, अन्य)','बैंक बुक (बैंक, चेक, क्यूआर, अन्य)'],['Day book entry','डे बुक प्रविष्टि','डे बुक प्रविष्टि'],['+ Cash / bank IN entry','+ नगद / बैंक आम्दानी','+ नकद / बैंक आय'],['+ Cash / bank OUT entry','+ नगद / बैंक खर्च','+ नकद / बैंक खर्च'],['+ Next party','+ अर्को पार्टी','+ अगली पार्टी'],['Save entry','प्रविष्टि सुरक्षित','प्रविष्टि सेव'],['Delete entry','प्रविष्टि मेट्नुहोस्','प्रविष्टि हटाएँ'],['Close form','फारम बन्द','फॉर्म बंद'],['Add new','नयाँ थप्नुहोस्','नया जोड़ें'],['Add company','कम्पनी थप्नुहोस्','कंपनी जोड़ें'],['Add user','प्रयोगकर्ता थप्नुहोस्','यूज़र जोड़ें'],['Select company','कम्पनी छान्नुहोस्','कंपनी चुनें'],['Edit selected','छानिएका सम्पादन','चुने हुए संपादित करें'],['Download Excel','एक्सेल डाउनलोड','एक्सेल डाउनलोड'],['Download entry sheet','प्रविष्टि सिट डाउनलोड','प्रविष्टि शीट डाउनलोड'],['Import / Export','आयात / निर्यात','इम्पोर्ट / एक्सपोर्ट'],['What to import','के आयात गर्ने','क्या इम्पोर्ट करें'],['What to export','के निर्यात गर्ने','क्या एक्सपोर्ट करें'],['Share ledger','लेजर सेयर','लेजर शेयर'],['Print ledger','लेजर प्रिन्ट','लेजर प्रिंट'],['History','इतिहास','हिस्ट्री'],['Security','सुरक्षा','सुरक्षा'],['Auto-detect','आफैं पहिचान','स्वतः पहचान'],['PC version','पीसी संस्करण','पीसी वर्ज़न'],['Mobile version','मोबाइल संस्करण','मोबाइल वर्ज़न'],['Photo reader','फोटो रिडर','फोटो रीडर'],['Backup now','अहिले ब्याकअप','अभी बैकअप'],['Google Client ID','गुगल क्लाइन्ट आईडी','गूगल क्लाइंट आईडी'],['Phone (optional)','फोन (ऐच्छिक)','फोन (वैकल्पिक)'],['Address (optional)','ठेगाना (ऐच्छिक)','पता (वैकल्पिक)'],['PAN / VAT no.','प्यान / भ्याट नं.','पैन / वैट नं.'],['Not sold for (days)','नबिकेको दिन','बिना बिक्री दिन'],['Order for','अर्डर को लागि','ऑर्डर किसके लिए'],['Order date (B.S. or A.D.)','अर्डर मिति (वि.सं. वा ई.सं.)','ऑर्डर तारीख (वि.सं. या ई.सं.)'],['Customer (order received)','ग्राहक (प्राप्त अर्डर)','ग्राहक (प्राप्त ऑर्डर)'],['Supplier (order placed)','आपूर्तिकर्ता (दिएको अर्डर)','सप्लायर (दिया ऑर्डर)'],['Days between two dates','दुई मितिबीचका दिन','दो तारीखों के बीच दिन'],['Create account','खाता बनाउनुहोस्','खाता बनाएँ'],['Show A.D. calendar','ई.सं. पात्रो देखाउनुहोस्','ई.सं. कैलेंडर दिखाएँ'],['Show B.S. calendar','वि.सं. पात्रो देखाउनुहोस्','वि.सं. कैलेंडर दिखाएँ'],['Upload translated file','अनुवादित फाइल अपलोड','अनुवादित फ़ाइल अपलोड'],['Download phrase list','वाक्यांश सूची डाउनलोड','वाक्यांश सूची डाउनलोड'],['Remove my language','मेरो भाषा हटाउनुहोस्','मेरी भाषा हटाएँ'],['To','सम्म','तक'],['Order','अर्डर','ऑर्डर'],['Map your file','आफ्नो फाइल मिलाउनुहोस्','अपनी फ़ाइल मैप करें'],['Which worksheet to import','कुन वर्कशीट आयात गर्ने','कौन सी वर्कशीट इम्पोर्ट करें'],['Show preview','पूर्वावलोकन देखाउनुहोस्','प्रीव्यू दिखाएँ'],['Row that holds the column titles','शीर्षक भएको पङ्क्ति','शीर्षक वाली पंक्ति'],['Item name','सामानको नाम','आइटम नाम'],['Unit','एकाइ','यूनिट'],['Opening stock quantity','सुरुको स्टक परिमाण','शुरुआती स्टॉक मात्रा'],['Not in my file','मेरो फाइलमा छैन','मेरी फ़ाइल में नहीं'],
   ];
   /* ---------- Go To: every tab, menu and sub-menu ---------- */
-  var GT_TABS={voucher:'Voucher',report:'A/C Report',inventory:'Inventory',analysis:'Analysis',print:'Print/Share',modify:'Modify',addon:'Add On',utility:'Utility'};
+  var GT_TABS={voucher:'Voucher',report:'A/C Report',inventory:'Inventory',analysis:'Analysis',print:'Print/Share',modify:'Modify',addon:'Add On',utility:'Utility',members:'Members'};
   function gtEntries(){
     var out=[];
     Object.keys(GT_TABS).forEach(function(t){
@@ -6669,6 +6714,242 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     window.__gtInit=function(){try{new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'gtEl')}catch(e){toast('Could not start Google Translate.')}};
     var sc=document.createElement('script');sc.id='gtScript';sc.src='https://translate.google.com/translate_a/element.js?cb=__gtInit';sc.onerror=function(){toast('Google Translate needs internet. Try again when online.');sc.remove()};document.head.appendChild(sc);
   });
+  /* ---------- import mapping (choose worksheet, header row and columns, like Tally) ---------- */
+  var IMF=null;
+  var IM_LBL={
+    items:{name:'Item name',unit:'Unit',open:'Opening stock quantity',rate:'Rate',mrp:'MRP (optional)',pack:'Packing (optional)',obatch:'Batch no. (optional)',oexp:'Expiry (optional)'},
+    parties:{name:'Party / ledger name',phone:'Phone',pan:'PAN / VAT no.',address:'Address',open:'Opening balance',side:'Dr / Cr'},
+    txn:{date:'Date (B.S. or A.D.)',type:'Voucher type',no:'Voucher number',party:'Party (ledger)',party2:'Credit ledger (journal only)',item:'Item',qty:'Quantity',unit:'Unit',rate:'Rate',amount:'Amount',mode:'Payment mode',remarks:'Remarks / narration',batch:'Batch no. (optional)',exp:'Expiry (optional)',mrp:'MRP (optional)'}
+  };
+  function colL(i){var s='';i++;while(i>0){var r=(i-1)%26;s=String.fromCharCode(65+r)+s;i=Math.floor((i-1)/26)}return s}
+  function immapKey(base,h){return base+'|'+h.slice(0,14).map(hkey).join(',')}
+  function imSpecial(sh){return isLedgerSheet(sh)>=0||isRegSheet(sh)>=0}
+  function ieMapStart(r){
+    var what=$('ieImWhat').value,base=what.replace(/^txn:.*/,'txn'),sheets=r.sheets||[r.rows],spec=IM_SPEC[base],best=-1,ok=0;
+    sheets.forEach(function(sh,i){
+      if(!sh.sname)sh.sname=r.src==='Excel'?'Sheet '+(i+1):(r.src||'Data');
+      var good=findHeader(sh,spec)>=0||(base==='txn'&&imSpecial(sh));if(good){ok++;if(best<0)best=i}
+    });
+    IMF={r:r,sheets:sheets,base:base};
+    ieMapRender({sheet:(base==='txn'&&ok>1)?'auto':String(best<0?0:best),hdr:0});
+  }
+  function ieMapRender(st){
+    var f=IMF,base=f.base,what=$('ieImWhat').value,spec=IM_SPEC[base],sel=st.sheet,h='<h2>Map your file</h2><div class="card meta">',sh=sel==='auto'?null:f.sheets[+sel];
+    var auto=base==='txn'&&f.sheets.length>1;
+    h+='<div class="full"><label for="imSheet">Which worksheet to import</label><select id="imSheet">'+(auto?'<option value="auto"'+(sel==='auto'?' selected':'')+'>Automatic: every sheet that matches</option>':'')+
+      f.sheets.map(function(s,i){return '<option value="'+i+'"'+(String(i)===sel?' selected':'')+'>'+esc(s.sname)+' ('+s.length+' rows)'+(base==='txn'&&imSpecial(s)?' - ledger / register format':'')+'</option>'}).join('')+'</select></div>';
+    if(sel==='auto')h+='<div class="full note" style="margin:0">Every worksheet that looks like a ledger statement, a voucher register or a voucher list is read. To import from one particular worksheet, choose it above and map its columns.</div>';
+    else if(base==='txn'&&imSpecial(sh))h+='<div class="full note" style="margin:0">This worksheet is in the ledger statement or voucher register format, so its columns are read automatically. No mapping is needed.</div>';
+    else{
+      var tpls=DATA.cfg.imtpl||{},tn=Object.keys(tpls).filter(function(n){return tpls[n].base===base&&!tpls[n].del}).sort(),tp=st.tpl&&tpls[st.tpl]&&!tpls[st.tpl].del?tpls[st.tpl]:null;
+      var hdr=(tp&&tp.hdr)||st.hdr||(findHeader(sh,spec)+1)||1,hrow=sh[hdr-1]||[],saved=tp?tp.map:((get('eb_immap',{})||{})[immapKey(base,hrow)]||{}),am=tp?{}:mapCols(hrow,spec);
+      h+='<div class="full"><label for="imTpl">My import template</label><select id="imTpl"><option value="">Automatic (no template)</option>'+tn.map(function(n){return '<option value="'+esc(n)+'"'+(tp&&st.tpl===n?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></div>';
+      h+='<div class="full"><label for="imHdr">Row that holds the column titles</label><select id="imHdr">'+sh.slice(0,10).map(function(x,i){return '<option value="'+(i+1)+'"'+(i+1===hdr?' selected':'')+'>Row '+(i+1)+': '+esc(x.slice(0,4).join(' | ').slice(0,60))+'</option>'}).join('')+'</select></div>';
+      if(base==='txn'&&what==='txn')h+='<div class="full"><label for="imType">Voucher type for rows that have no type column</label><select id="imType"><option value="">Use the type column</option>'+ORDER.filter(function(t){return t!=='led'}).map(function(t){return '<option value="'+t+'"'+(tp&&tp.type===t?' selected':'')+'>'+esc(TYPES[t].label)+'</option>'}).join('')+'</select></div>';
+      Object.keys(spec).forEach(function(k){
+        if(k==='_req')return;var req=spec._req.indexOf(k)>=0,cur=-1,sv=saved[k];
+        if(sv)for(var i=0;i<hrow.length;i++)if(hkey(hrow[i])===sv){cur=i;break}
+        if(cur<0&&am[k]!==undefined)cur=am[k];
+        var optk=['unit','mrp','pack','obatch','oexp','batch','exp','phone','pan','address'].indexOf(k)>=0&&!req;
+        h+='<div>'+(optk?'<label class="chk" style="margin-bottom:4px"><input type="checkbox" data-imo="'+k+'"'+(cur>=0?' checked':'')+'> Import '+esc(IM_LBL[base][k].replace(' (optional)',''))+'</label>':'<label for="imF_'+k+'">'+esc(IM_LBL[base][k])+(req?' *':'')+'</label>')+'<select id="imF_'+k+'" data-imf="'+k+'"><option value="">'+(req?'Choose a column':'Not in my file')+'</option>'+hrow.map(function(c,i){return '<option value="'+i+'"'+(i===cur?' selected':'')+'>'+colL(i)+' - '+esc(String(c).slice(0,28)||'(blank)')+'</option>'}).join('')+'</select></div>';
+      });
+      h+='<div class="full note" style="margin:0">Your own Excel format works: just choose which of your columns matches each box. Optional details (unit, batch, expiry, MRP, packing, phone...) have a tick box: leave it ticked to import that column, untick it to skip it even if your file has it.</div>';
+      h+='<div class="full"><label for="imTplName">Save the choices above as a template (give it a name)</label><div class="btns" style="margin-top:4px"><input id="imTplName" type="text" maxlength="40" placeholder="e.g. Shop A stock sheet" value="'+esc(tp?st.tpl:'')+'" autocomplete="off" style="flex:2;min-width:140px"><button class="btn2" id="imTplSave" type="button">Save template</button>'+(tp?'<button class="btn2" id="imTplDel" type="button">Delete template</button>':'')+'</div></div>';
+      h+='<div class="full"><label class="chk"><input type="checkbox" id="imRem" checked> Remember this mapping for files with the same column titles</label></div>';
+      var sm=sh.slice(hdr,hdr+4);
+      h+='<div class="full"><div class="note" style="margin:0 0 4px">First rows of this worksheet:</div><div style="overflow:auto"><table class="imt"><tr>'+hrow.slice(0,10).map(function(c,i){return '<th>'+colL(i)+'<br>'+esc(String(c).slice(0,18))+'</th>'}).join('')+'</tr>'+sm.map(function(r){return '<tr>'+hrow.slice(0,10).map(function(c,i){return '<td>'+esc(String(r[i]==null?'':r[i]).slice(0,22))+'</td>'}).join('')+'</tr>'}).join('')+'</table></div></div>';
+    }
+    h+='<div class="full"><button class="btn2 prim" id="imGo" type="button" style="width:100%">Show preview</button></div></div>';
+    $('ieMapBox').innerHTML=h;$('ieImOut').innerHTML='';IM=null;
+  }
+  function ieMapGo(){
+    var f=IMF;if(!f)return;var what=$('ieImWhat').value,base=f.base,sel=$('imSheet').value,P,src;
+    if(sel==='auto'){
+      var ps=[];if(f.r.all)ps.push(planOf(what,null,f.r.all));
+      f.sheets.forEach(function(sh){if(isLedgerSheet(sh)<0&&(isRegSheet(sh)>=0||findHeader(sh,IM_SPEC.txn)>=0))ps.push(planOf(what,sh))});
+      P=ps.filter(function(p){return !p.fatal}).reduce(function(a,b){if(!a)return b;a.add=a.add.concat(b.add);a.skip+=b.skip;a.errs=a.errs.concat(b.errs);a.opens=(a.opens||[]).concat(b.opens||[]);return a},null)||(ps[0]||{fatal:'No worksheet in this file matches the voucher formats. Choose a worksheet and map its columns.'});
+      src='all matching worksheets';
+    }else{
+      var sh=f.sheets[+sel];src='worksheet "'+sh.sname+'"';
+      if(base==='txn'&&imSpecial(sh))P=isLedgerSheet(sh)>=0?planOf(what,null,[sh]):planOf(what,sh);
+      else{
+        var hdr=+$('imHdr').value||1,m={},sv={};
+        qa('[data-imf]').forEach(function(el){var k=el.getAttribute('data-imf'),ck=document.querySelector('[data-imo="'+k+'"]');if(el.value!==''&&!(ck&&!ck.checked)){m[k]=+el.value;sv[k]=hkey(sh[hdr-1][+el.value])}});
+        var ft=$('imType')?$('imType').value:'',w2=(ft&&what==='txn')?'txn:'+ft:what;
+        P=planOf(w2,sh,null,{hi:hdr-1,m:m});
+        if($('imRem')&&$('imRem').checked&&!P.fatal){var all=get('eb_immap',{})||{};all[immapKey(base,sh[hdr-1])]=sv;set('eb_immap',all)}
+      }
+    }
+    ieShowPlan(P,src);
+  }
+  $('ieMapBox').addEventListener('change',function(e){
+    var t=e.target;if(!IMF)return;
+    if(t.id==='imSheet')ieMapRender({sheet:t.value,hdr:0,tpl:$('imTpl')?$('imTpl').value:''});
+    else if(t.id==='imTpl')ieMapRender({sheet:$('imSheet').value,hdr:0,tpl:t.value});
+    else if(t.id==='imHdr')ieMapRender({sheet:$('imSheet').value,hdr:+t.value});
+  });
+  function imReadMap(){
+    var sh=IMF.sheets[+$('imSheet').value],hdr=+$('imHdr').value||1,m={};
+    qa('[data-imf]').forEach(function(el){var k=el.getAttribute('data-imf'),ck=document.querySelector('[data-imo="'+k+'"]');if(el.value!==''&&!(ck&&!ck.checked))m[k]=hkey(sh[hdr-1][+el.value])});
+    return {hdr:hdr,map:m};
+  }
+  $('ieMapBox').addEventListener('click',function(e){
+    var id=e.target.id;
+    if(id==='imGo')ieMapGo();
+    else if(id==='imTplSave'){
+      var nm=$('imTplName').value.trim();if(!nm){toast('Type a name for the template.');return}
+      var r=imReadMap();DATA.cfg.imtpl=DATA.cfg.imtpl||{};
+      DATA.cfg.imtpl[nm]={base:IMF.base,hdr:r.hdr,map:r.map,type:$('imType')?$('imType').value:'',at:stamp()};
+      logAct('Import','Saved import template '+nm);DATA.cfg.at=stamp();saveData();queueAuto();toast('Template "'+nm+'" saved.');
+      ieMapRender({sheet:$('imSheet').value,hdr:0,tpl:nm});
+    }else if(id==='imTplDel'){
+      var cn=$('imTpl').value;if(cn&&DATA.cfg.imtpl&&DATA.cfg.imtpl[cn]){DATA.cfg.imtpl[cn].del=true;DATA.cfg.imtpl[cn].at=stamp();saveData();queueAuto();toast('Template deleted.');ieMapRender({sheet:$('imSheet').value,hdr:0,tpl:''})}
+    }
+  });
+  $('ieImWhat').addEventListener('change',function(){if(IMF){$('ieImOut').innerHTML='';ieMapStart(IMF.r)}});
+  /* ---------- Members (app admin only) and membership lock ---------- */
+  var MB={edit:-1};
+  function mbDB(){var d=get('eb_members',null);if(!d||!Array.isArray(d.list))d={list:[],req:false,grace:7,msg:''};if(!d.msg)d.msg='Dear {name}, your MEDBOOKS membership renews on {date} (Rs {amount}). The app will log out automatically {grace} days after the renewal date. Please renew to keep using it. Thank you.';if(!d.grace&&d.grace!==0)d.grace=7;return d}
+  function mbSet(d){set('eb_members',d)}
+  function adDays(ad){var a=String(ad).split('-'),t=todayAD().split('-');return Math.round((Date.UTC(+a[0],+a[1]-1,+a[2])-Date.UTC(+t[0],+t[1]-1,+t[2]))/864e5)}
+  function mbStatus(m,grace){
+    var ad=m.renew?bsToAD(normBS(m.renew)||''):'';if(!ad)return {k:'none',t:'No renewal date',d:null};
+    var d=adDays(ad);
+    if(m.blocked)return {k:'blk',t:'Logged out (ticked)',d:d};
+    if(d<-grace)return {k:'exp',t:'Expired - logged out',d:d};
+    if(d<0)return {k:'grc',t:'Expired, '+(grace+d)+' day(s) left before log out',d:d};
+    if(d<=30)return {k:'due',t:'Renewal in '+d+' day(s)',d:d};
+    return {k:'ok',t:'Active',d:d};
+  }
+  function mbRenewBS(bs){
+    var p=normBS(bs).split('/'),y=+p[0]+1,m=+p[1],d=+p[2];
+    if(BS[y]){d=Math.min(d,BS[y][m-1])}
+    return y+'/'+p2(m)+'/'+p2(d);
+  }
+  function mbMsgFor(m,db){return db.msg.replace(/\{name\}/g,m.name).replace(/\{date\}/g,m.renew||'').replace(/\{amount\}/g,m.amount||'').replace(/\{grace\}/g,db.grace)}
+  function mbPhone(p){var d=String(p||'').replace(/\D/g,'');if(d.length===10&&d[0]==='9')d='977'+d;return d}
+  function renderMembers(){
+    var db=mbDB(),L=db.list,cnt={ok:0,due:0,grc:0,exp:0,blk:0,none:0},sum=0;
+    $('mbMsg').value=db.msg;$('mbGrace').value=db.grace;$('mbReq').checked=!!db.req;
+    L.forEach(function(m){cnt[mbStatus(m,db.grace).k]++;(m.pays||[]).forEach(function(p){sum+=num(p.a)});if(!(m.pays||[]).length)sum+=num(m.amount)});
+    $('mbStats').innerHTML='<b>'+L.length+' members</b> &middot; Active '+cnt.ok+' &middot; Due within 30 days '+cnt.due+' &middot; In grace '+cnt.grc+' &middot; Logged out '+(cnt.exp+cnt.blk)+'<div class="note" style="margin:4px 0 0">Total amount recorded: Rs '+fmt(r2(sum))+'</div>';
+    var today=todayAD(),dueL=[];
+    L.forEach(function(m,i){var s=mbStatus(m,db.grace);if(!m.blocked&&s.d!==null&&s.d<=7&&s.d>=-db.grace)dueL.push({m:m,i:i,s:s})});
+    $('mbDue').innerHTML=dueL.length?'<h2>Reminders due ('+dueL.length+')</h2>'+dueL.map(function(o){return '<div class="card"><b>'+esc(o.m.name)+'</b> &middot; '+esc(o.s.t)+'<div class="btns"><button class="btn2" data-mbg="'+o.i+'" type="button">Gmail</button><button class="btn2" data-mbw="'+o.i+'" type="button"'+(mbPhone(o.m.phone)?'':' disabled')+'>WhatsApp</button><button class="btn2" data-mbs="'+o.i+'" type="button">Mark as sent</button></div>'+((o.m.sent&&o.m.sent.length)?'<div class="note" style="margin:2px 0 0">Last reminder: '+esc(o.m.sent[o.m.sent.length-1])+(o.m.sent[o.m.sent.length-1]===today?' (today)':'')+'</div>':'')+'</div>'}).join(''):'';
+    $('mbList').innerHTML=L.length?L.map(function(m,i){
+      var s=mbStatus(m,db.grace),cls=s.k==='ok'?'grn':'';
+      return '<div class="card mbr"><div><b>'+(i+1)+'. '+esc(m.name)+'</b> <span class="tag '+cls+'">'+esc(s.t)+'</span></div><div class="note" style="margin:2px 0">'+esc(m.gmail)+(m.phone?' &middot; '+esc(m.phone):'')+'</div><div>Joined '+esc(m.join||'-')+' &middot; Renewal on <b>'+esc(m.renew||'-')+'</b> &middot; Rs '+esc(m.amount||'0')+'</div>'+(m.rem?'<div class="note" style="margin:2px 0">'+esc(m.rem)+'</div>':'')+
+        '<div class="chk" style="margin:8px 0"><input type="checkbox" data-mbb="'+i+'" aria-labelledby="mbbt'+i+'"'+(m.blocked?' checked':'')+'><span id="mbbt'+i+'">Log out this member</span></div>'+
+        '<div class="btns" style="margin-top:0"><button class="btn2" data-mbe="'+i+'" type="button">Edit</button><button class="btn2" data-mbr="'+i+'" type="button">Renew 1 year</button><button class="btn2" data-mbg="'+i+'" type="button">Gmail</button><button class="btn2" data-mbw="'+i+'" type="button"'+(mbPhone(m.phone)?'':' disabled')+'>WhatsApp</button><button class="btn2" data-mbd="'+i+'" type="button">Delete</button></div></div>';
+    }).join(''):'<div class="note">No members yet. Tap + Add member.</div>';
+  }
+  function mbForm(i){
+    MB.edit=i;var m=i>=0?mbDB().list[i]:{};
+    $('mbName').value=m.name||'';$('mbMail').value=m.gmail||'';$('mbPhone').value=m.phone||'';$('mbJoin').value=m.join||todayBS();$('mbRenew').value=m.renew||mbRenewBS(todayBS());$('mbAmt').value=m.amount||'';$('mbRem').value=m.rem||'';
+    $('mbForm').hidden=false;$('mbName').focus();$('mbForm').scrollIntoView({block:'center'});
+  }
+  $('mbAdd').addEventListener('click',function(){mbForm(-1)});
+  $('mbCancel').addEventListener('click',function(){$('mbForm').hidden=true});
+  $('mbSave').addEventListener('click',function(){
+    var db=mbDB(),name=$('mbName').value.trim(),mail=$('mbMail').value.trim().toLowerCase(),j=normBS($('mbJoin').value),r=normBS($('mbRenew').value);
+    if(!name){toast('Type the member name.');return}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){toast('Type a valid Gmail.');return}
+    if(!j||!r){toast('Enter valid joining and renewal dates.');return}
+    var dup=db.list.some(function(m,i){return i!==MB.edit&&normMail(m.gmail)===normMail(mail)});if(dup){toast('This Gmail is already in the list.');return}
+    var rec=MB.edit>=0?db.list[MB.edit]:{pays:[],sent:[]};
+    Object.assign(rec,{name:name,gmail:mail,phone:$('mbPhone').value.trim(),join:j,renew:r,amount:$('mbAmt').value.trim(),rem:$('mbRem').value.trim()});
+    if(MB.edit<0){db.list.push(rec);if(num(rec.amount))rec.pays.push({d:todayBS(),a:rec.amount})}
+    mbSet(db);$('mbForm').hidden=true;renderMembers();toast('Member saved. Publish members.json to apply it on their devices.');
+  });
+  $('mbMsg').addEventListener('input',function(){var d=mbDB();d.msg=$('mbMsg').value;mbSet(d)});
+  $('mbGrace').addEventListener('input',function(){var d=mbDB();d.grace=Math.max(0,Math.min(60,Math.round(num($('mbGrace').value))));mbSet(d)});
+  $('mbReq').addEventListener('change',function(){var d=mbDB();d.req=$('mbReq').checked;mbSet(d)});
+  function mbOpenMsg(i,kind){
+    var db=mbDB(),m=db.list[i];if(!m)return;var text=mbMsgFor(m,db);
+    if(kind==='g')window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(m.gmail)+'&su='+encodeURIComponent('MEDBOOKS membership renewal')+'&body='+encodeURIComponent(text),'_blank','noopener');
+    else window.open('https://wa.me/'+mbPhone(m.phone)+'?text='+encodeURIComponent(text),'_blank','noopener');
+  }
+  $('v-members').addEventListener('click',function(e){
+    var t=e.target.closest('button');if(!t)return;var db=mbDB(),i;
+    if((i=t.getAttribute('data-mbe'))!==null)mbForm(+i);
+    else if((i=t.getAttribute('data-mbg'))!==null)mbOpenMsg(+i,'g');
+    else if((i=t.getAttribute('data-mbw'))!==null)mbOpenMsg(+i,'w');
+    else if((i=t.getAttribute('data-mbs'))!==null){var m=db.list[+i];m.sent=m.sent||[];m.sent.push(todayAD());mbSet(db);renderMembers()}
+    else if((i=t.getAttribute('data-mbd'))!==null){var d=db.list[+i];if(d&&confirm('Delete '+d.name+' from the list?')){db.list.splice(+i,1);mbSet(db);renderMembers()}}
+    else if((i=t.getAttribute('data-mbr'))!==null){
+      var m2=db.list[+i],last=(m2.pays&&m2.pays.length)?m2.pays[m2.pays.length-1].a:m2.amount,a=prompt('Amount received for this renewal (Rs)',last||'');
+      if(a===null)return;var cur=normBS(m2.renew)||todayBS(),base=bsToAD(cur)&&adDays(bsToAD(cur))<-db.grace?todayBS():cur;
+      m2.renew=mbRenewBS(base);m2.amount=String(a).trim();m2.blocked=false;m2.pays=m2.pays||[];m2.pays.push({d:todayBS(),a:m2.amount});mbSet(db);renderMembers();toast('Renewed until '+m2.renew+'. Publish members.json to apply it.');
+    }
+  });
+  $('v-members').addEventListener('change',function(e){
+    var i=e.target.getAttribute&&e.target.getAttribute('data-mbb');if(i===null||i===undefined)return;
+    var db=mbDB();db.list[+i].blocked=e.target.checked;mbSet(db);renderMembers();toast(e.target.checked?'Marked as logged out. Publish members.json to apply it.':'Log-out tick removed. Publish members.json to apply it.');
+  });
+  $('mbXl').addEventListener('click',function(){
+    var db=mbDB(),H=['SN','Name','Gmail','Phone','Date of joining','Renewal on','Amount','Status','Remarks'].map(function(h){return {v:h,s:1}});
+    var R=db.list.map(function(m,i){return [{v:i+1,s:3},{v:m.name,s:2},{v:m.gmail,s:2},{v:m.phone||'',s:2},{v:m.join||'',s:2},{v:m.renew||'',s:2},{v:num(m.amount),s:3},{v:mbStatus(m,db.grace).t,s:2},{v:m.rem||'',s:2}]});
+    download(xlsxFromSheets([{n:'Members',r:[H].concat(R),w:[6,24,30,16,14,14,12,34,24],freeze:1}]),'Members_'+todayBS().replace(/\//g,'-')+'.xlsx');
+  });
+  $('mbBkp').addEventListener('click',function(){download(new Blob([JSON.stringify({app:'medbooks-members',at:stamp(),data:mbDB()})],{type:'application/json'}),'Members_backup_'+todayBS().replace(/\//g,'-')+'.json')});
+  $('mbRest').addEventListener('change',function(){
+    var f=this.files&&this.files[0];if(!f)return;var fr=new FileReader();
+    fr.onload=function(){try{var o=JSON.parse(fr.result);if(!o||o.app!=='medbooks-members'||!o.data||!Array.isArray(o.data.list))throw 0;if(!confirm('Replace the current list ('+mbDB().list.length+' members) with the backup ('+o.data.list.length+' members)?'))return;mbSet(o.data);renderMembers();toast('Members restored.')}catch(e){toast('This is not a members backup file.')}};
+    fr.readAsText(f);this.value='';
+  });
+  $('mbPub').addEventListener('click',function(){
+    if(!canSha()){toast('This browser cannot create the file. Use Chrome or Edge.');return}
+    var db=mbDB();
+    Promise.all(db.list.map(function(m){return mshipHash(m.gmail).then(function(h){var ad=bsToAD(normBS(m.renew)||'');return {h:h,r:ad||'',b:m.blocked?1:0}})})).then(function(list){
+      var o={v:1,updated:stamp(),grace:db.grace,req:db.req?1:0,contact:MASTER.gmail,list:list};
+      download(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}),'members.json');toast('members.json ready. Upload it to your GitHub site next to index.html.');
+    });
+  });
+  function mshipHash(mail){return crypto.subtle.digest('SHA-256',new TextEncoder().encode('medbooks-member:'+normMail(mail))).then(function(b){return hex(b)})}
+  var MS={timer:null,lastFetch:0};
+  function mshipLock(msg,why){
+    var o=$('mbLock');o.hidden=false;$('mbLockMsg').textContent=msg;$('mbLockWhy').textContent=why||'';
+    [].forEach.call(document.body.children,function(el){if(el!==o&&el.tagName!=='SCRIPT')el.inert=true});
+  }
+  function mshipUnlock(){var o=$('mbLock');o.hidden=true;[].forEach.call(document.body.children,function(el){el.inert=false})}
+  function mshipEval(){
+    var c=get('eb_mship',null);
+    if(!user||user.master||!co||!c||!c.data||!Array.isArray(c.data.list)||!canSha()){mshipUnlock();$('mbBanner').hidden=true;return Promise.resolve()}
+    var grace=c.data.grace===undefined?7:+c.data.grace,mails=[co.gmail,user.gmail].filter(Boolean);
+    return Promise.all(mails.map(mshipHash)).then(function(hs){
+      var es=c.data.list.filter(function(e){return hs.indexOf(e.h)>=0}),worst=null,lock=false,msg='',why='';
+      es.forEach(function(e){
+        var d=e.r?adDays(e.r):9999;
+        if(e.b){lock=true;msg='Your membership has been stopped.';why='Please contact the app admin ('+(c.data.contact||MASTER.gmail)+') to continue.'}
+        else if(d<-grace){lock=true;msg='Your membership expired on '+e.r+'.';why='Please renew with the app admin ('+(c.data.contact||MASTER.gmail)+'). Your data is safe; you can download a backup below.'}
+        if(!worst||d<worst.d)worst={d:d,r:e.r};
+      });
+      if(!es.length&&c.data.req){lock=true;msg='This company is not registered as a member.';why='Please contact the app admin ('+(c.data.contact||MASTER.gmail)+').'}
+      if(lock){mshipLock(msg,why);$('mbBanner').hidden=true;return}
+      mshipUnlock();
+      if(worst&&worst.d<=7){
+        var dis=get('eb_mbdis',0);
+        $('mbBanner').firstChild.textContent=worst.d>=0?'Your membership renews on '+worst.r+' ('+worst.d+' day(s) left). Please renew with the app admin.':'Your membership expired on '+worst.r+'. The app will log out in '+(grace+worst.d)+' day(s). Please renew now.';
+        $('mbBanner').hidden=Date.now()-dis<6*36e5;
+      }else $('mbBanner').hidden=true;
+    });
+  }
+  function mshipCheck(force){
+    if(!user||user.master)return;
+    mshipEval();
+    if(!navigator.onLine||(!force&&Date.now()-MS.lastFetch<36e5))return;
+    MS.lastFetch=Date.now();
+    fetch(new URL('members.json',location.href).href+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){
+      if(j&&Array.isArray(j.list)){set('eb_mship',{at:Date.now(),data:j});mshipEval()}
+    }).catch(function(){});
+  }
+  $('mbLockOut').addEventListener('click',function(){mshipUnlock();logout()});
+  $('mbLockBkp').addEventListener('click',function(){mshipUnlock();try{doBackup()}finally{mshipEval()}});
+  $('mbLockAgain').addEventListener('click',function(){MS.lastFetch=0;mshipCheck(true);toast('Checking...')});
+  $('mbBannerX').addEventListener('click',function(){set('eb_mbdis',Date.now());$('mbBanner').hidden=true});
+  setInterval(function(){mshipCheck(false)},10*60*1000);
+  window.addEventListener('online',function(){mshipCheck(true)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)mshipCheck(false)});
   /* ---------- start ---------- */
   (function boot(){
     lgStart();

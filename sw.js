@@ -1,5 +1,5 @@
 /* MEDBOOKS offline cache. Change the version number to force an update. */
-var C='medbooks-v25';
+var C='medbooks-v29';
 var FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(C).then(function(c){return c.addAll(FILES)}).then(function(){return self.skipWaiting()}));
@@ -9,7 +9,7 @@ self.addEventListener('activate',function(e){
 });
 self.addEventListener('fetch',function(e){
   var r=e.request,u=new URL(r.url);
-  if(r.method!=='GET'||u.origin!==location.origin)return;
+  if(r.method!=='GET'||u.origin!==location.origin||/members\.json$/.test(u.pathname))return;
   e.respondWith(caches.match(r,{ignoreSearch:true}).then(function(hit){
     var net=fetch(r).then(function(res){
       if(res&&res.ok){var cp=res.clone();caches.open(C).then(function(c){c.put(r,cp)})}

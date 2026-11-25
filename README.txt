@@ -72,3 +72,17 @@ v23: All reports newest first; voucher summary before opening a voucher; type = 
 v24: Go To search (button, bottom right, or Alt+/) for every tab/menu/sub-menu; Analysis tab (top/least items and parties, purchases, stock groups, monthly trend, profit, slow stock); optional stock groups + stock-by-group report; Order book (customer/supplier); user-wise reports and who-changed-what log; passwords and permissions shared between devices through the company data on Google Drive; language choice (English, Nepali, Hindi, own language file, Google Translate); detailed Help with examples in English/Nepali/Hindi.
 
 v25: Reports now run oldest to newest (downwards); Cash tick box on sales/purchase screens toggles only when the box itself is tapped (taps on the sentence or leftover taps after choosing a party are ignored); password changes are sent to Google Drive at once.
+
+v26: Excel import with mapping like Tally: choose the worksheet, the title row and which of your columns matches each box (own Excel format works); optional batch, expiry, MRP and packing; mapping is remembered; Help rewritten.
+
+v27: Named import templates (save, choose, delete your own column mappings per import type; shared across the company devices).
+
+v28: Import: tick boxes to include or skip unit, batch, expiry, MRP, packing, phone, PAN, address columns.
+
+v29 - MEMBERS (app admin only)
+Members tab shows only when you log in as the app admin (master / rscool981@gmail.com).
+Add each customer (name, Gmail, phone, joining, renewal, amount). "Renew 1 year" moves the date and records the payment.
+Tick "Log out this member" to stop a member at any time. After the renewal date + grace days (default 7) the app locks automatically.
+Reminders: use the Gmail / WhatsApp buttons (they open a ready message; you press Send). The app cannot send by itself without a server.
+IMPORTANT: after every change press "Download members.json" and upload it to GitHub next to index.html. Devices read it when online and remember it for offline.
+Back up the member list from the Members tab (it is stored only on your device).
