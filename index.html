@@ -534,6 +534,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full" id="ddHeadW"><label>Headings to include (none ticked = all)</label><input id="ddHeadQ" type="text" placeholder="Search a heading..." autocomplete="off" style="margin-bottom:6px"><div class="btns" style="margin:0 0 6px"><button class="btn2" id="ddHpAll" type="button">Tick all shown</button><button class="btn2" id="ddHpIn" type="button">All money in</button><button class="btn2" id="ddHpOut" type="button">All money out</button><button class="btn2" id="ddHpClr" type="button">Clear</button></div><div id="ddHeadPick" style="max-height:220px;overflow:auto"></div></div>
     </div>
     <div id="ddRepOut"></div>
+    <div id="ddRepAct"></div>
     <div class="btns" id="ddRepBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="ddRepShare" type="button">Share</button><button class="btn2" id="ddRepPrint" type="button">Print</button></div>
     <div class="card meta"><div class="full"><label for="ddOpenB">Opening balance before the first entry (Rs)</label><input id="ddOpenB" type="text" inputmode="decimal" autocomplete="off"></div><div class="full note" style="margin:0">Each day then opens with the previous day's closing balance. Closing balance = opening balance + money in - money out.</div></div>
   </section>
@@ -3018,6 +3019,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       gi.forEach(function(i){tv2=r2(tv2+i.value);var r=[i.name+' ('+i.unit+')',fq(i.close),i.rate?fmt(i.rate):'',fmt(i.value)];r.dr={k:'ip',item:i.name,from:x.from,to:x.to};rows.push(r)});
       return {title:'Group: '+x.grp,info:['Stock items in this group. Tap an item to see its parties.'],cols:[{h:'Item',w:3,al:'l'},{h:'Closing',w:1.2,al:'r'},{h:'Rate',w:1.2,al:'r'},{h:'Value',w:1.4,al:'r'}],rows:rows,totals:[['Total','','',fmt(tv2)]],minw:480};
     }
+    if(x.k==='ddh'){
+      var tt=0;ddLive().filter(function(e){return e.dir===x.dir&&e.head===x.head&&e.date>=x.from&&e.date<=x.to}).sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0)}).forEach(function(e){var r=[e.date,(e.party?e.party+' ':'')+(e.rem||'')+(e.ref?' ref '+e.ref:''),fmt(e.total)];r.dr={k:'ddday',day:e.date};rows.push(r);tt=r2(tt+e.total)});
+      return {title:(x.dir==='in'?'In: ':'Out: ')+x.head,info:['Entries of this heading, '+x.from+' to '+x.to,'Tap an entry to open its day in the day book'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Remarks',w:3,al:'l'},{h:'Amount',w:1.3,al:'r'}],rows:rows,totals:[['','Total',fmt(tt)]],minw:460};
+    }
     if(x.k==='ip'){
       var key=pkey(x.item),m={},ord=[],types=x.types;
       stockMoves().forEach(function(mv){
@@ -3059,6 +3064,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return o;
   }
   function drillOpen(x){
+    if(x.k==='ddday'){$('ddModal').hidden=true;DSTK.length=0;$('ddDate').value=x.day;renderDD();$('ddGridIn').scrollIntoView({block:'start'});toast('Showing the day book of '+x.day+'.');return}
+    if(x.k==='ddset'){var cd=$('ddRepAct').querySelector('[data-ddk="'+x.key+'"]');if(cd){cd.scrollIntoView({block:'center'});cd.style.outline='3px solid var(--brand,#0b5d57)';setTimeout(function(){cd.style.outline=''},2500)}return}
     DSTK.push(x);var o=drillShow();
     if(o&&o.single!=null&&DATA.docs[o.single]){DSTK.pop();if(DSTK.length)drillShow();else $('ddModal').hidden=true;showVsum(o.single)}
   }
@@ -6566,16 +6573,17 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!canEnter()){toast('You cannot change headings.');return}
     if(confirm('Delete the heading "'+h.name+'"? Old entries keep their text.'))authorize().then(function(ok){if(!ok)return;h.del=true;h.at=stamp();ddSave();ddLog('Delete','Heading '+(h.dir==='in'?'In ':'Out ')+h.name,'');renderDD()});
   });
-  function ddRenderSet(){
-    var today=todayBS(),all=ddItems(),show=$('ddShowSet').checked,old=all.filter(function(i){return i.e.date<today&&(show||i.st!=='Settled')}),fresh=all.filter(function(i){return i.e.date>=today&&i.st!=='Settled'}).length;
-    var h=fresh?'<div class="note">'+fresh+' cheque/due item(s) dated today become trackable from tomorrow.</div>':'';
-    h+=old.length?old.map(function(it){
+  function ddCard(it,today){
       var s=ddSet(it.e,it.m),rem=r2(it.total-it.sum),run=it.total;
       var hist=s.h.map(function(x,i){run=r2(run-x.a);return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(x.d)+' &middot; '+(x.auto?'ticked settled ':'paid ')+fmt(x.a)+' &middot; remaining '+fmt(run)+'</span>'+(s.full?'':'<button class="btn2" data-ddx="'+it.key+'|'+i+'" type="button" style="min-width:0;padding:2px 8px">Remove</button>')+'</div>'}).join('');
       return '<div class="card" data-ddk="'+it.key+'"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><span class="tag '+(it.st==='Settled'?'grn':'')+'">'+it.st+'</span></div><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+(it.e.ref?' &middot; ref '+esc(it.e.ref):'')+' &middot; Amount '+fmt(it.total)+' &middot; Settled '+fmt(it.sum)+' &middot; <b>Remaining '+fmt(rem)+'</b></div>'+hist+
         (s.full?'<div class="note" style="margin:4px 0 0">Fully settled on '+esc(s.fd||'')+'.</div>':'<div class="meta" style="margin-top:6px"><div><label>Partial amount (Rs)</label><input data-ddpa type="text" inputmode="decimal" placeholder="'+fmt(rem)+'" autocomplete="off"></div><div><label>Settlement date</label><input data-ddpd data-dt="1" type="text" inputmode="numeric" maxlength="10" value="'+today+'" autocomplete="off"></div><div class="full btns" style="margin-top:0"><button class="btn2" data-ddp="'+it.key+'" type="button">Record settlement</button><button class="btn2" data-ddr="'+it.key+'" type="button">Settle the full remaining</button></div></div>')+
         '<div class="chk" style="margin:8px 0 0"><input type="checkbox" data-ddf="'+it.key+'" aria-labelledby="ddft'+it.key.replace(/\W/g,'')+'"'+(s.full?' checked':'')+'><span id="ddft'+it.key.replace(/\W/g,'')+'"><b>Settled</b> (tick when this cheque / due is settled; untick needs password)</span></div><div class="btns" style="margin:6px 0 0"><button class="btn2" data-dds="'+it.e.id+'" type="button">Edit this entry</button></div></div>'
-    }).join(''):'<div class="note">'+(all.length?'No old pending cheques or dues.':'No A/c payee cheque or due entries yet.')+'</div>';
+  }
+  function ddRenderSet(){
+    var today=todayBS(),all=ddItems(),show=$('ddShowSet').checked,old=all.filter(function(i){return i.e.date<today&&(show||i.st!=='Settled')}),fresh=all.filter(function(i){return i.e.date>=today&&i.st!=='Settled'}).length;
+    var h=fresh?'<div class="note">'+fresh+' cheque/due item(s) dated today become trackable from tomorrow.</div>':'';
+    h+=old.length?old.map(function(it){return ddCard(it,today)}).join(''):'<div class="note">'+(all.length?'No old pending cheques or dues.':'No A/c payee cheque or due entries yet.')+'</div>';
     $('ddSet').innerHTML=h;
   }
   function renderDD(){
@@ -6672,7 +6680,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ddFind(key){var p=key.split(':'),e=ddArr().filter(function(x){return x.id===p[0]})[0];return e?{e:e,m:p[1]}:null}
   function ddEnsure(e,m){if(!e.set)e.set={};if(!e.set[m])e.set[m]={h:[],full:false,fd:''};return e.set[m]}
   $('ddShowSet').addEventListener('change',ddRenderSet);
-  $('ddSet').addEventListener('click',function(ev){
+  [$('ddSet'),$('ddRepAct')].forEach(function(box){box.addEventListener('click',function(ev){
     var b=ev.target.closest('button');if(!b||!canEnter())return;
     var ed=b.getAttribute('data-dds');
     if(ed){var en=ddArr().filter(function(x){return x.id===ed&&!x.del})[0];if(!en)return;ddOpenForm(en.dir,en);return}
@@ -6685,10 +6693,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(dt<f2.e.date){toast('The settlement date cannot be before the entry date.');return}
     if(!(amt>0)){toast('Enter the amount settled.');return}
     if(amt>rem+0.004){toast('The amount is more than the remaining '+fmt(rem)+'.');return}
-    var s2=ddEnsure(f2.e,f2.m);s2.h.push({d:dt,a:amt,by:user.username});f2.e.at=stamp();ddSave();
+    var s2=ddEnsure(f2.e,f2.m);s2.h.push({d:dt,a:amt,by:user.username});if(r2(rem-amt)<0.005){s2.full=true;s2.fd=dt}f2.e.at=stamp();ddSave();
     ddLog('Entry','Settlement: '+(f2.m==='acc'?'cheque ':'due ')+f2.e.date+' '+(f2.e.party||f2.e.head)+' settled '+fmt(amt)+' on '+dt,f2.e.date);ddRenderSet();ddRepRender();
-  });
-  $('ddSet').addEventListener('change',function(ev){
+  })});
+  [$('ddSet'),$('ddRepAct')].forEach(function(box){box.addEventListener('change',function(ev){
     var k=ev.target.getAttribute&&ev.target.getAttribute('data-ddf');if(!k||!canEnter())return;
     var f=ddFind(k);if(!f)return;var s=ddEnsure(f.e,f.m),rem=r2(ddLine(f.e,f.m)-ddSetSum(f.e,f.m));
     if(ev.target.checked){
@@ -6701,9 +6709,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       authorize().then(function(ok){if(!ok){toast('Not changed. Password is needed.');return}s.h=s.h.filter(function(x){return !x.auto});s.full=false;s.fd='';f.e.at=stamp();ddSave();ddLog('Edit','Settled tick removed: '+f.e.head+' '+(f.m==='acc'?'cheque':'due'),f.e.date);ddRenderSet();ddRepRender()});return;
     }
     f.e.at=stamp();ddSave();ddLog('Edit','Marked fully settled: '+f.e.head+' on '+s.fd,f.e.date);ddRenderSet();ddRepRender();toast('Marked settled. It is removed from Pending. Tick "Also show fully settled items" to see it.');
-  });
+  })});
   /* reports */
   function ddRange(){return {from:normBS($('ddFrom').value)||'',to:normBS($('ddTo').value)||''}}
+  function ddRepItems(kind,R){
+    var want={acc:['acc'],due:['due'],pending:['acc','due'],part:['acc','due'],done:['acc','due']}[kind],stf={acc:'',due:'',pending:['Pending','Partially Settled'],part:['Partially Settled'],done:['Settled']}[kind];
+    if(!want)return [];
+    return ddItems().filter(function(i){return want.indexOf(i.m)>=0&&i.e.date>=R.from&&i.e.date<=R.to&&(!stf||stf.indexOf(i.st)>=0)});
+  }
   function ddRepReport(){
     var kind=$('ddRep').value,R=ddRange();
     if(!R.from||!R.to)return {empty:'Enter valid From and To dates.'};
@@ -6716,7 +6729,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(kind==='hsum'){
         var G={},ks2=[];L.forEach(function(e){var k=e.dir+'|'+e.head;if(!G[k]){G[k]={d:e.dir,h:e.head,n:0,t:0,c:0,a:0,q:0,du:0};ks2.push(k)}var g=G[k];g.n++;g.t=r2(g.t+e.total);e.alloc.forEach(function(l){if(l.m==='cash')g.c=r2(g.c+l.a);else if(l.m==='acc'||l.m==='bank')g.a=r2(g.a+l.a);else if(l.m==='qr')g.q=r2(g.q+l.a);else g.du=r2(g.du+l.a)})});
         ks2.sort(function(a,b){return G[a].d===G[b].d?(G[a].h.toLowerCase()<G[b].h.toLowerCase()?-1:1):(G[a].d==='in'?-1:1)});
-        var si=0,so=0,rowsH=ks2.map(function(k){var g=G[k];if(g.d==='in')si=r2(si+g.t);else so=r2(so+g.t);return [(g.d==='in'?'In':'Out'),g.h,String(g.n),fmt(g.t),g.c?fmt(g.c):'',g.a?fmt(g.a):'',g.q?fmt(g.q):'',g.du?fmt(g.du):'']});
+        var si=0,so=0,rowsH=ks2.map(function(k){var g=G[k];if(g.d==='in')si=r2(si+g.t);else so=r2(so+g.t);var hs=[(g.d==='in'?'In':'Out'),g.h,String(g.n),fmt(g.t),g.c?fmt(g.c):'',g.a?fmt(g.a):'',g.q?fmt(g.q):'',g.du?fmt(g.du):''];hs.dr={k:'ddh',dir:g.d,head:g.h,from:R.from,to:R.to};return hs});
         return {file:file,title:'DAY BOOK - HEADING-WISE SUMMARY',info:[per+'   |   '+ks2.length+' heading(s)','Total in Rs '+fmt(si)+'   Total out Rs '+fmt(so)+'   Net Rs '+fmt(r2(si-so))],cols:[{h:'Type',w:.8,al:'l'},{h:'Heading',w:3,al:'l'},{h:'Entries',w:.9,al:'r'},{h:'Total',w:1.3,al:'r'},{h:'Cash',w:1.2,al:'r'},{h:'A/c / Bank',w:1.2,al:'r'},{h:'QR',w:1,al:'r'},{h:'Due',w:1,al:'r'}],rows:rowsH,totals:[['','Total in',String(L.filter(function(e){return e.dir==='in'}).length),fmt(si),'','','',''],['','Total out',String(L.filter(function(e){return e.dir==='out'}).length),fmt(so),'','','','']],minw:700,foot:'One line per heading. Tick headings above to see only those headings.'};
       }
       var tin=0,tout=0,tot={},byH={};
@@ -6725,7 +6738,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         if(e.dir==='in')tin=r2(tin+e.total);else tout=r2(tout+e.total);
         var k=(e.dir==='in'?'In: ':'Out: ')+e.head;byH[k]=r2((byH[k]||0)+e.total);
         ['cash','acc','qr','due','bank'].forEach(function(m){tot[m+e.dir]=r2((tot[m+e.dir]||0)+g(m))});
-        return [e.date,(e.dir==='in'?'In':'Out')+' - '+e.head+(e.party?' ('+e.party+')':'')+(e.ref?' ref '+e.ref:'')+(e.rem?' - '+e.rem:''),e.dir==='in'?fmt(e.total):'',e.dir==='out'?fmt(e.total):'',g('cash')?fmt(g('cash')):'',(g('acc')+g('bank'))?fmt(g('acc')+g('bank')):'',g('qr')?fmt(g('qr')):'',g('due')?fmt(g('due')):''];
+        var hr=[e.date,(e.dir==='in'?'In':'Out')+' - '+e.head+(e.party?' ('+e.party+')':'')+(e.ref?' ref '+e.ref:'')+(e.rem?' - '+e.rem:''),e.dir==='in'?fmt(e.total):'',e.dir==='out'?fmt(e.total):'',g('cash')?fmt(g('cash')):'',(g('acc')+g('bank'))?fmt(g('acc')+g('bank')):'',g('qr')?fmt(g('qr')):'',g('due')?fmt(g('due')):''];hr.dr={k:'ddday',day:e.date};return hr;
       });
       var info=[per+'   |   '+(dir==='in'?'Money in only':dir==='out'?'Money out only':'Money in and out')];
       Object.keys(byH).sort().forEach(function(k){info.push(k+': Rs '+fmt(byH[k]))});
@@ -6739,7 +6752,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var ti=0,to=0,tg=0,te=0,tc=0,over=0,short=0,counted=0,rowsG=ks.map(function(d){
         var c=ddCalc(d),cn=ddCnt()[d];ti=r2(ti+c.inn);to=r2(to+c.out);
         var gp=cn?r2(cn.cash-c.exp):null;if(gp!==null){tg=r2(tg+gp);te=r2(te+c.exp);tc=r2(tc+cn.cash);counted++;if(gp>0)over=r2(over+gp);else short=r2(short-gp)}
-        var r=[d,fmt(c.open),c.inn?fmt(c.inn):'',c.out?fmt(c.out):'',fmt(c.close),fmt(c.exp),cn?fmt(cn.cash):'Not counted',gp===null?'':(gp===0?'0.00':(gp<0?'Short '+fmt(-gp):'Over '+fmt(gp)))];return r;
+        var r=[d,fmt(c.open),c.inn?fmt(c.inn):'',c.out?fmt(c.out):'',fmt(c.close),fmt(c.exp),cn?fmt(cn.cash):'Not counted',gp===null?'':(gp===0?'0.00':(gp<0?'Short '+fmt(-gp):'Over '+fmt(gp)))];r.dr={k:'ddday',day:d};return r;
       });
       var o1=ddCalc(ks[0]).open,c1=ddCalc(ks[ks.length-1]).close;
       return {file:file,title:'DAILY GAP REPORT',info:[per,'PERIOD CONCLUSION','Opening balance Rs '+fmt(o1)+'   Closing balance Rs '+fmt(c1),'Total in Rs '+fmt(ti)+'   Total out Rs '+fmt(to),'Days counted '+counted+' of '+ks.length+'   Total gap Rs '+fmt(tg)+(tg===0?' (tally)':(tg<0?' (net SHORT)':' (net OVER)')),'Sum of daily gaps: Short Rs '+fmt(short)+'  +  Over Rs '+fmt(over)+'  =  Net '+(tg===0?'0.00':(tg<0?'SHORT ':'OVER ')+fmt(Math.abs(tg)))],
@@ -6753,13 +6766,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       return {file:file,title:'DAY BOOK LOG',info:[per+'   |   '+LG.length+' record(s)','Every entry, edit and delete is recorded with the user and time, and is saved in the company data on Google Drive.'],cols:[{h:'When',w:1.7,al:'l'},{h:'User',w:1.2,al:'l'},{h:'Action',w:.9,al:'l'},{h:'Details',w:6,al:'l'}],rows:rowsL,minw:800};
     }
     // settlement reports
-    var want={acc:['acc'],due:['due'],pending:['acc','due'],part:['acc','due'],done:['acc','due']}[kind],stf={acc:'',due:'',pending:['Pending','Partially Settled'],part:['Partially Settled'],done:['Settled']}[kind];
-    var its=ddItems().filter(function(i){return want.indexOf(i.m)>=0&&i.e.date>=R.from&&i.e.date<=R.to&&(!stf||stf.indexOf(i.st)>=0)});
+    var its=ddRepItems(kind,R);
     if(!its.length)return {empty:'No matching cheque or due entries in this period.'};
     var rowsS=[],ta=0,ts=0,tr=0;
     its.forEach(function(it){
       var s=ddSet(it.e,it.m),rem=r2(it.total-it.sum),run=it.total;ta=r2(ta+it.total);ts=r2(ts+it.sum);tr=r2(tr+rem);
-      var r=[it.e.date,(it.e.party||it.e.head)+' - '+(it.m==='acc'?'A/c payee cheque':'Due')+(it.e.ref?' ref '+it.e.ref:''),fmt(it.total),fmt(it.sum),fmt(rem),it.st+(s.full&&s.fd?' on '+s.fd:'')];r.b=true;rowsS.push(r);
+      var r=[it.e.date,(it.e.party||it.e.head)+' - '+(it.m==='acc'?'A/c payee cheque':'Due')+(it.e.ref?' ref '+it.e.ref:''),fmt(it.total),fmt(it.sum),fmt(rem),it.st+(s.full&&s.fd?' on '+s.fd:'')];r.b=true;r.dr={k:'ddset',key:it.key};rowsS.push(r);
       s.h.forEach(function(x){run=r2(run-x.a);rowsS.push([x.d,x.auto?'   Ticked as settled':'   Part settlement','',fmt(x.a),fmt(run),''])});
     });
     var tt={acc:'A/C PAYEE CHEQUE REPORT',due:'DUE REPORT',pending:'PENDING CHEQUES AND DUES (NOT YET SETTLED)',part:'PARTIALLY SETTLED CHEQUES AND DUES',done:'FULLY SETTLED CHEQUES AND DUES'}[kind];
@@ -6918,6 +6930,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ddRepRender(){
     var k=$('ddRep').value;$('ddDirW').hidden=$('ddHeadW').hidden=(k!=='heads'&&k!=='hsum');
     showReport($('ddRepOut'),$('ddRepBtns'),ddRepReport());
+    var R=ddRange(),its=(R.from&&R.to&&R.from<=R.to)?ddRepItems(k,R):[],today=todayBS();
+    $('ddRepAct').innerHTML=its.length?'<h2>Settle from this report</h2><div class="note">For old A/c payee cheques and dues: tick <b>Settled</b> for full settlement, or type an amount and date and press Record settlement for a part payment. Tracking only - no cash, bank, income or expense figure changes. Tap a report line to jump to its card.</div>'+its.slice(0,150).map(function(it){return it.e.date<today?ddCard(it,today):'<div class="card"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+' &middot; '+fmt(it.total)+' &middot; dated today, can be settled from tomorrow.</div></div>'}).join('')+(its.length>150?'<div class="note">Showing the first 150 of '+its.length+'. Narrow the period.</div>':''):'';
   }
   $('ddHeadPick').addEventListener('change',ddRepRender);
   function hpEach(f){[].forEach.call($('ddHeadPick').querySelectorAll('.chk'),f)}

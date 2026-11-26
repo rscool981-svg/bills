@@ -116,3 +116,7 @@ v37 - Manual day book
  * Daily gap report totals expected, counted and gap for the selected period.
  * Heading filter: search box, Tick all shown / All money in / All money out / Clear; new "Heading-wise summary" report.
  * Cash denomination counter in the day book fills the counted cash and is saved with the day.
+
+v38 - Drill down in day book reports
+ * A/c cheque, Due, Pending, Partly settled and Settled reports now have a "Settle from this report" panel: tick Settled (full) or type amount + date and Record settlement (part). Reaching zero remaining shows Fully Settled automatically. Tracking only.
+ * Tap any report line to drill down: heading/gap/log lines open that day in the day book; heading-summary lines list that heading's entries; settlement lines jump to their card.
