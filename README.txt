@@ -107,3 +107,12 @@ v34 - The money in/out day book is now THE Manual day book (A/C Report > Books >
 v35 - Manual day book entry is an Excel-like grid (Money in / Money out): Heading + Cash / A/c cheque / QR / Due (out: Cash / Bank / QR) + Remarks. Heading autocomplete matches any part of the name; rows autosave; Enter/Tab/arrow navigation; paste rows from Excel. No party needed (detailed form with party/reference is under "Detailed entry").
 
 v36 - Day book: every edit and delete (entries, headings, settlement records, counted cash, opening balance) asks for the user's password. Every entry, edit and delete is written to a day book log (who, when, before => after) stored in the company data and synced to Google Drive. View/print it in Manual day book > Reports > "Entry, edit and delete log".
+
+v37 - Manual day book
+ * Save button: saves all grid rows and the counted cash at once.
+ * Old A/c payee cheque / due: one tick marks it Settled (date = settlement date box, default today). It leaves the Pending report and shows in the Settled report. Un-ticking needs the password. Tracking only: cash, bank, income, expense and day totals never change.
+ * Pending report lists only items not yet settled (Pending and Partially Settled, with status).
+ * Old cheque / due entries can be edited (password). The amount cannot go below part-settlements already recorded; if the amount changes the Settled tick is reset.
+ * Daily gap report totals expected, counted and gap for the selected period.
+ * Heading filter: search box, Tick all shown / All money in / All money out / Clear; new "Heading-wise summary" report.
+ * Cash denomination counter in the day book fills the counted cash and is saved with the day.
