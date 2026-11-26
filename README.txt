@@ -120,3 +120,5 @@ v37 - Manual day book
 v38 - Drill down in day book reports
  * A/c cheque, Due, Pending, Partly settled and Settled reports now have a "Settle from this report" panel: tick Settled (full) or type amount + date and Record settlement (part). Reaching zero remaining shows Fully Settled automatically. Tracking only.
  * Tap any report line to drill down: heading/gap/log lines open that day in the day book; heading-summary lines list that heading's entries; settlement lines jump to their card.
+
+v39 - Settle button next to Share/Print on cheque and due reports; jumps to the settle cards. Tracking only.

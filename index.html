@@ -535,7 +535,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     </div>
     <div id="ddRepOut"></div>
     <div id="ddRepAct"></div>
-    <div class="btns" id="ddRepBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="ddRepShare" type="button">Share</button><button class="btn2" id="ddRepPrint" type="button">Print</button></div>
+    <div class="btns" id="ddRepBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="ddRepSettle" type="button" hidden>Settle</button><button class="btn2 prim" id="ddRepShare" type="button">Share</button><button class="btn2" id="ddRepPrint" type="button">Print</button></div>
     <div class="card meta"><div class="full"><label for="ddOpenB">Opening balance before the first entry (Rs)</label><input id="ddOpenB" type="text" inputmode="decimal" autocomplete="off"></div><div class="full note" style="margin:0">Each day then opens with the previous day's closing balance. Closing balance = opening balance + money in - money out.</div></div>
   </section>
 
@@ -6931,8 +6931,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var k=$('ddRep').value;$('ddDirW').hidden=$('ddHeadW').hidden=(k!=='heads'&&k!=='hsum');
     showReport($('ddRepOut'),$('ddRepBtns'),ddRepReport());
     var R=ddRange(),its=(R.from&&R.to&&R.from<=R.to)?ddRepItems(k,R):[],today=todayBS();
+    $('ddRepSettle').hidden=!its.length;
     $('ddRepAct').innerHTML=its.length?'<h2>Settle from this report</h2><div class="note">For old A/c payee cheques and dues: tick <b>Settled</b> for full settlement, or type an amount and date and press Record settlement for a part payment. Tracking only - no cash, bank, income or expense figure changes. Tap a report line to jump to its card.</div>'+its.slice(0,150).map(function(it){return it.e.date<today?ddCard(it,today):'<div class="card"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+' &middot; '+fmt(it.total)+' &middot; dated today, can be settled from tomorrow.</div></div>'}).join('')+(its.length>150?'<div class="note">Showing the first 150 of '+its.length+'. Narrow the period.</div>':''):'';
   }
+  $('ddRepSettle').addEventListener('click',function(){
+    var p=$('ddRepAct'),c=p.querySelector('[data-ddk]');if(!c){toast('Nothing to settle in this report.');return}
+    p.scrollIntoView({block:'start'});c.style.outline='3px solid #0b5d57';setTimeout(function(){c.style.outline=''},2500);
+    toast('Tick Settled for full settlement, or type an amount and press Record settlement. The report updates at once.');
+  });
   $('ddHeadPick').addEventListener('change',ddRepRender);
   function hpEach(f){[].forEach.call($('ddHeadPick').querySelectorAll('.chk'),f)}
   $('ddHeadQ').addEventListener('input',function(){var q=this.value.trim().toLowerCase();hpEach(function(d){d.hidden=!!q&&d.textContent.toLowerCase().indexOf(q)<0})});
