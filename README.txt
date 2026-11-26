@@ -122,3 +122,10 @@ v38 - Drill down in day book reports
  * Tap any report line to drill down: heading/gap/log lines open that day in the day book; heading-summary lines list that heading's entries; settlement lines jump to their card.
 
 v39 - Settle button next to Share/Print on cheque and due reports; jumps to the settle cards. Tracking only.
+
+v40 - Settle one by one
+ Books > Manual day book > "Settlement tracking". Each A/c payee cheque or due is its own card.
+ 1. Find the item (search by party, heading, reference or date).
+ 2. Press Settle. Amount received shows the full remaining; change it for a part payment. Set the date received.
+ 3. Press Confirm settlement. Part = Partially Settled; full = Settled and the card disappears (tick "Also show fully settled items" to see it).
+ No effect on day book figures. Remove a wrong record or edit the entry with your password.

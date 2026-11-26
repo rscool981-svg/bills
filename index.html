@@ -523,6 +523,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div id="ddList" hidden></div>
     <h2>Settlement tracking: old A/c payee cheques and dues</h2>
     <div class="note" style="margin:0 0 6px">For checking only. Recording a settlement never creates a transaction and never changes cash, bank, income or expense figures.</div>
+    <input id="ddSetQ" type="text" placeholder="Search party, heading, reference or date..." autocomplete="off" style="margin-bottom:6px">
     <div class="chk" style="margin:0 0 8px"><input type="checkbox" id="ddShowSet" aria-labelledby="ddShowSetT"><span id="ddShowSetT">Also show fully settled items</span></div>
     <div id="ddSet"></div>
     <h2>Day book reports</h2>
@@ -6573,7 +6574,15 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!canEnter()){toast('You cannot change headings.');return}
     if(confirm('Delete the heading "'+h.name+'"? Old entries keep their text.'))authorize().then(function(ok){if(!ok)return;h.del=true;h.at=stamp();ddSave();ddLog('Delete','Heading '+(h.dir==='in'?'In ':'Out ')+h.name,'');renderDD()});
   });
+  function ddRow(it){
+    var s=ddSet(it.e,it.m),rem=r2(it.total-it.sum),run=it.total,k=it.key;
+    var hist=s.h.map(function(x,i){run=r2(run-x.a);return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(x.d)+' &middot; received '+fmt(x.a)+' &middot; remaining '+fmt(run)+'</span><button class="btn2" data-ddx="'+k+'|'+i+'" type="button" style="min-width:0;padding:2px 8px">Remove</button></div>'}).join('');
+    return '<div class="card" data-ddk="'+k+'"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><span class="tag">'+it.st+'</span></div><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+' &middot; '+esc(it.e.head)+(it.e.ref?' &middot; ref '+esc(it.e.ref):'')+'</div><div style="display:flex;justify-content:space-between;gap:8px"><span>Amount '+fmt(it.total)+' &middot; Received '+fmt(it.sum)+'</span><b>Remaining '+fmt(rem)+'</b></div>'+hist+
+      '<div class="btns" style="margin:6px 0 0"><button class="btn2 prim" data-dso="'+k+'" type="button">Settle</button><button class="btn2" data-dds="'+it.e.id+'" type="button">Edit this entry</button></div>'+
+      '<div class="meta" data-dsf hidden style="margin-top:6px"><div><label>Amount received now (Rs)</label><input data-ddpa type="text" inputmode="decimal" value="'+rem+'" autocomplete="off"></div><div><label>Date received</label><input data-ddpd data-dt="1" type="text" inputmode="numeric" maxlength="10" value="'+todayBS()+'" autocomplete="off"></div><div class="note full" style="margin:0">Full amount = fully settled. Less than the remaining = part settlement.</div><div class="full btns" style="margin-top:0"><button class="btn2 prim" data-ddp="'+k+'" type="button">Confirm settlement</button><button class="btn2" data-dsx type="button">Cancel</button></div></div></div>';
+  }
   function ddCard(it,today){
+    if(it.st!=='Settled')return ddRow(it);
       var s=ddSet(it.e,it.m),rem=r2(it.total-it.sum),run=it.total;
       var hist=s.h.map(function(x,i){run=r2(run-x.a);return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(x.d)+' &middot; '+(x.auto?'ticked settled ':'paid ')+fmt(x.a)+' &middot; remaining '+fmt(run)+'</span>'+(s.full?'':'<button class="btn2" data-ddx="'+it.key+'|'+i+'" type="button" style="min-width:0;padding:2px 8px">Remove</button>')+'</div>'}).join('');
       return '<div class="card" data-ddk="'+it.key+'"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><span class="tag '+(it.st==='Settled'?'grn':'')+'">'+it.st+'</span></div><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+(it.e.ref?' &middot; ref '+esc(it.e.ref):'')+' &middot; Amount '+fmt(it.total)+' &middot; Settled '+fmt(it.sum)+' &middot; <b>Remaining '+fmt(rem)+'</b></div>'+hist+
@@ -6581,8 +6590,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         '<div class="chk" style="margin:8px 0 0"><input type="checkbox" data-ddf="'+it.key+'" aria-labelledby="ddft'+it.key.replace(/\W/g,'')+'"'+(s.full?' checked':'')+'><span id="ddft'+it.key.replace(/\W/g,'')+'"><b>Settled</b> (tick when this cheque / due is settled; untick needs password)</span></div><div class="btns" style="margin:6px 0 0"><button class="btn2" data-dds="'+it.e.id+'" type="button">Edit this entry</button></div></div>'
   }
   function ddRenderSet(){
-    var today=todayBS(),all=ddItems(),show=$('ddShowSet').checked,old=all.filter(function(i){return i.e.date<today&&(show||i.st!=='Settled')}),fresh=all.filter(function(i){return i.e.date>=today&&i.st!=='Settled'}).length;
-    var h=fresh?'<div class="note">'+fresh+' cheque/due item(s) dated today become trackable from tomorrow.</div>':'';
+    var today=todayBS(),all=ddItems(),show=$('ddShowSet').checked,q=($('ddSetQ').value||'').trim().toLowerCase(),old=all.filter(function(i){return (show||i.st!=='Settled')&&(!q||((i.e.party||'')+' '+i.e.head+' '+(i.e.ref||'')+' '+i.e.date).toLowerCase().indexOf(q)>=0)});
+    var h='<div class="note" style="margin:0 0 6px"><b>'+all.filter(function(i){return i.st!=='Settled'}).length+'</b> not yet settled. Press <b>Settle</b> on an item when it is actually received.</div>';
     h+=old.length?old.map(function(it){return ddCard(it,today)}).join(''):'<div class="note">'+(all.length?'No old pending cheques or dues.':'No A/c payee cheque or due entries yet.')+'</div>';
     $('ddSet').innerHTML=h;
   }
@@ -6679,9 +6688,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   /* settlement tracking (never touches money figures) */
   function ddFind(key){var p=key.split(':'),e=ddArr().filter(function(x){return x.id===p[0]})[0];return e?{e:e,m:p[1]}:null}
   function ddEnsure(e,m){if(!e.set)e.set={};if(!e.set[m])e.set[m]={h:[],full:false,fd:''};return e.set[m]}
-  $('ddShowSet').addEventListener('change',ddRenderSet);
+  $('ddShowSet').addEventListener('change',ddRenderSet);$('ddSetQ').addEventListener('input',ddRenderSet);
   [$('ddSet'),$('ddRepAct')].forEach(function(box){box.addEventListener('click',function(ev){
     var b=ev.target.closest('button');if(!b||!canEnter())return;
+    if(b.hasAttribute('data-dso')||b.hasAttribute('data-dsx')){var cc=b.closest('[data-ddk]'),ff=cc&&cc.querySelector('[data-dsf]');if(ff){ff.hidden=b.hasAttribute('data-dsx')?true:!ff.hidden;if(!ff.hidden){var ia=ff.querySelector('[data-ddpa]');ia.focus();ia.select()}}return}
     var ed=b.getAttribute('data-dds');
     if(ed){var en=ddArr().filter(function(x){return x.id===ed&&!x.del})[0];if(!en)return;ddOpenForm(en.dir,en);return}
     var card=b.closest('[data-ddk]');
@@ -6932,7 +6942,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     showReport($('ddRepOut'),$('ddRepBtns'),ddRepReport());
     var R=ddRange(),its=(R.from&&R.to&&R.from<=R.to)?ddRepItems(k,R):[],today=todayBS();
     $('ddRepSettle').hidden=!its.length;
-    $('ddRepAct').innerHTML=its.length?'<h2>Settle from this report</h2><div class="note">For old A/c payee cheques and dues: tick <b>Settled</b> for full settlement, or type an amount and date and press Record settlement for a part payment. Tracking only - no cash, bank, income or expense figure changes. Tap a report line to jump to its card.</div>'+its.slice(0,150).map(function(it){return it.e.date<today?ddCard(it,today):'<div class="card"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+' &middot; '+fmt(it.total)+' &middot; dated today, can be settled from tomorrow.</div></div>'}).join('')+(its.length>150?'<div class="note">Showing the first 150 of '+its.length+'. Narrow the period.</div>':''):'';
+    $('ddRepAct').innerHTML=its.length?'<h2>Settle from this report</h2><div class="note">For old A/c payee cheques and dues: tick <b>Settled</b> for full settlement, or type an amount and date and press Record settlement for a part payment. Tracking only - no cash, bank, income or expense figure changes. Tap a report line to jump to its card.</div>'+its.slice(0,150).map(function(it){return ddCard(it,today)}).join('')+(its.length>150?'<div class="note">Showing the first 150 of '+its.length+'. Narrow the period.</div>':''):'';
   }
   $('ddRepSettle').addEventListener('click',function(){
     var p=$('ddRepAct'),c=p.querySelector('[data-ddk]');if(!c){toast('Nothing to settle in this report.');return}
