@@ -131,3 +131,5 @@ v40 - Settle one by one
  No effect on day book figures. Remove a wrong record or edit the entry with your password.
 
 v41 - Cleaner day book screen: removed the detailed-entry block between Money out and settlement (Edit this entry still opens the form); heading rename/delete moved to a collapsed box at the bottom; plain-language labels.
+
+v42 - Removed the headings management section from the day book screen (headings still remembered automatically).

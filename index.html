@@ -527,7 +527,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div id="ddRepOut"></div>
     <div id="ddRepAct"></div>
     <div class="btns" id="ddRepBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="ddRepSettle" type="button" hidden>Settle</button><button class="btn2 prim" id="ddRepShare" type="button">Share</button><button class="btn2" id="ddRepPrint" type="button">Print</button></div>
-    <details class="card" style="margin-top:10px"><summary style="font-weight:700;cursor:pointer">Manage my headings (rename or delete)</summary>
+    <div hidden id="ddhWrap">
     <div class="card meta" id="ddhBox">
       <div class="note full" style="margin:0">Add your own headings once; they are remembered and offered in the entry form. A remark saved with a heading is filled into new entries.</div>
       <div><label for="ddhDir">Heading for</label><select id="ddhDir"><option value="in">Money in</option><option value="out">Money out</option></select></div>
@@ -536,7 +536,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full btns"><button class="btn2 prim" id="ddhSave" type="button">Add heading</button><button class="btn2" id="ddhCancel" type="button" hidden>Cancel edit</button></div>
     </div>
     <div id="ddhList"></div>
-    </details>
+    </div>
     <div class="card meta"><div class="full"><label for="ddOpenB">Opening balance before the first entry (Rs)</label><input id="ddOpenB" type="text" inputmode="decimal" autocomplete="off"></div><div class="full note" style="margin:0">Each day then opens with the previous day's closing balance. Closing balance = opening balance + money in - money out.</div></div>
   </section>
 
