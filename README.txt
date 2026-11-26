@@ -103,3 +103,7 @@ Money in: Cash, A/c payee cheque, QR, Due. Money out: Cash, Bank, QR. Split allo
 Expected physical cash, counted cash and gap; automatic opening/closing balance; settlement tracking (partial/full, history) for old cheques and dues - tracking only, never changes money figures; heading, daily gap, cheque, due, pending, partial and settled reports.
 
 v34 - The money in/out day book is now THE Manual day book (A/C Report > Books > Manual day book). It is typed by the user and does not read sales or ledger. Own headings for money in and out (remembered, modifiable, with remark), heading picker for reports. The old voucher-based manual day book screen was removed (its saved counts stay in the data file).
+
+v35 - Manual day book entry is an Excel-like grid (Money in / Money out): Heading + Cash / A/c cheque / QR / Due (out: Cash / Bank / QR) + Remarks. Heading autocomplete matches any part of the name; rows autosave; Enter/Tab/arrow navigation; paste rows from Excel. No party needed (detailed form with party/reference is under "Detailed entry").
+
+v36 - Day book: every edit and delete (entries, headings, settlement records, counted cash, opening balance) asks for the user's password. Every entry, edit and delete is written to a day book log (who, when, before => after) stored in the company data and synced to Google Drive. View/print it in Manual day book > Reports > "Entry, edit and delete log".

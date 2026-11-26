@@ -128,6 +128,7 @@ h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08e
 .cac{flex-wrap:nowrap}.cac .btn2{flex:0 0 auto;min-width:0;padding:10px 12px}.cac select{flex:1;min-width:0}.cac #caM{flex:1.7}
 .gtFab{position:fixed;right:12px;bottom:calc(var(--navh,56px) + 74px + env(safe-area-inset-bottom,0px));z-index:12;border:0;border-radius:999px;padding:10px 16px;background:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}body.pc .gtFab{bottom:84px}.gtOn{background:var(--soft)}#gtList .line{padding:10px 8px}
 .imt{border-collapse:collapse;font-size:12px}.imt th,.imt td{border:1px solid var(--line);padding:3px 6px;text-align:left;white-space:nowrap}.imt th{background:var(--soft)}
+.ddg{overflow-x:auto;background:var(--card);border:1px solid var(--grid);border-radius:6px}.ddg table{border-collapse:collapse;width:100%;min-width:620px}.ddg td,.ddg th{border:1px solid var(--grid);padding:0}.ddg th{background:var(--soft);font-size:13px;padding:7px 4px}.ddg input{width:100%;border:0;background:transparent;padding:10px 7px;font:inherit;color:inherit;box-sizing:border-box;border-radius:0;min-height:40px}.ddg input:focus{outline:2px solid var(--accent);outline-offset:-2px}.ddg td.n input{text-align:right}.ddg td.t{text-align:right;padding:0 8px;font-weight:700}.ddg td.ddst{width:40px;text-align:center}.ddg tr.bad td{background:rgba(192,57,43,.14)}
 .mbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:8px}
 /* bars */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(64px,1fr);overflow-x:auto;background:var(--card);border-top:1px solid var(--line);
@@ -488,7 +489,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full" id="ddGap" style="font-weight:700"></div>
       <div class="full"><button class="btn2 prim" id="ddSaveCnt" type="button" style="width:100%">Save counted cash for this day</button></div>
     </div>
-    <div class="btns"><button class="btn2 prim" id="ddAddIn" type="button">+ Money in</button><button class="btn2 prim" id="ddAddOut" type="button">+ Money out</button></div>
+    <div class="note" style="margin:8px 0 0">Type like Excel: Heading, then the amount under Cash (or A/c cheque, QR, Due). Press Enter or Tab to move on. Rows save by themselves. You can also paste rows copied from Excel.</div>
+    <h2>Money in</h2>
+    <div class="ddg" id="ddGridIn"></div>
+    <h2>Money out</h2>
+    <div class="ddg" id="ddGridOut"></div>
+    <div id="ddAC" hidden style="position:fixed;z-index:9999;background:var(--card);color:var(--ink);border:1px solid var(--grid);box-shadow:0 4px 14px rgba(0,0,0,.25);max-height:240px;overflow:auto"></div>
+    <details class="card" style="margin-top:10px"><summary style="font-weight:700;cursor:pointer">Detailed entry with party and reference (optional)</summary><div class="btns"><button class="btn2 prim" id="ddAddIn" type="button">+ Money in</button><button class="btn2 prim" id="ddAddOut" type="button">+ Money out</button></div>
     <div class="card meta" id="ddForm" hidden>
       <div class="full"><b id="ddfTitle">Money in</b></div>
       <div><label for="ddfDate">Date (B.S. or A.D.)</label><input id="ddfDate" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
@@ -501,6 +508,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full btns"><button class="btn2 prim" id="ddfSave" type="button">Save entry</button><button class="btn2" id="ddfCancel" type="button">Cancel</button></div>
       <datalist id="ddHeadsIn"></datalist><datalist id="ddHeadsOut"></datalist><datalist id="ddParties"></datalist>
     </div>
+    </details>
     <h2>My headings (money in / money out)</h2>
     <div class="card meta" id="ddhBox">
       <div class="note full" style="margin:0">Add your own headings once; they are remembered and offered in the entry form. A remark saved with a heading is filled into new entries.</div>
@@ -510,15 +518,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full btns"><button class="btn2 prim" id="ddhSave" type="button">Add heading</button><button class="btn2" id="ddhCancel" type="button" hidden>Cancel edit</button></div>
     </div>
     <div id="ddhList"></div>
-    <h2>Entries of the day</h2>
-    <div id="ddList"></div>
+    <div id="ddList" hidden></div>
     <h2>Settlement tracking: old A/c payee cheques and dues</h2>
     <div class="note" style="margin:0 0 6px">For checking only. Recording a settlement never creates a transaction and never changes cash, bank, income or expense figures.</div>
     <div class="chk" style="margin:0 0 8px"><input type="checkbox" id="ddShowSet" aria-labelledby="ddShowSetT"><span id="ddShowSetT">Also show fully settled items</span></div>
     <div id="ddSet"></div>
     <h2>Day book reports</h2>
     <div class="card meta">
-      <div class="full"><label for="ddRep">Report</label><select id="ddRep"><option value="heads">Heading-wise money in / out</option><option value="gap">Daily gap report with period conclusion</option><option value="acc">A/c payee cheque report</option><option value="due">Due report</option><option value="pending">Pending (cheques and dues)</option><option value="part">Partially settled (cheques and dues)</option><option value="done">Fully settled (cheques and dues)</option></select></div>
+      <div class="full"><label for="ddRep">Report</label><select id="ddRep"><option value="heads">Heading-wise money in / out</option><option value="gap">Daily gap report with period conclusion</option><option value="acc">A/c payee cheque report</option><option value="due">Due report</option><option value="pending">Pending (cheques and dues)</option><option value="part">Partially settled (cheques and dues)</option><option value="done">Fully settled (cheques and dues)</option><option value="log">Entry, edit and delete log</option></select></div>
       <div><label for="ddFrom">From (B.S.)</label><input id="ddFrom" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
       <div><label for="ddTo">To (B.S.)</label><input id="ddTo" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
       <div id="ddDirW"><label for="ddDir">Money</label><select id="ddDir"><option value="">In and out</option><option value="in">Money in only</option><option value="out">Money out only</option></select></div>
@@ -5227,6 +5234,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var t=e.target,k=e.key;
     if(!t||!t.tagName||e.altKey||e.ctrlKey||e.metaKey)return false;
     var tag=t.tagName;if(tag!=='INPUT'&&tag!=='SELECT'&&tag!=='TEXTAREA')return false;
+    if(t.closest&&t.closest('.ddg'))return false;
     if(t.type==='checkbox'||t.type==='file'||t.type==='radio')return false;
     var open=!$('sug').hidden&&sugEl===t;
     if(k==='ArrowDown'||k==='ArrowUp'){
@@ -6279,7 +6287,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['12. Typing formulas in number boxes','In any quantity, rate, amount or discount box type = and a formula, then press Enter or Tab. It supports + - * / ^ %, brackets, SUM MIN MAX AVERAGE ROUND ABS SQRT.\nExample: =12*4.5+10 gives 64. =ROUND(100/3,2) gives 33.33.',''],
       ['13. A/C Report > Sales, Purchase, Returns, Receipt, Payment, Expense','Each has By date, By item (or mode / head) and By party. Choose the period at the top. Tap any row to go deeper: report, then party or item, then a summary of the voucher (date, party, bill no., quantity, rate), then the full voucher. Oldest entries come first, newest at the bottom.\nExample: Sales > By item > tap Paracetamol > tap Ram > tap the bill.','report|sales|sale:item'],
       ['14. A/C Report > Ledger','By party name: statement of one party; leave the name empty to see only parties with a balance. By group: totals of a group. Outstanding: bills still to receive or pay. Ageing: how old the unpaid bills are.\nExample: type "Ram" to see every bill and receipt with running balance.','report|ledger|led:party'],
-      ['15. A/C Report > Books','Day book: every entry of a period. Manual day book: pick a day, count your cash notes, compare with the expected cash and save; difference shows Short or Excess. Cash / Bank: cash book and bank book. Profit & Loss: income and expenses with gross profit.\nExample: Manual day book for today, count 1000 x 5 + 500 x 3, save.\n\nManual day book (money in / out), now typed by you and independent of sales and ledger: first add your own headings for money in and money out (with an optional remark each; they are remembered and can be modified). Then record money in (Cash, A/c payee cheque, QR, Due) and money out (Cash, Bank, QR). One entry can be split over several modes; the lines must equal the total. Expected physical cash = total in - total out - A/c payee - QR - due (plus any money out paid by bank or QR). Type the cash you counted to see the gap. Opening balance is the previous day closing; closing = opening + in - out. Old A/c payee cheques and dues have a settlement panel: record part payments with dates, and tick Fully settled only when the remaining balance is zero. Settlements are for checking only and never change cash, bank, income or expense. Reports: heading-wise, daily gap with period conclusion, cheque, due, pending, partially settled and settled.','report|books|bk:man'],
+      ['15. A/C Report > Books','Day book: every entry of a period. Manual day book: pick a day, count your cash notes, compare with the expected cash and save; difference shows Short or Excess. Cash / Bank: cash book and bank book. Profit & Loss: income and expenses with gross profit.\nExample: Manual day book for today, count 1000 x 5 + 500 x 3, save.\n\nManual day book (money in / out), now typed by you and independent of sales and ledger: first add your own headings for money in and money out (with an optional remark each; they are remembered and can be modified). Then type entries in the Excel-like grids, one row per entry: the heading (type a part of the name and your remembered headings pop up), then the amount under Cash (or the other modes), Enter or Tab to move; rows save by themselves and rows copied from Excel can be pasted. Example money out: carriage 200, bank deposit 1000, tea 20; money in: rn 540 6000, rn 541 6000. Modes for money in (Cash, A/c payee cheque, QR, Due) and money out (Cash, Bank, QR). One entry can be split over several modes; the lines must equal the total. Expected physical cash = total in - total out - A/c payee - QR - due (plus any money out paid by bank or QR). Type the cash you counted to see the gap. Opening balance is the previous day closing; closing = opening + in - out. Old A/c payee cheques and dues have a settlement panel: record part payments with dates, and tick Fully settled only when the remaining balance is zero. Settlements are for checking only and never change cash, bank, income or expense. Reports: heading-wise, daily gap with period conclusion, cheque, due, pending, partially settled and settled.','report|books|bk:man'],
       ['16. A/C Report > User-wise (owner only)','User summary: how many vouchers each user made and their amounts. User vouchers: list by user and type. Who changed what: when and by whom any voucher, ledger, stock item or setting was created, edited, cancelled or deleted.\nExample: choose user "operator1" and see yesterday\'s edits.','report|users|us:log'],
       ['17. Inventory > Stock','Stock summary: quantity and value of every item. Stock by item: statement of one item with every in and out. Purchase / Sales price list: latest rates. Expiry alert: items expiring soon. Stock by group: totals per stock group.\nExample: Expiry alert, 90 days.','inventory|stock|st:sum'],
       ['18. Inventory > Order book','Customer orders: what customers asked for. Supplier orders: what you ordered. Tap + New order, choose the party and date, add items with quantity, unit and remarks. Type any item name; a new name is added to your stock list. Tap an order to edit, mark completed, share or print.\nExample: Supplier order SO-0001, Amoxicillin 100 Strip, remarks "deliver Friday".','inventory|order|ob:cust'],
@@ -6448,6 +6456,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ddHeadsOf(dir){var m={},r=[];ddHArr().forEach(function(h){if(!h.del&&h.dir===dir&&!m[h.name.toLowerCase()]){m[h.name.toLowerCase()]=1;r.push(h)}});r.sort(function(a,b){return a.name.toLowerCase()<b.name.toLowerCase()?-1:1});return r}
   function ddHFind(dir,name){var n=String(name).trim().toLowerCase(),r=null;ddHArr().forEach(function(h){if(!h.del&&h.dir===dir&&h.name.toLowerCase()===n)r=h});return r}
   function ddHRemember(dir,name,rem){if(!name||ddHFind(dir,name))return;ddHArr().push({id:newUid(),dir:dir,name:name,rem:rem||'',at:stamp()})}
+  function ddLogArr(){if(!Array.isArray(DATA.cfg.ddlog))DATA.cfg.ddlog=[];return DATA.cfg.ddlog}
+  function ddLog(kind,what,day){
+    var a=ddLogArr();a.push({id:newUid(),at:stamp(),by:user.username,k:kind,w:what,d:day||''});
+    if(a.length>30000)a.splice(0,a.length-30000);
+    logAct('Day book',kind+': '+what);
+  }
+  function ddDesc(e){return (e.dir==='in'?'In ':'Out ')+e.head+' Rs '+fmt(e.total)+' ('+e.alloc.map(function(l){return ddMName(e.dir,l.m)+' '+fmt(l.a)}).join(', ')+')'+(e.rem?' remark: '+e.rem:'')+(e.party?' party: '+e.party:'')+(e.ref?' ref: '+e.ref:'')+' on '+e.date}
   function ddArr(){if(!Array.isArray(DATA.cfg.ddb))DATA.cfg.ddb=[];return DATA.cfg.ddb}
   function ddCnt(){if(!DATA.cfg.ddc||typeof DATA.cfg.ddc!=='object')DATA.cfg.ddc={};return DATA.cfg.ddc}
   function ddLive(){return ddArr().filter(function(e){return !e.del})}
@@ -6491,7 +6506,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     $('ddGap').textContent='Expected '+fmt(c.exp)+'   Counted '+fmt(got)+'   Gap '+(g===0?'0.00 (tally)':(g<0?'SHORT by '+fmt(-g):'OVER by '+fmt(g)));
     $('ddGap').style.color=g===0?'':'#c0392b';
   }
-  function ddRenderList(){
+  function ddRenderListOld(){
     var day=ddDay(),c=ddCalc(day);
     $('ddList').innerHTML=c.list.length?c.list.map(function(e){
       var al=e.alloc.map(function(l){return esc(ddMName(e.dir,l.m))+' '+fmt(l.a)}).join(', ');
@@ -6515,7 +6530,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   var DDH={ed:null};
   function ddhReset(){DDH.ed=null;$('ddhName').value='';$('ddhRem').value='';$('ddhSave').textContent='Add heading';$('ddhCancel').hidden=true}
   $('ddhCancel').addEventListener('click',ddhReset);
-  $('ddhSave').addEventListener('click',function(){
+  $('ddhSave').addEventListener('click',function(){if(DDH.ed){authorize().then(function(ok){if(ok)ddhDo();else toast('Not changed. Password is needed to modify a heading.')})}else ddhDo()});
+  function ddhDo(){
     if(!canEnter()){toast('You cannot change headings.');return}
     var dir=$('ddhDir').value,name=$('ddhName').value.trim().replace(/\s+/g,' '),rem=$('ddhRem').value.trim();
     if(!name){toast('Type the heading name.');return}
@@ -6530,14 +6546,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(dup){toast('This heading already exists.');return}
       ddHArr().push({id:newUid(),dir:dir,name:name,rem:rem,at:stamp()});
     }
-    ddSave();logAct('Day book','Heading '+(DDH.ed?'modified: ':'added: ')+name);ddhReset();renderDD();toast('Heading saved.');
-  });
+    ddSave();ddLog(DDH.ed?'Edit':'Entry','Heading '+(DDH.ed?'modified: ':'added: ')+(dir==='in'?'In ':'Out ')+name+(rem?' remark: '+rem:''),'');ddhReset();renderDD();toast('Heading saved.');
+  }
   $('ddhList').addEventListener('click',function(ev){
     var b=ev.target.closest('button');if(!b)return;
     var id=b.getAttribute('data-ddhe')||b.getAttribute('data-ddhd'),h=ddHArr().filter(function(x){return x.id===id})[0];if(!h)return;
     if(b.getAttribute('data-ddhe')){DDH.ed=h.id;$('ddhDir').value=h.dir;$('ddhName').value=h.name;$('ddhRem').value=h.rem||'';$('ddhSave').textContent='Save heading';$('ddhCancel').hidden=false;$('ddhBox').scrollIntoView({block:'center'});$('ddhName').focus();return}
     if(!canEnter()){toast('You cannot change headings.');return}
-    if(confirm('Delete the heading "'+h.name+'"? Old entries keep their text.')){h.del=true;h.at=stamp();ddSave();renderDD()}
+    if(confirm('Delete the heading "'+h.name+'"? Old entries keep their text.'))authorize().then(function(ok){if(!ok)return;h.del=true;h.at=stamp();ddSave();ddLog('Delete','Heading '+(h.dir==='in'?'In ':'Out ')+h.name,'');renderDD()});
   });
   function ddRenderSet(){
     var today=todayBS(),all=ddItems(),show=$('ddShowSet').checked,old=all.filter(function(i){return i.e.date<today&&(show||i.st!=='Settled')}),fresh=all.filter(function(i){return i.e.date>=today&&i.st!=='Settled'}).length;
@@ -6558,21 +6574,25 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var day=ddDay();
     if($('ddDate').getAttribute('data-ld')!==day){$('ddDate').setAttribute('data-ld',day);var r=ddCnt()[day];$('ddCash').value=r&&r.cash!=null?String(r.cash):'';$('ddRem').value=r&&r.rem||''}
     if(document.activeElement!==$('ddOpenB'))$('ddOpenB').value=DATA.cfg.ddOpen?String(DATA.cfg.ddOpen):'';
-    ddRenderSum();ddRenderList();ddRenderSet();ddRepRender();
+    ddRenderSum();ddRenderList(true);ddRenderSet();ddRepRender();
   }
   function ddShift(n){var a=bsToAD(ddDay()||todayBS());if(!a)return;var q=a.split('-'),b=adToBS(adIsoOf(Date.UTC(+q[0],+q[1]-1,+q[2])+n*864e5));if(b){$('ddDate').value=b;renderDD()}}
   $('ddPrev').addEventListener('click',function(){ddShift(-1)});$('ddNext').addEventListener('click',function(){ddShift(1)});
   $('ddToday').addEventListener('click',function(){$('ddDate').value=todayBS();renderDD()});
   ['input','change'].forEach(function(ev){$('ddDate').addEventListener(ev,function(){if(ddDay())renderDD()})});
   $('ddCash').addEventListener('input',ddGap);
-  $('ddOpenB').addEventListener('change',function(){DATA.cfg.ddOpen=r2(num(this.value));ddSave();renderDD()});
+  $('ddOpenB').addEventListener('change',function(){
+    var v=r2(num(this.value)),was=num(DATA.cfg.ddOpen);if(v===was)return;
+    if(!was&&!ddLive().length){DATA.cfg.ddOpen=v;ddSave();ddLog('Entry','Opening balance set to '+fmt(v),'');renderDD();return}
+    authorize().then(function(ok){if(!ok){toast('Not changed. Password is needed.');renderDD();return}DATA.cfg.ddOpen=v;ddSave();ddLog('Edit','Opening balance '+fmt(was)+' => '+fmt(v),'');renderDD()});
+  });
   $('ddSaveCnt').addEventListener('click',function(){
     var day=ddDay();if(!day){toast('Enter a valid date.');return}
     var cv=$('ddCash').value.trim();if(cv===''){toast('Type the physical cash counted.');return}
     if(/^\s*=/.test(cv)&&!fxApply($('ddCash')))return;
-    var c=ddCalc(day),got=r2(num($('ddCash').value));
-    ddCnt()[day]={cash:got,exp:c.exp,gap:r2(got-c.exp),rem:$('ddRem').value.trim(),by:user.username,at:stamp()};
-    ddSave();toast('Counted cash saved for '+day+'.');ddRepRender();
+    var c=ddCalc(day),got=r2(num($('ddCash').value)),prev=ddCnt()[day];
+    var done=function(){ddCnt()[day]={cash:got,exp:c.exp,gap:r2(got-c.exp),rem:$('ddRem').value.trim(),by:user.username,at:stamp()};ddSave();ddLog(prev?'Edit':'Entry','Counted cash for '+day+': '+(prev?fmt(prev.cash)+' => ':'')+fmt(got)+' (expected '+fmt(c.exp)+')',day);toast('Counted cash saved for '+day+'.');ddRepRender()};
+    if(prev)authorize().then(function(ok){if(ok)done();else toast('Not changed. Password is needed.')});else done();
   });
   /* entry form */
   function ddAllocRow(m,a,dir){
@@ -6606,7 +6626,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('ddfTotal').addEventListener('input',function(){var ch=$('ddfAlloc').children;if(ch.length===1)ch[0].querySelector('[data-daa]').value=this.value;ddAllocLeft()});
   $('ddfAlloc').addEventListener('input',ddAllocLeft);
   $('ddfAlloc').addEventListener('click',function(e){var b=e.target.closest('[data-dax]');if(b&&$('ddfAlloc').children.length>1){b.parentNode.remove();ddAllocLeft()}});
-  $('ddfSave').addEventListener('click',function(){
+  $('ddfSave').addEventListener('click',function(){if(DD.ed){authorize().then(function(ok){if(ok)ddfDo();else toast('Not changed. Password is needed to edit an entry.')})}else ddfDo()});
+  function ddfDo(){
     var dt=normBS($('ddfDate').value),head=$('ddfHead').value.trim(),tv=$('ddfTotal').value.trim();
     if(/^\s*=/.test(tv)&&!fxApply($('ddfTotal')))return;
     var total=r2(num($('ddfTotal').value)),al=ddAllocRead().filter(function(l){return l.a>0});
@@ -6616,7 +6637,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!al.length){toast('Enter the amount in at least one mode line.');return}
     var s=0;al.forEach(function(l){s=r2(s+l.a)});if(Math.abs(s-total)>0.005){toast('The mode lines add up to '+fmt(s)+' but the total is '+fmt(total)+'. They must be equal.');return}
     var seen={},m2=[];for(var i=0;i<al.length;i++){if(seen[al[i].m]){seen[al[i].m].a=r2(seen[al[i].m].a+al[i].a)}else{seen[al[i].m]={m:al[i].m,a:al[i].a};m2.push(seen[al[i].m])}}
-    var e=DD.ed?ddArr().filter(function(x){return x.id===DD.ed})[0]:null;
+    var e=DD.ed?ddArr().filter(function(x){return x.id===DD.ed})[0]:null,before0=e?ddDesc(e):'';
     if(e){
       for(var k=0;k<2;k++){var mm=['acc','due'][k],old=ddLine(e,mm),nw=0;m2.forEach(function(l){if(l.m===mm)nw=l.a});
         if((ddSet(e,mm).h.length||ddSet(e,mm).full)&&Math.abs(old-nw)>0.004){toast('Settlement is already recorded for the '+(mm==='acc'?'A/c payee cheque':'due')+' part. Remove those settlement records first.');return}}
@@ -6625,15 +6646,15 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!e){e={id:newUid(),dir:DD.dir,by:user.username};ddArr().push(e)}
     ddHRemember(e.dir,head,'');
     e.date=dt;e.head=head;e.party=$('ddfParty').value.trim();e.total=total;e.alloc=m2;e.ref=$('ddfRef').value.trim();e.rem=$('ddfRemk').value.trim();e.at=stamp();
-    ddSave();logAct('Day book',(DD.ed?'Edited ':'Added ')+(e.dir==='in'?'money in ':'money out ')+fmt(total)+' '+head);
+    ddSave();ddLog(DD.ed?'Edit':'Entry',(DD.ed&&before0?before0+'  =>  ':'')+ddDesc(e),dt);
     $('ddForm').hidden=true;DD.ed=null;$('ddDate').value=dt;renderDD();toast('Entry saved.');
-  });
+  }
   $('ddList').addEventListener('click',function(ev){
     var b=ev.target.closest('button');if(!b)return;var id=b.getAttribute('data-dde')||b.getAttribute('data-ddd'),e=ddArr().filter(function(x){return x.id===id})[0];if(!e)return;
     if(b.getAttribute('data-dde')){ddOpenForm(e.dir,e);return}
     if(isLocked(e.date)){toast(lockMsg());return}
     if(!canEnter()){toast('You cannot delete entries.');return}
-    if(confirm('Delete this entry ('+e.head+', '+fmt(e.total)+')?')){e.del=true;e.at=stamp();ddSave();logAct('Day book','Deleted entry '+e.head+' '+fmt(e.total));renderDD()}
+    if(confirm('Delete this entry ('+e.head+', '+fmt(e.total)+')?'))authorize().then(function(ok){if(!ok)return;e.del=true;e.at=stamp();ddSave();ddLog('Delete',ddDesc(e),e.date);renderDD()});
   });
   /* settlement tracking (never touches money figures) */
   function ddFind(key){var p=key.split(':'),e=ddArr().filter(function(x){return x.id===p[0]})[0];return e?{e:e,m:p[1]}:null}
@@ -6643,7 +6664,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var b=ev.target.closest('button');if(!b||!canEnter())return;
     var card=b.closest('[data-ddk]');
     var kp=b.getAttribute('data-ddp'),kr=b.getAttribute('data-ddr'),kx=b.getAttribute('data-ddx');
-    if(kx){var p=kx.split('|'),f=ddFind(p[0]);if(!f)return;var s=ddEnsure(f.e,f.m);s.h.splice(+p[1],1);f.e.at=stamp();ddSave();ddRenderSet();ddRepRender();return}
+    if(kx){var p=kx.split('|'),f=ddFind(p[0]);if(!f)return;authorize().then(function(ok){if(!ok){toast('Not removed. Password is needed.');return}var s=ddEnsure(f.e,f.m),gone=s.h.splice(+p[1],1)[0];f.e.at=stamp();ddSave();ddLog('Delete','Settlement record removed: '+(f.m==='acc'?'cheque ':'due ')+f.e.head+' '+(gone?fmt(gone.a)+' on '+gone.d:''),f.e.date);ddRenderSet();ddRepRender()});return}
     var key=kp||kr;if(!key)return;var f2=ddFind(key);if(!f2)return;
     var total=ddLine(f2.e,f2.m),rem=r2(total-ddSetSum(f2.e,f2.m)),amt=kr?rem:r2(num(card.querySelector('[data-ddpa]').value)),dt=normBS(card.querySelector('[data-ddpd]').value);
     if(!dt){toast('Enter a valid settlement date.');return}
@@ -6651,7 +6672,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!(amt>0)){toast('Enter the amount settled.');return}
     if(amt>rem+0.004){toast('The amount is more than the remaining '+fmt(rem)+'.');return}
     var s2=ddEnsure(f2.e,f2.m);s2.h.push({d:dt,a:amt,by:user.username});f2.e.at=stamp();ddSave();
-    logAct('Settlement',(f2.m==='acc'?'Cheque ':'Due ')+f2.e.date+' '+(f2.e.party||f2.e.head)+' settled '+fmt(amt));ddRenderSet();ddRepRender();
+    ddLog('Entry','Settlement: '+(f2.m==='acc'?'cheque ':'due ')+f2.e.date+' '+(f2.e.party||f2.e.head)+' settled '+fmt(amt)+' on '+dt,f2.e.date);ddRenderSet();ddRepRender();
   });
   $('ddSet').addEventListener('change',function(ev){
     var k=ev.target.getAttribute&&ev.target.getAttribute('data-ddf');if(!k||!canEnter())return;
@@ -6659,8 +6680,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(ev.target.checked){
       if(rem>0.004){ev.target.checked=false;toast('Tick only when the remaining balance is zero.');return}
       s.full=true;s.fd=s.h.length?s.h[s.h.length-1].d:todayBS();
-    }else{s.full=false;s.fd=''}
-    f.e.at=stamp();ddSave();ddRenderSet();ddRepRender();
+    }else{
+      ev.target.checked=true;
+      authorize().then(function(ok){if(!ok){toast('Not changed. Password is needed.');return}s.full=false;s.fd='';f.e.at=stamp();ddSave();ddLog('Edit','Fully settled tick removed: '+f.e.head,f.e.date);ddRenderSet();ddRepRender()});return;
+    }
+    f.e.at=stamp();ddSave();ddLog('Edit','Marked fully settled: '+f.e.head+' on '+s.fd,f.e.date);ddRenderSet();ddRepRender();
   });
   /* reports */
   function ddRange(){return {from:normBS($('ddFrom').value)||'',to:normBS($('ddTo').value)||''}}
@@ -6700,6 +6724,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         cols:[{h:'Date',w:1.3,al:'l'},{h:'Opening',w:1.3,al:'r'},{h:'In',w:1.2,al:'r'},{h:'Out',w:1.2,al:'r'},{h:'Closing',w:1.3,al:'r'},{h:'Expected cash',w:1.3,al:'r'},{h:'Counted',w:1.3,al:'r'},{h:'Gap',w:1.3,al:'r'}],rows:rowsG,
         totals:[['Total','',fmt(ti),fmt(to),'','','',fmt(tg)]],minw:820,foot:'Expected cash = total in - total out - A/c payee - QR - due (+ money out paid by bank or QR). Gap = counted - expected. Days without counted cash are not in the gap totals.'};
     }
+    if(kind==='log'){
+      var LG=ddLogArr().filter(function(x){var d=String(x.at).slice(0,10),bsd=adToBS(d)||'';return bsd>=R.from&&bsd<=R.to});
+      if(!LG.length)return {empty:'No day book entries, edits or deletes were logged in this period.'};
+      var rowsL=LG.map(function(x){var t=String(x.at).replace('T',' ').slice(0,16);return [t,x.by,x.k,x.w]});
+      return {file:file,title:'DAY BOOK LOG',info:[per+'   |   '+LG.length+' record(s)','Every entry, edit and delete is recorded with the user and time, and is saved in the company data on Google Drive.'],cols:[{h:'When',w:1.7,al:'l'},{h:'User',w:1.2,al:'l'},{h:'Action',w:.9,al:'l'},{h:'Details',w:6,al:'l'}],rows:rowsL,minw:800};
+    }
     // settlement reports
     var want={acc:['acc'],due:['due'],pending:['acc','due'],part:['acc','due'],done:['acc','due']}[kind],stf={acc:'',due:'',pending:'Pending',part:'Partially Settled',done:'Settled'}[kind];
     var its=ddItems().filter(function(i){return want.indexOf(i.m)>=0&&i.e.date>=R.from&&i.e.date<=R.to&&(!stf||i.st===stf)});
@@ -6714,6 +6744,146 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return {file:file,title:tt,info:[per+'   |   '+its.length+' item(s)'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Party / reference',w:3.4,al:'l'},{h:'Amount',w:1.2,al:'r'},{h:'Settled',w:1.2,al:'r'},{h:'Remaining',w:1.2,al:'r'},{h:'Status',w:2,al:'l'}],rows:rowsS,totals:[['','Total',fmt(ta),fmt(ts),fmt(tr),'']],minw:720,
       foot:'Tracking only. Settlements do not change cash, bank, income or expense figures.'};
   }
+  /* ---------- Excel-like entry grid ---------- */
+  function ddCols(dir){return dir==='in'?DDM_IN:DDM_OUT}
+  function ddRowHtml(dir,e){
+    var dis=canEnter()?'':' disabled',h='<tr data-dir="'+dir+'" data-id="'+(e?e.id:'')+'"><td><input data-c="head" type="text" maxlength="60" autocomplete="off" value="'+esc(e?e.head:'')+'" aria-label="Heading"'+dis+'></td>';
+    ddCols(dir).forEach(function(c){var v=e?ddLine(e,c[0]):0;h+='<td class="n"><input data-c="'+c[0]+'" type="text" inputmode="decimal" autocomplete="off" value="'+(v?String(v):'')+'" aria-label="'+c[1]+'"'+dis+'></td>'});
+    return h+'<td class="t" data-tot>'+(e?fmt(e.total):'')+'</td><td><input data-c="rem" type="text" maxlength="120" autocomplete="off" value="'+esc(e?e.rem||'':'')+'" aria-label="Remarks"'+dis+'></td><td class="ddst"><button type="button" data-ddrx class="btn2" style="min-width:0;padding:2px 8px" aria-label="Delete row"'+dis+'>&times;</button></td></tr>';
+  }
+  function ddGridHtml(dir,L){
+    var cols=ddCols(dir);
+    return '<table><thead><tr><th style="min-width:170px">Heading</th>'+cols.map(function(c){return '<th style="min-width:84px">'+c[1].replace(' (short period)','')+'</th>'}).join('')+'<th style="min-width:84px">Total</th><th style="min-width:120px">Remarks</th><th></th></tr></thead><tbody>'+L.map(function(e){return ddRowHtml(dir,e)}).join('')+ddRowHtml(dir,null)+'</tbody><tfoot><tr><th>Total</th>'+cols.map(function(c){return '<th data-ft="'+c[0]+'" style="text-align:right"></th>'}).join('')+'<th data-ft="all" style="text-align:right"></th><th colspan="2"></th></tr></tfoot></table>';
+  }
+  function ddFoot(dir){
+    var box=$(dir==='in'?'ddGridIn':'ddGridOut'),t={},all=0;
+    ddLive().forEach(function(e){if(e.dir===dir&&e.date===ddDay()){all=r2(all+e.total);e.alloc.forEach(function(l){t[l.m]=r2((t[l.m]||0)+l.a)})}});
+    [].forEach.call(box.querySelectorAll('[data-ft]'),function(th){var k=th.getAttribute('data-ft'),v=k==='all'?all:t[k];th.textContent=v?fmt(v):''});
+  }
+  function ddRenderList(force){
+    if(!force&&($('ddGridIn').contains(document.activeElement)||$('ddGridOut').contains(document.activeElement)))return;
+    var day=ddDay();
+    ['in','out'].forEach(function(dir){
+      var L=ddLive().filter(function(e){return e.dir===dir&&e.date===day});
+      $(dir==='in'?'ddGridIn':'ddGridOut').innerHTML=ddGridHtml(dir,L);ddFoot(dir);
+    });
+    ddRenderHeads();
+    $('ddParties').innerHTML=DATA.parties.slice(0,3000).map(function(p){return '<option value="'+esc(p.name)+'">'}).join('');
+  }
+  var ACS={ix:-1,names:[],inp:null};
+  function acHide(){$('ddAC').hidden=true;ACS.ix=-1;ACS.names=[]}
+  function acShow(inp){
+    var q=inp.value.trim().toLowerCase();if(!q){acHide();return}
+    var dir=inp.closest('tr').getAttribute('data-dir'),tk=q.split(/\s+/),m1=[],m2=[];
+    ddHeadsOf(dir).forEach(function(h){var l=h.name.toLowerCase();if(l===q)return;if(!tk.every(function(t){return l.indexOf(t)>=0}))return;if(l.indexOf(q)===0)m1.push(h.name);else m2.push(h.name)});
+    ACS.names=m1.concat(m2).slice(0,8);ACS.inp=inp;ACS.ix=-1;
+    if(!ACS.names.length){acHide();return}
+    var r=inp.getBoundingClientRect(),el=$('ddAC');
+    el.innerHTML=ACS.names.map(function(n,i){return '<div class="acr" data-i="'+i+'" style="padding:9px 12px;cursor:pointer">'+esc(n)+'</div>'}).join('');
+    el.style.left=Math.max(4,r.left)+'px';el.style.top=r.bottom+'px';el.style.minWidth=Math.max(r.width,220)+'px';el.hidden=false;
+  }
+  function acMark(){[].forEach.call($('ddAC').children,function(d,i){d.style.background=i===ACS.ix?'var(--soft)':''})}
+  function acPick(i){
+    var inp=ACS.inp,n=ACS.names[i];if(!inp||n==null)return;
+    inp.value=n;acHide();
+    var tr=inp.closest('tr'),h=ddHFind(tr.getAttribute('data-dir'),n),rm=tr.querySelector('[data-c="rem"]');
+    if(h&&h.rem&&!rm.value.trim())rm.value=h.rem;
+    var nx=tr.querySelector('[data-c="cash"]');if(nx)nx.focus();
+  }
+  $('ddAC').addEventListener('pointerdown',function(e){var r=e.target.closest('.acr');if(r){e.preventDefault();acPick(+r.getAttribute('data-i'))}});
+  function ddBad(tr,msg){tr.classList.add('bad');tr.title=msg;return false}
+  function ddCommit(tr){
+    if(!tr||!tr.parentNode)return;
+    var dir=tr.getAttribute('data-dir'),id=tr.getAttribute('data-id'),day=ddDay(),q=function(c){return tr.querySelector('[data-c="'+c+'"]')};
+    var head=q('head').value.trim().replace(/\s+/g,' '),rem=q('rem').value.trim(),al=[],any=false,tot=0;
+    ddCols(dir).forEach(function(c){var v=q(c[0]).value.trim();if(v!==''){any=true;var a=r2(num(v.replace(/,/g,'')));if(a>0){al.push({m:c[0],a:a});tot=r2(tot+a)}}});
+    tr.classList.remove('bad');tr.title='';
+    var e=id?ddArr().filter(function(x){return x.id===id})[0]:null;
+    if(!head&&!any&&!rem){return}
+    if(!day)return ddBad(tr,'Enter a valid day first.');
+    if(isLocked(day))return ddBad(tr,lockMsg());
+    if(!head)return ddBad(tr,'Heading needed');
+    if(!(tot>0))return ddBad(tr,'Amount needed');
+    if(e){
+      for(var k=0;k<2;k++){var mm=['acc','due'][k],old=ddLine(e,mm),nw=0;al.forEach(function(l){if(l.m===mm)nw=l.a});
+        if(dir==='in'&&(ddSet(e,mm).h.length||ddSet(e,mm).full)&&Math.abs(old-nw)>0.004){toast('Settlement is already recorded for this '+(mm==='acc'?'cheque':'due')+'. Remove the settlement records first.');q(mm).value=old?String(old):'';return}}
+    }
+    var sig=function(x){return [x.head,x.total,x.alloc.map(function(l){return l.m+':'+l.a}).join(','),x.rem||''].join('|')};
+    var nx={head:head,total:tot,alloc:al,rem:rem};
+    if(e){
+      if(sig(nx)===sig(e))return;
+      var before=ddDesc(e);
+      authorize().then(function(ok){
+        if(!ok){toast('Not changed. Password is needed to edit an entry.');ddRevertRow(tr,e);return}
+        if(e.del||isLocked(e.date)){return}
+        ddHRemember(dir,head,'');e.head=head;e.total=tot;e.alloc=al;e.rem=rem;e.at=stamp();
+        ddLog('Edit',before+'  =>  '+ddDesc(e),e.date);
+        tr.querySelector('[data-tot]').textContent=fmt(tot);ddSave();ddFoot(dir);ddRenderSum();ddRenderSet();ddRepRender();ddRenderHeads();
+      });
+      return;
+    }
+    e={id:newUid(),dir:dir,by:user.username,party:'',ref:'',date:day};ddArr().push(e);tr.setAttribute('data-id',e.id);
+    var hh=ddHFind(dir,head);ddHRemember(dir,head,'');
+    e.head=head;e.total=tot;e.alloc=al;e.rem=rem;e.at=stamp();
+    ddLog('Entry',ddDesc(e),day);
+    tr.querySelector('[data-tot]').textContent=fmt(tot);
+    ddSave();ddFoot(dir);ddRenderSum();ddRenderSet();ddRepRender();if(!hh)ddRenderHeads();
+  }
+  function ddRevertRow(tr,e){tr.outerHTML=ddRowHtml(e.dir,e)}
+  function ddEnsureBlank(box,dir){
+    var rows=box.querySelectorAll('tbody tr'),last=rows[rows.length-1],has=false;
+    [].forEach.call(last.querySelectorAll('input'),function(i){if(i.value.trim())has=true});
+    if(has)last.insertAdjacentHTML('afterend',ddRowHtml(dir,null));
+  }
+  function ddGridWire(box,dir){
+    box.addEventListener('input',function(e){
+      var t=e.target;if(t.getAttribute('data-c')==='head')acShow(t);
+      ddEnsureBlank(box,dir);
+      if(t.getAttribute('data-c')!=='head'&&t.getAttribute('data-c')!=='rem'){var tr=t.closest('tr'),s=0;ddCols(dir).forEach(function(c){s=r2(s+num(tr.querySelector('[data-c="'+c[0]+'"]').value.replace(/,/g,'')))});tr.querySelector('[data-tot]').textContent=s?fmt(s):''}
+    });
+    box.addEventListener('change',function(e){var t=e.target;if(t.tagName==='INPUT')ddCommit(t.closest('tr'))});
+    box.addEventListener('focusout',function(e){if(e.target.getAttribute('data-c')==='head')setTimeout(function(){if(document.activeElement!==e.target)acHide()},120)});
+    box.addEventListener('keydown',function(e){
+      var t=e.target;if(t.tagName!=='INPUT')return;
+      var open=!$('ddAC').hidden&&ACS.names.length&&t.getAttribute('data-c')==='head';
+      if(open&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();ACS.ix=(ACS.ix+(e.key==='ArrowDown'?1:-1)+ACS.names.length)%ACS.names.length;acMark();return}
+      if(open&&e.key==='Enter'&&ACS.ix>=0){e.preventDefault();acPick(ACS.ix);return}
+      if(e.key==='Escape'){acHide();return}
+      if(e.key==='Enter'||e.key==='ArrowDown'||e.key==='ArrowUp'){
+        var tr=t.closest('tr'),ins=[].slice.call(tr.querySelectorAll('input')),i=ins.indexOf(t),nx;
+        if(e.key==='Enter'){e.preventDefault();ddCommit(tr);if(i<ins.length-1)nx=ins[i+1];else{ddEnsureBlank(box,dir);var nr=tr.nextElementSibling;nx=nr&&nr.querySelector('input')}}
+        else{var sib=e.key==='ArrowDown'?tr.nextElementSibling:tr.previousElementSibling;if(!sib)return;e.preventDefault();nx=sib.querySelectorAll('input')[i]}
+        if(nx){nx.focus();if(nx.select)nx.select()}
+      }
+    });
+    box.addEventListener('paste',function(e){
+      var t=e.target,txt=(e.clipboardData||window.clipboardData).getData('text')||'';
+      if(t.tagName!=='INPUT'||!/[\n\t]/.test(txt.replace(/\s+$/,'')))return;
+      e.preventDefault();
+      var lines=txt.replace(/\r/g,'').split('\n').filter(function(l){return l.trim()!==''}).map(function(l){return l.split('\t')}),tr=t.closest('tr'),modes=ddCols(dir).map(function(c){return c[0]});
+      lines.forEach(function(cl){
+        if(!tr){box.querySelector('tbody').insertAdjacentHTML('beforeend',ddRowHtml(dir,null));var rs=box.querySelectorAll('tbody tr');tr=rs[rs.length-1]}
+        var set=function(c,v){var el=tr.querySelector('[data-c="'+c+'"]');if(el)el.value=String(v==null?'':v).trim()};
+        set('head',cl[0]);
+        if(cl.length<=2){set('cash',cl[1])}else{modes.forEach(function(m,j){set(m,cl[1+j])});if(cl.length>1+modes.length)set('rem',cl[1+modes.length])}
+        ddCommit(tr);ddEnsureBlank(box,dir);
+        tr=tr.nextElementSibling;
+      });
+      ddFoot(dir);toast(lines.length+' row(s) pasted.');
+    });
+    box.addEventListener('click',function(e){
+      var b=e.target.closest('[data-ddrx]');if(!b)return;var tr=b.closest('tr'),id=tr.getAttribute('data-id');
+      if(!id){[].forEach.call(tr.querySelectorAll('input'),function(i){i.value=''});tr.querySelector('[data-tot]').textContent='';tr.classList.remove('bad');return}
+      var en=ddArr().filter(function(x){return x.id===id})[0];if(!en)return;
+      if(isLocked(en.date)){toast(lockMsg());return}
+      if(!confirm('Delete this row ('+en.head+', '+fmt(en.total)+')?'))return;
+      authorize().then(function(ok){
+        if(!ok){toast('Not deleted. Password is needed to delete an entry.');return}
+        en.del=true;en.at=stamp();ddSave();ddLog('Delete',ddDesc(en),en.date);tr.remove();ddFoot(dir);ddRenderSum();ddRenderSet();ddRepRender();if(!box.querySelector('tbody tr'))ddRenderList(true);
+      });
+    });
+  }
+  ddGridWire($('ddGridIn'),'in');ddGridWire($('ddGridOut'),'out');
   function ddRepRender(){
     var k=$('ddRep').value;$('ddDirW').hidden=$('ddHeadW').hidden=(k!=='heads');
     showReport($('ddRepOut'),$('ddRepBtns'),ddRepReport());
@@ -6732,7 +6902,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function mergeLists(rc){
     var lc=DATA.cfg,ch=false,q;
     if(rc.ddc&&typeof rc.ddc==='object'){var m3=lc.ddc=lc.ddc||{};Object.keys(rc.ddc).forEach(function(k){if(!m3[k]||(rc.ddc[k].at||'')>(m3[k].at||'')){m3[k]=rc.ddc[k];ch=true}})}
-    ['notes','orders','obills','ddb','ddh'].forEach(function(k){
+    ['notes','orders','obills','ddb','ddh','ddlog'].forEach(function(k){
       if(!Array.isArray(rc[k]))return;
       var a=lc[k]=Array.isArray(lc[k])?lc[k]:[],m={};a.forEach(function(x){m[x.id]=x});
       rc[k].forEach(function(r){var l=m[r.id];if(!l){a.push(r);m[r.id]=r;ch=true}else if((r.at||'')>(l.at||'')){for(q in l)delete l[q];for(q in r)l[q]=r[q];ch=true}});
