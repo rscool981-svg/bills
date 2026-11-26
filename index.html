@@ -491,13 +491,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full"><button class="btn2 prim" id="ddSaveCnt" type="button" style="width:100%">Save counted cash for this day</button></div>
     </div>
     <div class="btns" style="margin:8px 0 0"><button class="btn2 prim" id="ddSaveAll" type="button" style="flex:1">Save day book (all rows + counted cash)</button></div>
-    <div class="note" style="margin:8px 0 0">Type like Excel: Heading, then the amount under Cash (or A/c cheque, QR, Due). Press Enter or Tab to move on. Rows save by themselves. You can also paste rows copied from Excel.</div>
+    <div class="note" style="margin:8px 0 0"><b>How to use:</b> 1) In <b>Money in</b> or <b>Money out</b>, type what the money is for (Heading) and the amount in the right column. 2) Press Enter to go to the next row. Rows save by themselves. 3) At night count your cash, type it below and press Save.</div>
     <h2>Money in</h2>
     <div class="ddg" id="ddGridIn"></div>
     <h2>Money out</h2>
     <div class="ddg" id="ddGridOut"></div>
     <div id="ddAC" hidden style="position:fixed;z-index:9999;background:var(--card);color:var(--ink);border:1px solid var(--grid);box-shadow:0 4px 14px rgba(0,0,0,.25);max-height:240px;overflow:auto"></div>
-    <details class="card" style="margin-top:10px"><summary style="font-weight:700;cursor:pointer">Detailed entry with party and reference (optional)</summary><div class="btns"><button class="btn2 prim" id="ddAddIn" type="button">+ Money in</button><button class="btn2 prim" id="ddAddOut" type="button">+ Money out</button></div>
     <div class="card meta" id="ddForm" hidden>
       <div class="full"><b id="ddfTitle">Money in</b></div>
       <div><label for="ddfDate">Date (B.S. or A.D.)</label><input id="ddfDate" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
@@ -510,19 +509,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       <div class="full btns"><button class="btn2 prim" id="ddfSave" type="button">Save entry</button><button class="btn2" id="ddfCancel" type="button">Cancel</button></div>
       <datalist id="ddHeadsIn"></datalist><datalist id="ddHeadsOut"></datalist><datalist id="ddParties"></datalist>
     </div>
-    </details>
-    <h2>My headings (money in / money out)</h2>
-    <div class="card meta" id="ddhBox">
-      <div class="note full" style="margin:0">Add your own headings once; they are remembered and offered in the entry form. A remark saved with a heading is filled into new entries.</div>
-      <div><label for="ddhDir">Heading for</label><select id="ddhDir"><option value="in">Money in</option><option value="out">Money out</option></select></div>
-      <div><label for="ddhName">Heading name</label><input id="ddhName" type="text" maxlength="60" autocomplete="off"></div>
-      <div class="full"><label for="ddhRem">Remark for this heading (optional)</label><input id="ddhRem" type="text" maxlength="120" autocomplete="off"></div>
-      <div class="full btns"><button class="btn2 prim" id="ddhSave" type="button">Add heading</button><button class="btn2" id="ddhCancel" type="button" hidden>Cancel edit</button></div>
-    </div>
-    <div id="ddhList"></div>
+    <div hidden><div class="btns"><button class="btn2 prim" id="ddAddIn" type="button">+ Money in</button><button class="btn2 prim" id="ddAddOut" type="button">+ Money out</button></div></div>
     <div id="ddList" hidden></div>
-    <h2>Settlement tracking: old A/c payee cheques and dues</h2>
-    <div class="note" style="margin:0 0 6px">For checking only. Recording a settlement never creates a transaction and never changes cash, bank, income or expense figures.</div>
+    <h2>Old cheques and dues: received or not?</h2>
+    <div class="note" style="margin:0 0 6px">Only to remember which old A/c payee cheques and dues have been received. It does not change your cash, bank, income or expense.</div>
     <input id="ddSetQ" type="text" placeholder="Search party, heading, reference or date..." autocomplete="off" style="margin-bottom:6px">
     <div class="chk" style="margin:0 0 8px"><input type="checkbox" id="ddShowSet" aria-labelledby="ddShowSetT"><span id="ddShowSetT">Also show fully settled items</span></div>
     <div id="ddSet"></div>
@@ -537,6 +527,16 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div id="ddRepOut"></div>
     <div id="ddRepAct"></div>
     <div class="btns" id="ddRepBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="ddRepSettle" type="button" hidden>Settle</button><button class="btn2 prim" id="ddRepShare" type="button">Share</button><button class="btn2" id="ddRepPrint" type="button">Print</button></div>
+    <details class="card" style="margin-top:10px"><summary style="font-weight:700;cursor:pointer">Manage my headings (rename or delete)</summary>
+    <div class="card meta" id="ddhBox">
+      <div class="note full" style="margin:0">Add your own headings once; they are remembered and offered in the entry form. A remark saved with a heading is filled into new entries.</div>
+      <div><label for="ddhDir">Heading for</label><select id="ddhDir"><option value="in">Money in</option><option value="out">Money out</option></select></div>
+      <div><label for="ddhName">Heading name</label><input id="ddhName" type="text" maxlength="60" autocomplete="off"></div>
+      <div class="full"><label for="ddhRem">Remark for this heading (optional)</label><input id="ddhRem" type="text" maxlength="120" autocomplete="off"></div>
+      <div class="full btns"><button class="btn2 prim" id="ddhSave" type="button">Add heading</button><button class="btn2" id="ddhCancel" type="button" hidden>Cancel edit</button></div>
+    </div>
+    <div id="ddhList"></div>
+    </details>
     <div class="card meta"><div class="full"><label for="ddOpenB">Opening balance before the first entry (Rs)</label><input id="ddOpenB" type="text" inputmode="decimal" autocomplete="off"></div><div class="full note" style="margin:0">Each day then opens with the previous day's closing balance. Closing balance = opening balance + money in - money out.</div></div>
   </section>
 
@@ -6514,15 +6514,15 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ddRenderSum(){
     var day=ddDay();if(!day){$('ddSum').innerHTML='<div class="note">Enter a valid date.</div>';return}
     var c=ddCalc(day),cnt=ddCnt()[day],ln=function(a,b,bold){return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px'+(bold?';font-weight:700':'')+'"><span>'+a+'</span><span>'+b+'</span></div>'};
-    $('ddSum').innerHTML='<div class="card">'+ln('Opening balance (previous day closing)','Rs '+fmt(c.open),1)+ln('+ Total money in','Rs '+fmt(c.inn))+ln('&minus; Total money out','Rs '+fmt(c.out))+ln('= Closing balance','Rs '+fmt(c.close),1)+'</div>'+
-      '<div class="card"><b>Expected physical cash</b>'+ln('Total in','Rs '+fmt(c.inn))+ln('&minus; Total out','Rs '+fmt(c.out))+ln('&minus; A/c payee cheque','Rs '+fmt(c.acc))+ln('&minus; QR received','Rs '+fmt(c.qr))+ln('&minus; Due','Rs '+fmt(c.due))+(c.nonc?ln('+ Money out that was paid by bank or QR, not cash','Rs '+fmt(c.nonc)):'')+ln('= Expected physical cash','Rs '+fmt(c.exp),1)+'</div>';
+    $('ddSum').innerHTML='<div class="card">'+ln('Money at start of day (yesterday end)','Rs '+fmt(c.open),1)+ln('+ Total money in','Rs '+fmt(c.inn))+ln('&minus; Total money out','Rs '+fmt(c.out))+ln('= Money at end of day','Rs '+fmt(c.close),1)+'</div>'+
+      '<div class="card"><b>How much cash should you have?</b>'+ln('Total in','Rs '+fmt(c.inn))+ln('&minus; Total out','Rs '+fmt(c.out))+ln('&minus; A/c payee cheque','Rs '+fmt(c.acc))+ln('&minus; QR received','Rs '+fmt(c.qr))+ln('&minus; Due','Rs '+fmt(c.due))+(c.nonc?ln('+ Money out that was paid by bank or QR, not cash','Rs '+fmt(c.nonc)):'')+ln('= Cash that should be in your drawer','Rs '+fmt(c.exp),1)+'</div>';
     ddGap();
   }
   function ddGap(){
     var day=ddDay(),c=ddCalc(day),v=$('ddCash').value.trim();
-    if(v===''){$('ddGap').textContent='Gap: enter the physical cash counted.';$('ddGap').style.color='';return}
+    if(v===''){$('ddGap').textContent='Type the cash you counted to see if it matches.';$('ddGap').style.color='';return}
     var got=r2(num(v)),g=r2(got-c.exp);
-    $('ddGap').textContent='Expected '+fmt(c.exp)+'   Counted '+fmt(got)+'   Gap '+(g===0?'0.00 (tally)':(g<0?'SHORT by '+fmt(-g):'OVER by '+fmt(g)));
+    $('ddGap').textContent='Cash should be '+fmt(c.exp)+'   You counted '+fmt(got)+'   '+(g===0?'Matches. All correct.':(g<0?'SHORT by '+fmt(-g):'EXTRA by '+fmt(g)));
     $('ddGap').style.color=g===0?'':'#c0392b';
   }
   function ddRenderListOld(){

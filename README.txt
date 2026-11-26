@@ -129,3 +129,5 @@ v40 - Settle one by one
  2. Press Settle. Amount received shows the full remaining; change it for a part payment. Set the date received.
  3. Press Confirm settlement. Part = Partially Settled; full = Settled and the card disappears (tick "Also show fully settled items" to see it).
  No effect on day book figures. Remove a wrong record or edit the entry with your password.
+
+v41 - Cleaner day book screen: removed the detailed-entry block between Money out and settlement (Edit this entry still opens the form); heading rename/delete moved to a collapsed box at the bottom; plain-language labels.
