@@ -322,7 +322,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div id="vBox" hidden>
       <h2>Details</h2>
       <div class="card meta">
-        <div><label for="vAmt">Amount (Rs)</label><input id="vAmt" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+        <div><label for="vAmt" id="vAmtL">Amount (Rs)</label><input id="vAmt" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+        <div id="vDiscW" hidden><label for="vDisc" id="vDiscL">Discount (Rs)</label><input id="vDisc" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+        <div class="full note" id="vDiscNote" hidden style="margin:0"></div>
         <div id="vModeWrap"><label for="vMode">Mode</label><select id="vMode"><option>Cash</option><option>Bank transfer</option><option>Cheque</option><option>QR / Wallet</option><option>Other</option></select></div>
       </div>
       <div class="card total"><div class="big"><span>Amount</span><b id="vBig">Rs 0.00</b></div><div class="words" id="vWords">Zero Only</div></div>
@@ -413,6 +415,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div class="btns" id="lgBtns" hidden>
       <select class="fmtSel"></select><button class="btn2 prim" id="lgShare" type="button">Share ledger</button>
       <button class="btn2" id="lgPrint" type="button">Print ledger</button>
+      <button class="btn2" id="lgAge" type="button">Ageing (bill-wise)</button><button class="btn2" id="lgRcpt" type="button">+ Receipt / payment</button>
     </div>
   </section>
 
@@ -471,6 +474,59 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div class="btns" id="mdBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="mdShare" type="button">Share</button><button class="btn2" id="mdPrint" type="button">Print</button></div>
     <h2>Saved day books (oldest first)</h2>
     <div class="card" id="mdList"></div>
+  </section>
+
+  <section id="v-ddb" hidden>
+    <div class="card meta" style="margin-top:12px">
+      <div class="full"><label for="ddDate">Day (B.S. or A.D.)</label><input id="ddDate" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div class="full btns" style="margin-top:0"><button class="btn2" id="ddPrev" type="button">&#9664; Previous day</button><button class="btn2" id="ddToday" type="button">Today</button><button class="btn2" id="ddNext" type="button">Next day &#9654;</button></div>
+    </div>
+    <div id="ddSum"></div>
+    <div class="card meta">
+      <div class="full"><label for="ddCash">Physical cash counted (Rs)</label><input id="ddCash" type="text" inputmode="decimal" placeholder="Count the cash in hand and type it" autocomplete="off"></div>
+      <div class="full"><label for="ddRem">Remarks for the day</label><input id="ddRem" type="text" maxlength="120" autocomplete="off"></div>
+      <div class="full" id="ddGap" style="font-weight:700"></div>
+      <div class="full"><button class="btn2 prim" id="ddSaveCnt" type="button" style="width:100%">Save counted cash for this day</button></div>
+    </div>
+    <div class="btns"><button class="btn2 prim" id="ddAddIn" type="button">+ Money in</button><button class="btn2 prim" id="ddAddOut" type="button">+ Money out</button></div>
+    <div class="card meta" id="ddForm" hidden>
+      <div class="full"><b id="ddfTitle">Money in</b></div>
+      <div><label for="ddfDate">Date (B.S. or A.D.)</label><input id="ddfDate" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div><label for="ddfHead">Heading / category</label><input id="ddfHead" type="text" maxlength="60" list="ddHeadsIn" autocomplete="off" placeholder="e.g. Sales collection"></div>
+      <div class="full"><label for="ddfParty">Party name</label><input id="ddfParty" type="text" maxlength="80" list="ddParties" autocomplete="off"></div>
+      <div><label for="ddfTotal">Total amount (Rs)</label><input id="ddfTotal" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div><label for="ddfRef">Reference / cheque no.</label><input id="ddfRef" type="text" maxlength="40" autocomplete="off"></div>
+      <div class="full"><label>Mode allocation (the lines must add up to the total)</label><div id="ddfAlloc"></div><div class="btns" style="margin-top:6px"><button class="btn2" id="ddfAddLine" type="button">+ Add mode line</button></div><div class="note" id="ddfLeft" style="margin:4px 0 0"></div></div>
+      <div class="full"><label for="ddfRemk">Remarks</label><input id="ddfRemk" type="text" maxlength="120" autocomplete="off"></div>
+      <div class="full btns"><button class="btn2 prim" id="ddfSave" type="button">Save entry</button><button class="btn2" id="ddfCancel" type="button">Cancel</button></div>
+      <datalist id="ddHeadsIn"></datalist><datalist id="ddHeadsOut"></datalist><datalist id="ddParties"></datalist>
+    </div>
+    <h2>My headings (money in / money out)</h2>
+    <div class="card meta" id="ddhBox">
+      <div class="note full" style="margin:0">Add your own headings once; they are remembered and offered in the entry form. A remark saved with a heading is filled into new entries.</div>
+      <div><label for="ddhDir">Heading for</label><select id="ddhDir"><option value="in">Money in</option><option value="out">Money out</option></select></div>
+      <div><label for="ddhName">Heading name</label><input id="ddhName" type="text" maxlength="60" autocomplete="off"></div>
+      <div class="full"><label for="ddhRem">Remark for this heading (optional)</label><input id="ddhRem" type="text" maxlength="120" autocomplete="off"></div>
+      <div class="full btns"><button class="btn2 prim" id="ddhSave" type="button">Add heading</button><button class="btn2" id="ddhCancel" type="button" hidden>Cancel edit</button></div>
+    </div>
+    <div id="ddhList"></div>
+    <h2>Entries of the day</h2>
+    <div id="ddList"></div>
+    <h2>Settlement tracking: old A/c payee cheques and dues</h2>
+    <div class="note" style="margin:0 0 6px">For checking only. Recording a settlement never creates a transaction and never changes cash, bank, income or expense figures.</div>
+    <div class="chk" style="margin:0 0 8px"><input type="checkbox" id="ddShowSet" aria-labelledby="ddShowSetT"><span id="ddShowSetT">Also show fully settled items</span></div>
+    <div id="ddSet"></div>
+    <h2>Day book reports</h2>
+    <div class="card meta">
+      <div class="full"><label for="ddRep">Report</label><select id="ddRep"><option value="heads">Heading-wise money in / out</option><option value="gap">Daily gap report with period conclusion</option><option value="acc">A/c payee cheque report</option><option value="due">Due report</option><option value="pending">Pending (cheques and dues)</option><option value="part">Partially settled (cheques and dues)</option><option value="done">Fully settled (cheques and dues)</option></select></div>
+      <div><label for="ddFrom">From (B.S.)</label><input id="ddFrom" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div><label for="ddTo">To (B.S.)</label><input id="ddTo" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div id="ddDirW"><label for="ddDir">Money</label><select id="ddDir"><option value="">In and out</option><option value="in">Money in only</option><option value="out">Money out only</option></select></div>
+      <div class="full" id="ddHeadW"><label>Headings to include (none ticked = all)</label><div id="ddHeadPick"></div></div>
+    </div>
+    <div id="ddRepOut"></div>
+    <div class="btns" id="ddRepBtns" hidden><select class="fmtSel"></select><button class="btn2 prim" id="ddRepShare" type="button">Share</button><button class="btn2" id="ddRepPrint" type="button">Print</button></div>
+    <div class="card meta"><div class="full"><label for="ddOpenB">Opening balance before the first entry (Rs)</label><input id="ddOpenB" type="text" inputmode="decimal" autocomplete="off"></div><div class="full note" style="margin:0">Each day then opens with the previous day's closing balance. Closing balance = opening balance + money in - money out.</div></div>
   </section>
 
   <section id="v-utility" hidden>
@@ -588,6 +644,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div class="card meta" style="margin-top:12px">
       <div><label for="osKind">Show</label><select id="osKind"><option value="rec">To receive</option><option value="pay">To pay</option></select></div>
       <div><label for="osOn">As on (B.S. or A.D.)</label><input id="osOn" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+      <div id="osSlabW"><label for="osSlab">Ageing slabs (days)</label><input id="osSlab" type="text" inputmode="numeric" placeholder="30,45,60" maxlength="24" autocomplete="off"></div>
+      <div id="osViewW"><label for="osView">Ageing view</label><select id="osView"><option value="sum">Party summary</option><option value="bill">Bill-wise, all parties</option></select></div>
       <div class="full"><label for="osParty">Party (empty = all parties)</label><input id="osParty" data-sug="party" type="text" placeholder="Choose or type a party name" autocomplete="off"></div>
     </div>
     <div id="osOut"></div>
@@ -833,7 +891,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   <div class="btns"><button class="btn2 prim" id="ieExGo" type="button">Export</button></div>
   <h2>Import</h2>
   <div class="card meta">
-    <div class="full"><label for="ieImWhat">What to import</label><select id="ieImWhat"><option value="items">Stock items (with opening stock)</option><option value="parties">Parties and ledgers (with opening balance)</option><option value="ageing">Ageing / outstanding report (party balances)</option><option value="sgroup">Stock groups (item to group)</option><option value="orders">Order book (customer / supplier orders)</option><option value="txn">Any vouchers / ledger with transactions (type in a column)</option><option value="txn:sale">Sales bills (with or without stock)</option><option value="txn:pur">Purchase bills (with or without stock)</option><option value="txn:sret">Sales returns</option><option value="txn:pret">Purchase returns</option><option value="txn:rec">Receipt vouchers</option><option value="txn:pay">Payment vouchers</option><option value="txn:jnl">Journal vouchers</option></select></div>
+    <div class="full"><label for="ieImWhat">What to import</label><select id="ieImWhat"><option value="items">Stock items (with opening stock)</option><option value="parties">Parties and ledgers (with opening balance)</option><option value="agebills:rec">Ageing report, bill-wise: customers to receive (PDF, Excel, photo)</option><option value="agebills:pay">Ageing report, bill-wise: suppliers to pay (PDF, Excel, photo)</option><option value="ageing">Ageing / outstanding: party balances only</option><option value="sgroup">Stock groups (item to group)</option><option value="orders">Order book (customer / supplier orders)</option><option value="txn">Any vouchers / ledger with transactions (type in a column)</option><option value="txn:sale">Sales bills (with or without stock)</option><option value="txn:pur">Purchase bills (with or without stock)</option><option value="txn:sret">Sales returns</option><option value="txn:pret">Purchase returns</option><option value="txn:rec">Receipt vouchers</option><option value="txn:pay">Payment vouchers</option><option value="txn:jnl">Journal vouchers</option></select></div>
     <div class="full"><label for="ieImFile">File: Excel, CSV, photo or PDF</label><input id="ieImFile" type="file" accept=".xlsx,.csv,.txt,.pdf,image/*"></div>
     <div class="full"><label class="chk"><input type="checkbox" id="ieNoStock"> Transactions: do not change stock (use when the opening stock already includes them)</label></div>
     <div class="full note" style="margin:0">Use the same columns as the template. Names that already exist are skipped, never overwritten. You see a preview before anything is saved. Photos and PDFs are read with the photo reader below.</div>
@@ -1127,7 +1185,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       {k:'receipt',l:'Receipt',lv:[['rec:date','By date'],['rec:mode','By mode'],['rec:party','By party']]},
       {k:'payment',l:'Payment',lv:[['pay:date','By date'],['pay:mode','By mode'],['pay:party','By party']]},
       {k:'ledger',l:'Ledger',lv:[['led:party','By party name'],['led:grp','By group'],['led:out','Outstanding'],['led:age','Ageing']]},
-      {k:'books',l:'Books',lv:[['bk:day','Day book'],['bk:man','Manual day book'],['bk:cash','Cash / Bank'],['bk:pl','Profit & Loss']]},
+      {k:'books',l:'Books',lv:[['bk:day','Day book'],['bk:man','Manual day book (money in / out)'],['bk:cash','Cash / Bank'],['bk:pl','Profit & Loss']]},
       {k:'expense',l:'Expense',lv:[['exp:date','By date'],['exp:party','By head']]},{k:'users',l:'User-wise',lv:[['us:sum','User summary'],['us:vch','User vouchers'],['us:log','Who changed what']]}],
     inventory:[{k:'stock',l:'Stock',lv:[['st:sum','Stock summary'],['st:item','Stock by item'],['st:pprice','Purchase price list'],['st:sprice','Sales price list'],['st:exp','Expiry alert'],['st:grp','Stock by group']]},{k:'order',l:'Order book',lv:[['ob:cust','Customer orders'],['ob:sup','Supplier orders']]}],
     analysis:[{k:'an',l:'Analysis',lv:[['an:item','Sales by item'],['an:party','Sales by party'],['an:pur','Purchase by item'],['an:pparty','Purchase by party'],['an:grp','Stock groups'],['an:trend','Monthly trend'],['an:profit','Profit by item'],['an:slow','Slow stock']]}],
@@ -1217,7 +1275,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function blankItem(){return {item:'',qty:'',rate:'',unit:'',batch:'',exp:'',mrp:'',pack:'',dT:'pct',dV:''}}
   function normItem(x){var b=blankItem();for(var k in b)if(x&&x[k]!=null)b[k]=String(x[k]);return b}
   function blankItems(n){var a=[];for(var i=0;i<n;i++)a.push(blankItem());return a}
-  function blankState(){return {date:todayBS(),party:'',party2:'',ref:'',items:blankItems(MINROWS),amount:'',mode:'Cash',remarks:'',vs:'',no:null,cash:false,discM:(DATA&&DATA.cfg&&DATA.cfg.discMode)||'none',discT:'amt',discV:'',alloc:{},det:{},nostock:false,ao:false,jl:null}}
+  function blankState(){return {date:todayBS(),party:'',party2:'',ref:'',items:blankItems(MINROWS),amount:'',disc:'',mode:'Cash',remarks:'',vs:'',no:null,cash:false,discM:(DATA&&DATA.cfg&&DATA.cfg.discMode)||'none',discT:'amt',discV:'',alloc:{},det:{},nostock:false,ao:false,jl:null}}
   function isBlank(st){return !st.party&&!st.party2&&!(st.jl||[]).some(function(r){return r.p||r.a})&&!st.amount&&!st.remarks&&!st.discV&&!(st.items||[]).some(function(it){return it.item||it.qty||it.rate})}
   function cleanItems(arr,mode){
     return (arr||[]).filter(function(it){return String(it.item).trim()||String(it.qty).trim()||String(it.rate).trim()}).map(function(it){
@@ -1491,7 +1549,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var isT=tab==='voucher'&&!!TYPES[sub],isAg=tab==='voucher'&&sub.indexOf('agg:')===0,den=(isT||isAg)&&!canEnter(),L=sub.split(':'),rep=tab==='report';
     $('v-denied').hidden=!den;
     $('v-form').hidden=!isT||den;$('v-agg').hidden=!isAg||den;
-    $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;$('v-utility').hidden=tab!=='utility';$('v-members').hidden=tab!=='members';$('v-manual').hidden=!(rep&&sub==='bk:man');
+    $('v-list').hidden=tab!=='print';$('v-modify').hidden=tab!=='modify';$('v-addon').hidden=!ad;$('v-utility').hidden=tab!=='utility';$('v-members').hidden=tab!=='members';$('v-manual').hidden=true;$('v-ddb').hidden=!(rep&&sub==='bk:man');
     $('v-vrep').hidden=!(rep&&['sale','pur','sret','pret','rec','pay','exp'].indexOf(L[0])>=0);
     $('v-ledger').hidden=!(rep&&sub==='led:party');$('v-group').hidden=!(rep&&sub==='led:grp');
     $('v-outstanding').hidden=!(rep&&(sub==='led:out'||sub==='led:age'));
@@ -1511,7 +1569,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     else if(rep&&sub.indexOf('us:')===0)renderUsers2();
     else if(tab==='utility')renderUtility();
     else if(tab==='members'){if(user&&user.master)renderMembers();else $('v-members').hidden=true}
-    else if(rep&&sub==='bk:man')renderManual();
+    else if(rep&&sub==='bk:man')renderDD();
     else if(rep&&sub==='bk:day')renderDayBook();
     else if(rep&&(sub==='led:out'||sub==='led:age'))renderOutstanding();
     else if(rep&&sub==='bk:cash')renderCash();
@@ -1556,6 +1614,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     $('party').setAttribute('data-sug',t==='exp'?'head':'party');
     $('rem').value=st.remarks||'';
     $('vModeWrap').hidden=jv||ao;
+    var rp=(t==='rec'||t==='pay');$('vDiscW').hidden=!rp;$('vAmtL').textContent=rp?(t==='rec'?'Money received (Rs)':'Money paid (Rs)'):'Amount (Rs)';$('vDiscL').textContent=t==='rec'?'Discount allowed (Rs)':'Discount received (Rs)';$('vDisc').value=st.disc||'';
     $('cashWrap').hidden=!(it&&CASHT[t]);if(it&&CASHT[t]){$('cashTxt').textContent=CASHTXT[t];$('vCash').checked=!!st.cash}
     $('shareBtn').hidden=$('printBtn').hidden=!!EDIT;$('cxBtn').hidden=$('closeBtn').hidden=!EDIT;
     $('saveBtn').textContent=EDIT?'Save changes':'Save & New';
@@ -1644,7 +1703,11 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     $('sub').textContent=fmt(c.sub);$('discRow').hidden=st.discM!=='bill';$('discAmt').textContent=fmt(c.disc);
     $('grand').textContent=fmt(c.net);$('words').textContent='In words: '+amountWords(c.net);
   }
-  function vTotals(){var t=r2(num(S[cur].amount));$('vBig').textContent='Rs '+fmt(t);$('vWords').textContent='In words: '+amountWords(t)}
+  function vTotals(){
+    var st=S[cur],a=r2(num(st.amount)),ds=(cur==='rec'||cur==='pay')?r2(num(st.disc)):0,t=r2(a+ds),nt=$('vDiscNote');
+    $('vBig').textContent='Rs '+fmt(t);$('vWords').textContent='In words: '+amountWords(t);
+    nt.hidden=!(ds>0);if(ds>0)nt.textContent=(cur==='rec'?'Money received ':'Money paid ')+fmt(a)+' + discount '+fmt(ds)+' = '+fmt(t)+' adjusted in the ledger. Only '+fmt(a)+' goes to the cash or bank book.';
+  }
   function formDoc(){
     var T=TYPES[cur],st=S[cur];
     var d={type:cur,no:billNo(cur),date:normBS(st.date)||st.date,party:st.party.trim(),status:'Active',by:user.username,company:coInfo()};
@@ -1660,6 +1723,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(st.nostock)d.noStock=true;
     }else{
       d.total=r2(num(st.amount));
+      if(cur==='rec'||cur==='pay'){var dsc=r2(num(st.disc));if(dsc>0){d.cash=d.total;d.disc=dsc;d.total=r2(d.cash+dsc)}}
       if(cur==='jnl'){
         var jl=(st.jl||[]).filter(function(r){return String(r.p).trim()||num(r.a)}).map(function(r){return {p:String(r.p).trim(),s:r.s==='c'?'c':'d',a:r2(num(r.a))}});
         var dd=jl.filter(function(r){return r.s==='d'}),cc=jl.filter(function(r){return r.s==='c'});
@@ -1773,7 +1837,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       else if(legacy||!its.length){its=[Object.assign(blankItem(),{item:(d.items&&d.items[0]&&d.items[0].item)||'Amount as agreed',qty:'1',rate:String(d.total)})]}
       b.items=its;while(b.items.length<MINROWS)b.items.push(blankItem());
     }else{
-      b.amount=String(d.total);b.mode=d.mode||'Cash';
+      b.amount=String((d.type==='rec'||d.type==='pay')&&d.disc>0&&d.cash!=null?d.cash:d.total);b.disc=(d.type==='rec'||d.type==='pay')&&d.disc>0?String(d.disc):'';b.mode=d.mode||'Cash';
       if(d.type==='jnl')b.jl=jlines(d).map(function(x){return {p:x.p||'',s:x.s,a:String(x.a)}});
       (d.alloc||[]).forEach(function(a){b.alloc[a.no]=String(a.amt)});
     }
@@ -1819,6 +1883,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(nd.noStock)d.noStock=true;else delete d.noStock;
     }else{
       if(d.type==='jnl'){d.party2=nd.party2;d.jl=nd.jl;d.jcr=nd.jcr}else d.mode=nd.mode;
+      if(d.type==='rec'||d.type==='pay'){if(nd.disc>0){d.disc=nd.disc;d.cash=nd.cash}else{delete d.disc;delete d.cash}}
       if(nd.alloc)d.alloc=nd.alloc;else delete d.alloc;
     }
     d.edited=stamp();d.edits=(d.edits||0)+1;d.editedBy=user.username;
@@ -2346,9 +2411,14 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function balTxt(b){b=r2(b);return fmt(Math.abs(b))+(b>0?' Dr':(b<0?' Cr':''))}
   function ledgerFor(name,from,to){
-    var key=pkey(name),list=[],display=name,pm=findParty(key);
+    var key=pkey(name),list=[],list0=list,display=name,pm=findParty(key);
     if(pm)display=pm.name;
-    var open=pm?r2((pm.side==='Cr'?-1:1)*num(pm.open)):0,open0=open;
+    var open=pm?r2((pm.side==='Cr'?-1:1)*num(pm.open)):0,obr=[];
+    if(pm&&pm.obl){
+      obills().forEach(function(o){if(!o.del&&pkey(o.party)===key){obr.push(o);open=r2(open-(o.kind==='rec'?o.amt:-o.amt))}});
+    }
+    var open0=open;
+    obr.forEach(function(o){list0.push({ob:o,i:-1,dt:dmy(o.date||'2000/01/01')})});
     DATA.docs.forEach(function(d,i){
       if(d.status==='Cancelled')return;
       var isJ=d.type==='jnl';
@@ -2366,11 +2436,18 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:(a.i-b.i))});
     var rows=[],bal=open,td=0,tc=0;
     list.forEach(function(o){
+      if(o.ob){
+        var ob=o.ob,sg=ob.kind==='rec'?ob.amt:-ob.amt,dr0=sg>0?sg:0,cr0=sg<0?-sg:0;
+        if(from&&o.dt<from){open=r2(open+dr0-cr0);bal=open;return}
+        if(to&&o.dt>to)return;
+        bal=r2(bal+dr0-cr0);td=r2(td+dr0);tc=r2(tc+cr0);
+        rows.push({i:-1,ob:1,date:ob.date||'',part:(ob.sec&&!/^sales?$/i.test(ob.sec)?ob.sec:'Bill')+' '+(ob.no||'')+' (opening bill)',dr:dr0,cr:cr0,bal:bal});return;
+      }
       var d=o.d,T=TYPES[d.type],dr,cr,part,rmk=(d.remarks&&d.type!=='led')?' - '+d.remarks:'';
       if(d.type==='jnl'){dr=o.jd;cr=o.jc;var oth=jlines(d).filter(function(x){return pkey(x.p)!==key}).map(function(x){return (x.s==='d'?'Dr ':'Cr ')+x.p});part='Journal '+d.no+' ('+oth.join(', ')+')'+rmk}
       else{
         dr=d.type==='led'?(d.dr||0):(T.dir>0?d.total:0);cr=d.type==='led'?(d.cr||0):(T.dir<0?d.total:0);
-        part=d.type==='led'?(d.details||'Ledger entry'):T.short+' '+d.no+(d.mode?' ('+d.mode+')':'')+(d.ref?' ref '+d.ref:'')+(d.alloc&&d.alloc.length?' against '+d.alloc.map(function(a){return a.no}).join(', '):'')+rmk;
+        part=d.type==='led'?(d.details||'Ledger entry'):T.short+' '+d.no+(d.mode?' ('+d.mode+')':'')+(d.ref?' ref '+d.ref:'')+((d.type==='rec'||d.type==='pay')&&d.disc>0?' incl. discount '+fmt(d.disc):'')+(d.alloc&&d.alloc.length?' against '+d.alloc.map(function(a){return a.no}).join(', '):'')+rmk;
       }
       if(from&&o.dt<from){open=r2(open+dr-cr);bal=open;return}
       if(to&&o.dt>to)return;
@@ -2400,7 +2477,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     PGR.lgOut=renderLedger;
     h=lbar+h;
     (lg.rows.length>25&&PSZ?lg.rows.slice(lpi.a,lpi.b):lg.rows).forEach(function(r){
-      h+='<div class="lg"'+(r.led?' data-i="'+r.i+'" style="cursor:pointer" role="button"':' data-vi="'+r.i+'" style="cursor:pointer" role="button"')+'><div class="c">'+esc(dmy(r.date))+'</div><div class="c">'+esc(r.part)+'</div><div class="c r">'+(r.dr?fmt(r.dr):'')+'</div><div class="c r">'+(r.cr?fmt(r.cr):'')+'</div><div class="c r">'+esc(balTxt(r.bal))+'</div></div>';
+      h+='<div class="lg"'+(r.ob?'':r.led?' data-i="'+r.i+'" style="cursor:pointer" role="button"':' data-vi="'+r.i+'" style="cursor:pointer" role="button"')+'><div class="c">'+esc(dmy(r.date))+'</div><div class="c">'+esc(r.part)+'</div><div class="c r">'+(r.dr?fmt(r.dr):'')+'</div><div class="c r">'+(r.cr?fmt(r.cr):'')+'</div><div class="c r">'+esc(balTxt(r.bal))+'</div></div>';
     });
     if(!lg.rows.length&&!lg.showOpen)h+='<div class="lg"><div class="c" style="grid-column:1/-1">No entries for this party.</div></div>';
     h+='<div class="lg lgt"><div class="c"></div><div class="c r" style="justify-content:flex-end">Total</div><div class="c r">'+fmt(lg.totDr)+'</div><div class="c r">'+fmt(lg.totCr)+'</div><div class="c r">'+esc(balTxt(lg.close))+'</div></div></div></div>';
@@ -2568,11 +2645,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
 
   /* ---------- day book ---------- */
+  function cashAmt(d){return ((d.type==='rec'||d.type==='pay')&&d.disc>0&&d.cash!=null)?d.cash:d.total}
   function cashSplit(from,to){
     var oc=num(DATA.cfg.openCash),ob=num(DATA.cfg.openBank),r={inC:0,inB:0,outC:0,outB:0};
     DATA.docs.forEach(function(d){
       if(!live(d)||(d.type!=='rec'&&d.type!=='pay'&&d.type!=='exp'))return;
-      var dt=dmy(d.date),bank=d.mode!=='Cash',inn=d.type==='rec'?d.total:0,out=inn?0:d.total;
+      var dt=dmy(d.date),bank=d.mode!=='Cash',ca=cashAmt(d),inn=d.type==='rec'?ca:0,out=inn?0:ca;
       if(to&&dt>to)return;
       if(from&&dt<from){if(bank)ob=r2(ob+inn-out);else oc=r2(oc+inn-out);return}
       if(bank){r.inB=r2(r.inB+inn);r.outB=r2(r.outB+out)}else{r.inC=r2(r.inC+inn);r.outC=r2(r.outC+out)}
@@ -2621,9 +2699,15 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function outstanding(kind,skip){
     var invT=kind==='rec'?'sale':'pur',vT=kind==='rec'?'rec':'pay',rT=kind==='rec'?'sret':'pret',map={};
     function P(name){var k=pkey(name);return map[k]||(map[k]={name:name,inv:[],pool:0,byNo:{}})}
+    var OBL=obills().filter(function(x){return !x.del&&x.kind===kind}),obp={};OBL.forEach(function(x){obp[pkey(x.party)]=1});
     DATA.parties.forEach(function(p){
-      var a=num(p.open);if(!a||!pkey(p.name))return;
+      var a=num(p.open);if(!a||!pkey(p.name)||obp[pkey(p.name)])return;
       if((kind==='rec')===(p.side!=='Cr')){var o=P(p.name),b={no:'Opening',date:'',total:a,paid:0};o.inv.push(b);o.byNo.Opening=b}
+    });
+    OBL.slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0)}).forEach(function(x){
+      var o=P(x.party);
+      if(x.amt>0){var b={no:x.no||'Opening',date:x.date,total:x.amt,paid:0,ag:x.age,ao:x.asof};o.inv.push(b);if(x.no)o.byNo[x.no]=b}
+      else{o.inv.push({no:x.no||'Credit',date:x.date,total:x.amt,paid:0,cr:1,ag:x.age,ao:x.asof})}
     });
     var docs=[];DATA.docs.forEach(function(d,i){if(live(d)&&pkey(d.party)&&d!==skip)docs.push({d:d,i:i,dt:dmy(d.date)})});
     docs.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});
@@ -2660,7 +2744,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return null;
   }
   function alNote(){
-    var st=S[cur],sum=sumAlloc(Object.keys(st.alloc||{}).map(function(n){return {amt:st.alloc[n]}})),amt=r2(num(st.amount));
+    var st=S[cur],sum=sumAlloc(Object.keys(st.alloc||{}).map(function(n){return {amt:st.alloc[n]}})),amt=r2(num(st.amount)+num(st.disc));
     $('alNote').textContent='Adjusted '+fmt(sum)+' of '+fmt(amt)+(sum>amt+0.001?'. This is more than the amount.':'. Anything left stays on account and is set against the oldest bills.');
     $('alNote').className='note'+(sum>amt+0.001?' warn':'');
   }
@@ -2684,9 +2768,9 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       var rows=[],tp=0,cols=[{h:'Party',w:2.2,al:'l'},{h:'Date',w:1.3,al:'l'},{h:'Bill',w:1.3,al:'l'},{h:'Amount',w:1.2,al:'r'},{h:'Settled',w:1.2,al:'r'},{h:'Pending',w:1.2,al:'r'},{h:'Days',w:.8,al:'r'}];
       all.forEach(function(o){
         if(k0&&pkey(o.name)!==k0)return;
-        var bills=o.inv.filter(function(b){return r2(b.total-b.paid)>0.004});if(!bills.length)return;
+        var bills=o.inv.filter(function(b){return Math.abs(r2(b.total-b.paid))>0.004});if(!bills.length)return;
         var sp=0;
-        bills.forEach(function(b){var bd=b.date?bsDays(b.date):null,p=r2(b.total-b.paid);sp=r2(sp+p);var br=[o.name,b.date||'Opening',b.no,fmt(b.total),fmt(r2(b.paid)),fmt(p),(bd!=null&&nd!=null)?String(nd-bd):''],bix=-1;DATA.docs.forEach(function(d,di){if(bix<0&&live(d)&&d.no===b.no&&pkey(d.party)===pkey(o.name))bix=di});if(bix>=0)br.i=bix;else br.dr={k:'pv',party:o.name};rows.push(br)});
+        bills.forEach(function(b){var bd=billAge(b,nd),p=r2(b.total-b.paid);sp=r2(sp+p);var br=[o.name,b.date||'Opening',b.no,fmt(b.total),fmt(r2(b.paid)),fmt(p),bd!=null?String(bd):''],bix=-1;DATA.docs.forEach(function(d,di){if(bix<0&&live(d)&&d.no===b.no&&pkey(d.party)===pkey(o.name))bix=di});if(bix>=0)br.i=bix;else br.dr={k:'pv',party:o.name};rows.push(br)});
         var tr=['Total - '+o.name+(o.advance>0.004?' (advance '+fmt(o.advance)+')':''),'','','','',fmt(sp),''];tr.b=true;tr.dr={k:'pv',party:o.name};rows.push(tr);tp=r2(tp+sp);
       });
       if(!rows.length)return {empty:'Nothing is pending'+(pq?' for "'+pq+'"':'')+' ('+lab.toLowerCase()+').'};
@@ -2694,18 +2778,39 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         cols:cols,rows:rows,totals:[['Total pending','','','','',fmt(tp),'']],minw:760,
         foot:'Receipts and payments that name a bill settle that bill. Money not tied to a bill settles the oldest bills first.'};
     }
-    var list=all.filter(function(o2){return o2.pending>0.004&&(!k0||pkey(o2.name)===k0)});
+    var SL=slabs(),NB=SL.length+1,LB=slabLabels(SL),view=$('osView').value;
+    var list=all.filter(function(o2){return (Math.abs(o2.pending)>0.004||(k0&&o2.inv.length))&&(!k0||pkey(o2.name)===k0)});
     if(!list.length)return {empty:'Nothing is pending ('+lab.toLowerCase()+').'};
-    var sums=[0,0,0,0],tot=0,rows2=list.map(function(o2){
-      var b4=[0,0,0,0];
-      o2.inv.forEach(function(b){var p=r2(b.total-b.paid);if(p<=0.004)return;var bd=b.date?bsDays(b.date):null,ix=bucket(bd!=null&&nd!=null?nd-bd:null);b4[ix]=r2(b4[ix]+p)});
-      for(var i=0;i<4;i++)sums[i]=r2(sums[i]+b4[i]);tot=r2(tot+o2.pending);
+    var zs=function(){var a=[];for(var q=0;q<NB;q++)a.push(0);return a};
+    if(k0||view==='bill'){
+      var rb=[],gs=zs(),gt=0,cb=[{h:'Date',w:1.3,al:'l'},{h:'Bill no',w:1.6,al:'l'}].concat(LB.map(function(l){return {h:l,w:1.1,al:'r'}})).concat([{h:'Total',w:1.3,al:'r'},{h:'Age',w:.7,al:'r'}]);
+      list.forEach(function(o2){
+        var bs2=o2.inv.filter(function(b){return Math.abs(r2(b.total-b.paid))>0.004});if(!bs2.length)return;
+        var hd=[o2.name].concat(new Array(NB+3).join(',').split(','));hd.length=NB+3;hd.b=true;hd.dr={k:'pv',party:o2.name};rb.push(hd);
+        var ps=zs(),pt=0;
+        bs2.forEach(function(b){
+          var p=r2(b.total-b.paid),ag=billAge(b,nd),ix=slabIx(ag,SL),r=[b.date||'Opening',b.no];
+          for(var q=0;q<NB;q++)r.push(q===ix?fmt(p):'');
+          pt=r2(pt+p);ps[ix]=r2(ps[ix]+p);r.push(fmt(pt));r.push(ag==null?'':String(ag));rb.push(r);
+        });
+        var tr=['','Total : '+o2.name.slice(0,24)].concat(ps.map(function(v){return v?fmt(v):''})).concat([fmt(pt),'']);tr.b=true;rb.push(tr);
+        for(var q=0;q<NB;q++)gs[q]=r2(gs[q]+ps[q]);gt=r2(gt+pt);
+      });
+      if(!rb.length)return {empty:'Nothing is pending ('+lab.toLowerCase()+').'};
+      return {file:'Ageing_bills_'+(kind==='rec'?'Receivable':'Payable')+'_'+on.replace(/\//g,'-'),title:'AGEING - '+lab.toUpperCase(),info:['As on '+on+'   |   Age counted in days from the bill date'+(pq?'   |   Party: '+pq:'')],
+        cols:cb,rows:rb,totals:[['','G. Total'].concat(gs.map(function(v){return v?fmt(v):''})).concat([fmt(gt),''])],minw:520+NB*70,
+        foot:'The Total column runs down each party. Receipts and credit notes that are not tied to a bill are set against the oldest bills first. Change the slab days above if you need other columns.'};
+    }
+    var sums=zs(),tot=0,rows2=list.map(function(o2){
+      var b4=zs();
+      o2.inv.forEach(function(b){var p=r2(b.total-b.paid);if(Math.abs(p)<=0.004)return;var ix=slabIx(billAge(b,nd),SL);b4[ix]=r2(b4[ix]+p)});
+      for(var i2=0;i2<NB;i2++)sums[i2]=r2(sums[i2]+b4[i2]);tot=r2(tot+o2.pending);
       var ar=[o2.name+(o2.advance>0.004?' (advance '+fmt(o2.advance)+')':''),fmt(o2.pending)].concat(b4.map(function(v){return v?fmt(v):''}));ar.dr={k:'pv',party:o2.name};return ar;
     });
     return {file:'Ageing_'+(kind==='rec'?'Receivable':'Payable')+'_'+on.replace(/\//g,'-'),title:'AGEING - '+lab.toUpperCase(),info:['As on '+on+'   |   Age counted in days from the bill date'],
-      cols:[{h:'Party',w:2.6,al:'l'},{h:'Pending',w:1.4,al:'r'},{h:'0-30',w:1.1,al:'r'},{h:'31-60',w:1.1,al:'r'},{h:'61-90',w:1.1,al:'r'},{h:'90+',w:1.1,al:'r'}],
-      rows:rows2,totals:[['Total',fmt(tot)].concat(sums.map(function(v){return v?fmt(v):''}))],minw:600,
-      foot:'Open Outstanding to see the bills behind each party.'};
+      cols:[{h:'Party',w:2.6,al:'l'},{h:'Pending',w:1.4,al:'r'}].concat(LB.map(function(l){return {h:l,w:1.1,al:'r'}})),
+      rows:rows2,totals:[['Total',fmt(tot)].concat(sums.map(function(v){return v?fmt(v):''}))],minw:420+NB*80,
+      foot:'Tap a party for its ledger, or choose a party above (or Bill-wise for all parties) to see every bill in its slab.'};
   }
   var PSZ=(function(){var v=+get('eb_psz',50);return [0,25,50,100,200,500].indexOf(v)>=0?v:50})(),PG={},PGR={};
   function pgInfo(id,total,sig,startLast){
@@ -2737,7 +2842,10 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     out.innerHTML='<h2>'+esc(r.title)+'</h2>'+r.info.map(function(t){return '<div class="note" style="margin:2px 0"><b>'+esc(t)+'</b></div>'}).join('')+bar+'<div style="margin-top:8px">'+htmlTable(r2o)+'</div>'+bar+(r.foot?'<div class="note">'+esc(r.foot)+'</div>':'');
     btns.hidden=false;
   }
-  function renderOutstanding(){if(!$('osOn').value)$('osOn').value=todayBS();showReport($('osOut'),$('osBtns'),outReport())}
+  function renderOutstanding(){
+    if(!$('osOn').value)$('osOn').value=todayBS();
+    var ag=osMode()==='age';$('osSlabW').hidden=$('osViewW').hidden=!ag;
+    if(document.activeElement!==$('osSlab'))$('osSlab').value=slabs().join(',');showReport($('osOut'),$('osBtns'),outReport())}
 
   /* ---------- cash / bank book ---------- */
   function cashReport(){
@@ -2750,7 +2858,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     list.sort(function(a,b){return a.dt<b.dt?-1:(a.dt>b.dt?1:a.i-b.i)});
     var bal=open,rows=[],tin=0,tout=0;
     list.forEach(function(o){
-      var d=o.d,inn=d.type==='rec'?d.total:0,out=d.type==='rec'?0:d.total;
+      var d=o.d,inn=d.type==='rec'?cashAmt(d):0,out=d.type==='rec'?0:cashAmt(d);
       if(from&&o.dt<from){bal=r2(bal+inn-out);open=bal;return}
       if(to&&o.dt>to)return;
       bal=r2(bal+inn-out);tin=r2(tin+inn);tout=r2(tout+out);
@@ -2768,18 +2876,19 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
 
   /* ---------- profit and loss ---------- */
   function plCalc(from,to){
-    var T2={sale:0,sret:0,pur:0,pret:0},ex={},ext=0,any=false;
+    var T2={sale:0,sret:0,pur:0,pret:0},ex={},ext=0,any=false,dA=0,dR=0;
     DATA.docs.forEach(function(d){
       if(!live(d))return;var dt=dmy(d.date);if(from&&dt<from)return;if(to&&dt>to)return;
       if(T2[d.type]!=null){T2[d.type]=r2(T2[d.type]+d.total);any=true}
-      else if(d.type==='exp'){var h=String(d.party||'Other').trim()||'Other';ex[h]=r2((ex[h]||0)+d.total);ext=r2(ext+d.total);any=true}
+      else if((d.type==='rec'||d.type==='pay')&&d.disc>0){if(d.type==='rec')dA=r2(dA+d.disc);else dR=r2(dR+d.disc);any=true}
+      if(d.type==='exp'){var h=String(d.party||'Other').trim()||'Other';ex[h]=r2((ex[h]||0)+d.total);ext=r2(ext+d.total);any=true}
     });
     var openV=0,closeV=0;
     if(from)stockSummary('',from,true).forEach(function(x){openV=r2(openV+Math.max(0,x.value))});
     else{var cat=itemCatalog(stockMoves());Object.keys(cat).forEach(function(k){openV=r2(openV+cat[k].open*cat[k].orate)})}
     stockSummary('',to).forEach(function(x){closeV=r2(closeV+Math.max(0,x.value))});
-    var netS=r2(T2.sale-T2.sret),netP=r2(T2.pur-T2.pret),cogs=r2(openV+netP-closeV),gp=r2(netS-cogs),np=r2(gp-ext);
-    return {T2:T2,ex:ex,ext:ext,any:any,openV:openV,closeV:closeV,netS:netS,netP:netP,cogs:cogs,gp:gp,np:np};
+    var netS=r2(T2.sale-T2.sret),netP=r2(T2.pur-T2.pret),cogs=r2(openV+netP-closeV),gp=r2(netS-cogs),np=r2(gp-ext-dA+dR);
+    return {dA:dA,dR:dR,T2:T2,ex:ex,ext:ext,any:any,openV:openV,closeV:closeV,netS:netS,netP:netP,cogs:cogs,gp:gp,np:np};
   }
   function plReport(){
     var from=normBS($('plFrom').value)||'',to=normBS($('plTo').value)||'',c=plCalc(from,to),rows=[];
@@ -2789,7 +2898,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     add('Opening stock',fmt(c.openV));add('Purchases',fmt(c.T2.pur),false,['pur']);add('Less: Purchase returns',c.T2.pret?'- '+fmt(c.T2.pret):'0.00',false,['pret']);add('Less: Closing stock','- '+fmt(c.closeV));
     add('Cost of goods sold',fmt(c.cogs),true);add('Gross profit / (loss)',fmt(c.gp),true);
     Object.keys(c.ex).sort().forEach(function(h){add('Expense: '+h,fmt(c.ex[h]),false,['exp'],h)});
-    add('Total expenses',fmt(c.ext),true);
+    if(c.dA)add('Discount allowed on receipts',fmt(c.dA));if(c.dR)add('Less: Discount received on payments','- '+fmt(c.dR));
+    add('Total expenses',fmt(r2(c.ext+c.dA-c.dR)),true);
     return {file:'ProfitLoss_'+(from||'Start').replace(/\//g,'-')+'_to_'+(to||'Today').replace(/\//g,'-'),title:'PROFIT AND LOSS',info:[periodTxt(from,to)],
       cols:[{h:'Particulars',w:3.2,al:'l'},{h:'Amount (Rs)',w:1.6,al:'r'}],rows:rows,totals:[[c.np>=0?'Net profit':'Net loss',fmt(Math.abs(c.np))]],minw:420,
       foot:'Amounts are after discount. Stock is valued at average purchase cost. Add opening stock and rates in Add On, then Stock.'};
@@ -2799,7 +2909,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     DATA.docs.forEach(function(d){
       if(!live(d)||(d.type!=='rec'&&d.type!=='pay'&&d.type!=='exp'))return;
       if((d.mode==='Cash')===bank)return;if(to&&dmy(d.date)>to)return;
-      bal=r2(bal+(d.type==='rec'?d.total:-d.total));
+      bal=r2(bal+(d.type==='rec'?cashAmt(d):-cashAmt(d)));
     });
     return bal;
   }
@@ -2921,7 +3031,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
     if(x.k==='pv'){
       var lg=ledgerFor(x.party,x.from||'',x.to||'');
-      lg.rows.forEach(function(r){var rr=[dmy(r.date),r.part,r.dr?fmt(r.dr):'',r.cr?fmt(r.cr):'',balTxt(r.bal)];rr.i=r.i;rows.push(rr)});
+      lg.rows.forEach(function(r){var rr=[dmy(r.date),r.part,r.dr?fmt(r.dr):'',r.cr?fmt(r.cr):'',balTxt(r.bal)];if(!r.ob)rr.i=r.i;rows.push(rr)});
       return {title:lg.name,info:['Ledger entries. Tap one to open its voucher.'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Particulars',w:3,al:'l'},{h:'Debit',w:1.1,al:'r'},{h:'Credit',w:1.1,al:'r'},{h:'Balance',w:1.3,al:'r'}],rows:rows,totals:[['','Closing','','',balTxt(lg.close)]],minw:560};
     }
     // 'dl': a list of vouchers
@@ -3091,7 +3201,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     P.box(L,R,y,40,'#e3efec');
     P.txt('Amount (Rs)',L+8,y+26,'left','bold 16px '+F,'#0b5d57');
     P.txt(fmt(d.total),R-8,y+27,'right','bold 20px '+F);y+=40;
-    if(d.type!=='jnl'&&(d.mode||d.type==='led')){P.box(L,R,y,28);P.txt(d.type==='led'?'Debit: '+fmt(d.dr||0)+'     Credit: '+fmt(d.cr||0):'Mode: '+(d.mode||''),L+8,y+19,'left','bold 14px '+F);y+=28}
+    if(d.type!=='jnl'&&(d.mode||d.type==='led')){P.box(L,R,y,28);P.txt(d.type==='led'?'Debit: '+fmt(d.dr||0)+'     Credit: '+fmt(d.cr||0):'Mode: '+(d.mode||'')+(((d.type==='rec'||d.type==='pay')&&d.disc>0)?'     '+(d.type==='rec'?'Received ':'Paid ')+fmt(d.cash!=null?d.cash:d.total-d.disc)+' + Discount '+fmt(d.disc):''),L+8,y+19,'left','bold 14px '+F);y+=28}
     if(d.type==='led'&&d.details){var dl=P.wrap('Details: '+d.details,R-L-16,'13px '+F),dh=dl.length*17+10;P.box(L,R,y,dh);dl.forEach(function(l,k){P.txt(l,L+8,y+18+k*17,'left','13px '+F)});y+=dh}
     if(d.alloc&&d.alloc.length){
       var al=P.wrap('Against bills: '+d.alloc.map(function(a){return a.no+' ('+fmt(a.amt)+')'}).join(', '),R-L-16,'13px '+F),ah=al.length*17+10;
@@ -4018,6 +4128,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     txn:{date:['datebs','date','miti','billdate','invoicedate','voucherdate','bsdate','transactiondate'],type:['type','voucher','vouchertype','vchtype'],no:['number','no','voucherno','billno','vchno','invoiceno','invoicenumber'],party:['party','partyname','name','ledger','debitledger','customer','customername','supplier','suppliername','buyer','accountname'],party2:['creditledgerjournal','creditledger','party2','crledger'],item:['item','itemname','particulars','medicine','medicinename','product','productname','goods','description'],qty:['qty','quantity','nos'],unit:['unit','packunit','uom'],rate:['rate','price','salesrate','purchaserate'],amount:['amount','total','netamount','value','lineamount'],mode:['mode','paymentmode'],remarks:['remarks','narration','note'],batch:['batch','batchno','batchnumber'],exp:['expiry','exp','expirydate','expdate','expiredate'],mrp:['mrp','maxretailprice'],_req:['date','party']}
   };
   IM_SPEC.ageing={name:['party','partyname','name','ledger','ledgername','account','accountname','customer','supplier','particulars'],open:['outstanding','outstandingamount','dueamount','due','balancedue','pending','pendingamount','balance','closingbalance','total','amount','openingbalance'],side:['drcr','side','type'],phone:['phone','mobile','contact','phoneno'],_req:['name','open']};
+  IM_SPEC.agebills={party:['party','partyname','name','ledger','ledgername','customer','supplier','account','particulars'],no:['invno','invoiceno','billno','bill','invoice','voucherno','number','no','invno.'],date:['date','billdate','invoicedate','invdate','miti','datebs'],open:['pending','pendingamount','outstanding','amount','balance','due','total','dueamount','netamount'],_req:['party','open']};
   IM_SPEC.sgroup={name:['item','itemname','name','stockitem','product','productname','medicine','particulars'],group:['group','stockgroup','itemgroup','category','under','parent','groupname'],_req:['name','group']};
   IM_SPEC.orders={date:['date','datebs','miti','orderdate'],kind:['type','kind','ordertype','customersupplier'],party:['party','partyname','customer','supplier','name','ledger'],item:['item','itemname','medicine','product','particulars'],qty:['qty','quantity','nos'],unit:['unit','uom'],rem:['remarks','narration','note'],no:['orderno','order','number','no'],_req:['party','item','qty']};
   function mapCols(hrow,spec){
@@ -4043,7 +4154,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return '';
   }
   function planOf(what,rows,all,cm){
-    var forced='',lopens=null;if(/^txn:/.test(what)){forced=what.slice(4);what='txn'}
+    var forced='',lopens=null,akind='';if(/^txn:/.test(what)){forced=what.slice(4);what='txn'}else if(/^agebills:/.test(what)){akind=what.slice(9);what='agebills'}
     if(what==='txn'&&!cm){
       var lt=ledgerToTxn(all||[rows]);if(lt){rows=lt.rows;lopens=lt.opens}
       else{var rg=regToTxn([rows],forced);if(rg){if(rg.errs.length&&rg.rows.length<2)return {fatal:rg.errs[0]};rows=rg.rows}}
@@ -4095,6 +4206,15 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
         if(seen[pkey(name)]||String(it.sg||'').toLowerCase()===gr.toLowerCase()){P.skip++;return}seen[pkey(name)]=1;
         P.add.push({name:it.name,group:gr});
       });
+    }else if(what==='agebills'){
+      var pr2={bills:[],errs:[]};
+      body.forEach(function(r,i){
+        var party=txt(cell(r,m,'party')),no=txt(cell(r,m,'no')),dv=cell(r,m,'date'),am=nv(cell(r,m,'open'));
+        if(!party||!am)return;
+        var dt='';if(txt(dv)!==''){dt=typeof dv==='number'&&dv>20000?serialToBS(dv):normBS(txt(dv));if(!dt){pr2.errs.push('Row '+(hi+i+2)+': date "'+txt(dv)+'" not understood.');return}}
+        pr2.bills.push({party:party,no:no,date:dt,amt:r2(am),sec:''});
+      });
+      P=agePlan(pr2,akind||'rec','worksheet');
     }else if(what==='orders'){
       var og={},oo=[];
       body.forEach(function(r,i){
@@ -4162,6 +4282,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     return P;
   }
   function ieShowPlan(P,src){
+    if(P.what==='agebills'){ageShow(P);return}
     if(P.fatal){$('ieImOut').innerHTML='<div class="note err">'+esc(P.fatal)+'</div>';IM=null;return}
     var names={items:'stock items',parties:P.label||'parties',txn:'vouchers',sgroup:'stock item groups',orders:'orders'};
     var h='<h2>Preview</h2><div class="card"><b>'+P.add.length+' '+names[P.what]+' will be added</b> (read from '+src+').'+(P.skip?'<div class="note">'+P.skip+' already exist (same name, number, or same date, party and amount) and will be skipped, so nothing is duplicated.</div>':'')+'</div>';
@@ -4177,10 +4298,12 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     $('ieImOut').innerHTML=h;IM=P;
     if($('ieImGo'))$('ieImGo').addEventListener('click',ieCommit);
   }
+  function imBase(w){return String(w).replace(/^(txn|agebills):.*/,'$1')}
   function ieFile(file){
     var what=$('ieImWhat').value;
     $('ieImOut').innerHTML='<div class="note">Reading the file...</div>';IM=null;
-    fileToRows(file,what.replace(/^txn:.*/,'txn')).then(function(r){
+    if(/^agebills:/.test(what)){ageFile(file,what);return}
+    fileToRows(file,imBase(what)).then(function(r){
       ieMapStart(r)}).catch(function(e){$('ieMapBox').innerHTML='';$('ieImOut').innerHTML='<div class="note err">'+esc(e.message||'Could not read the file.')+'</div>'});
   }
   function ieCommit(){
@@ -4191,6 +4314,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       (P.opens||[]).forEach(function(o){if(!findParty(pkey(o.name))){DATA.parties.push(o);n++}});
       if(P.what==='items'){P.add.forEach(function(r){if(findItem(pkey(r.name)))return;DATA.items.push(r);addUnit(r.unit);n++});fillUnitDl()}
       else if(P.what==='parties'){P.add.forEach(function(r){if(findParty(pkey(r.name)))return;DATA.parties.push(r);n++})}
+      else if(P.what==='agebills'){n+=ageCommit(P)}
       else if(P.what==='sgroup'){P.add.forEach(function(r){var it=findItem(pkey(r.name));if(!it||String(it.sg||'').toLowerCase()===r.group.toLowerCase())return;it.sg=r.group;n++})}
       else if(P.what==='orders'){var c=DATA.cfg.obc=DATA.cfg.obc||{c:0,s:0},ot=stamp();P.add.forEach(function(g){c[g.kind]=(c[g.kind]||0)+1;obArr().push({id:newUid(),kind:g.kind,date:g.date,party:g.party,rem:g.rem,lines:g.lines,done:false,no:(g.kind==='c'?'CO-':'SO-')+pad(c[g.kind],4),at:ot,by:user.username});n++});DATA.cfg.at=ot}
       else{
@@ -4223,6 +4347,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     oc[1]={v:'OPENING BALANCE',s:6};oc[2]={v:op<0?'Cr':'Dr',s:6};oc[7+(op<0?1:0)]={v:Math.abs(op),s:7};
     R.push(oc);
     lg.rows.forEach(function(r){
+      if(r.ob){var orw=LH.map(function(){return {v:'',s:2}});orw[0]={v:adSerial(bsToAD(dmy(r.date||'2000/01/01'))||'1970-01-01'),s:9};orw[1]={v:lg.name,s:6};orw[2]={v:'Opening bill',s:6};orw[3]={v:r.part.replace(/^.*? (\S+) \(opening bill\)$/,'$1'),s:6};if(r.dr)orw[13]={v:r.dr,s:7};if(r.cr)orw[14]={v:r.cr,s:7};R.push(orw);return}
       var d=DATA.docs[r.i];if(!d)return;
       var T=TYPES[d.type]||{},row=LH.map(function(){return {v:'',s:2}});
       row[0]={v:adSerial(bsToAD(dmy(d.date))||'1970-01-01'),s:9};row[2]={v:r.led?'Ledger entry':dShort(d),s:6};row[3]={v:r.led?'':String(d.no||''),s:6};
@@ -4364,6 +4489,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     txn:{n:'Vouchers',H:['Date (B.S.)','Type','Number','Party','Credit ledger (journal)','Item','Qty','Unit','Rate','Amount','Mode','Remarks'],R:[['2083/08/01','Sales','','Ram Medical','','Paracetamol 500',10,'Strip',12,'','',''],['2083/08/01','Sales','','Ram Medical','','Cetamol',5,'Strip',20,'','',''],['2083/08/02','Purchase','','ABC Distributors','','Cetamol',50,'Strip',15,'','',''],['2083/08/03','Sales (no stock)','','Shyam Store','','','','','',2500,'Credit',''],['2083/08/04','Receipt','','Ram Medical','','','','','',500,'Cash',''],['2083/08/04','Payment','','ABC Distributors','','','','','',750,'Bank',''],['2083/08/05','Journal','','Debit ledger','Credit ledger','','','','',300,'','']]}
   };
   TPL.ageing={n:'Ageing',H:['Party','Outstanding amount','Dr / Cr','Phone'],R:[['Ram Medical',12500,'Dr','9800000000'],['ABC Distributors',30000,'Cr','']]};
+  TPL['agebills:rec']=TPL['agebills:pay']={n:'Ageing',H:['Party','Bill no','Bill date','Pending amount'],R:[['Ram Medical','AASR0001739','2081/04/21',15071.34],['Ram Medical','BARE0000134','2081/04/11',-3140]]};
   TPL.sgroup={n:'Stock groups',H:['Item','Stock group'],R:[['Paracetamol 500','Analgesic'],['Azithro 500','Antibiotic']]};
   TPL.orders={n:'Orders',H:['Order date','Type (Customer/Supplier)','Party','Item','Qty','Unit','Remarks'],R:[['2083/08/05','Customer','Ram Medical','Paracetamol 500',20,'Strip',''],['2083/08/05','Customer','Ram Medical','Azithro 500',5,'Strip','']]};
   var TPL_T={sale:['Sales','Sales bills: one row per item. Rows with the same date, party and number make one bill. Leave Item empty and fill Amount for a bill without stock.'],pur:['Purchase','Purchase bills: same layout as Sales.'],sret:['Sales return','Sales returns: same layout as Sales.'],pret:['Purchase return','Purchase returns: same layout as Sales.'],rec:['Receipt','Receipt: Date, Party, Amount, Mode (Cash/Bank).'],pay:['Payment','Payment: Date, Party, Amount, Mode.'],jnl:['Journal','Journal: Date, Debit ledger in Party, Credit ledger, Amount.']};
@@ -4470,6 +4596,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       'This is a photo, scan or PDF of a list with one entry per line (it may follow the MEDBOOKS entry sheet: columns No, Party, Amount, Mode, and an optional Remarks column or line). Entries may be numbered, ruled or just written line by line, over one or many pages. Read EVERY entry. Reply with JSON only, no other words, exactly in this form: {"entries":[{"party":"party name","amount":1000,"mode":"Cash or Bank transfer or Cheque or QR / Wallet"}]}. If no mode is written use "Cash". Ignore totals and page headings. '+KN:
       kind==='notebook'?
       'This is a photo of a shopkeeper\'s handwritten daily sales notebook. Each customer (party) name is followed by the items sold to that customer with quantities, and sometimes rates. Read every entry; it may follow the MEDBOOKS entry sheet (a party name on its own line, then item lines with Item, Qty, Unit, Rate) over one or many pages. Reply with JSON only, no other words, exactly in this form: {"parties":[{"party":"Customer name","lines":[{"item":"item name","qty":10,"unit":"strip or empty","rate":null,"amount":null}]}]}. Give rate when written, otherwise the line amount when written. If a customer appears twice, list the customer once with all lines. Known customer names (use the exact spelling when the writing matches one): '+(names||'none')+'. Known item names (same rule): '+(items||'none')+'. If a word is unclear give your best reading. Do not invent entries.':
+      kind==='ageing'?'This is a picture or PDF of a printed AGEING report. Reply with JSON only, no other words, in this form: {"rows":[["cell","cell"]]}. Give one row for every printed line, from the first party to the last, one array item per printed column. Keep party header lines as a row with one cell (the party name), section labels such as SALES, CR NOTE, DR NOTE, RECEIPT as a row with one cell, bill rows as [date, bill number, then each printed amount in the order printed, age], and every Total line as ["Total :", amounts]. Keep amounts exactly as printed with commas and minus signs. Do not skip rows and do not summarise.':
       'This is a picture or PDF of a table or list (stock items, party names, balances or transactions). Reply with JSON only, no other words, in this form: {"rows":[["cell","cell"],["cell","cell"]]}. Put the column titles in the first row if the page has them. Keep every row. Every cell is plain text.';
     return imgPrep(file).then(function(f){
       var block=f.pdf?{type:'document',source:{type:'base64',media_type:f.media,data:f.data}}:{type:'image',source:{type:'base64',media_type:f.media,data:f.data}};
@@ -4547,7 +4674,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(kind==='notebook')return parseNotebook(t);
       if(kind==='bill'){var pn=parseNotebook(t).parties,f=pn[0]||{party:'',lines:[]};return {party:f.party,lines:f.lines}}
       if(kind==='slip'||kind==='slips'){var es=parseSlips(t);return kind==='slips'?{entries:es}:(es[0]||{})}
-      var rows=String(t).split(/\r?\n/).map(function(l){return l.trim()}).filter(Boolean).map(function(l){return l.split(/\t|\s{2,}|,/).map(function(x){return x.trim()})});
+      var rows=String(t).split(/\r?\n/).map(function(l){return l.trim()}).filter(Boolean).map(function(l){return l.split(kind==='ageing'?/\t|\s{2,}/:/\t|\s{2,}|,/).map(function(x){return x.trim()})});
       return {rows:rows};
     });
   }
@@ -5415,6 +5542,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('party').addEventListener('input',function(){S[cur].party=this.value;saveDraft();if(cur==='rec'||cur==='pay')renderAlloc()});
   $('ref').addEventListener('input',function(){S[cur].ref=this.value;saveDraft()});
   $('vAmt').addEventListener('input',function(){S[cur].amount=this.value;vTotals();saveDraft();if(!$('alBox').hidden)alNote()});
+  $('vDisc').addEventListener('input',function(){S[cur].disc=this.value;vTotals();saveDraft();if(!$('alBox').hidden)alNote()});
   $('vMode').addEventListener('change',function(){S[cur].mode=this.value;saveDraft()});
   $('vCash').addEventListener('change',function(){S[cur].cash=this.checked;saveDraft()});
   $('agCash').addEventListener('change',function(){AG().cash=this.checked;saveDraft()});
@@ -5512,7 +5640,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(d.type==='led'){openLedgerEntry(d);return}
     var T=TYPES[d.type],h='',kv=function(k,v){return v===''||v==null?'':'<span>'+esc(k)+'</span><span>'+esc(v)+'</span>'};
     vsIx=i;$('vsTitle').textContent=T.short+' '+d.no;
-    h+='<div class="card meta" style="grid-template-columns:auto 1fr">'+kv('Date (B.S.)',dmy(d.date))+kv('Date (A.D.)',adSl(bsToAD(dmy(d.date)))||'')+kv('Voucher',T.short+' '+d.no)+kv(d.type==='jnl'?'Debit':'Party',d.type==='jnl'?'':(d.party||''))+(d.party2&&d.type!=='jnl'?kv('Other party',d.party2):'')+kv('Mode',d.mode||'')+kv('Status',d.status&&d.status!=='Active'?d.status:'')+kv('Entered by',d.by||'')+kv('Remarks',d.remarks||'')+'</div>';
+    h+='<div class="card meta" style="grid-template-columns:auto 1fr">'+kv('Date (B.S.)',dmy(d.date))+kv('Date (A.D.)',adSl(bsToAD(dmy(d.date)))||'')+kv('Voucher',T.short+' '+d.no)+kv(d.type==='jnl'?'Debit':'Party',d.type==='jnl'?'':(d.party||''))+(d.party2&&d.type!=='jnl'?kv('Other party',d.party2):'')+kv('Mode',d.mode||'')+(((d.type==='rec'||d.type==='pay')&&d.disc>0)?kv(d.type==='rec'?'Money received':'Money paid',fmt(d.cash!=null?d.cash:d.total-d.disc))+kv(d.type==='rec'?'Discount allowed':'Discount received',fmt(d.disc)):'')+kv('Status',d.status&&d.status!=='Active'?d.status:'')+kv('Entered by',d.by||'')+kv('Remarks',d.remarks||'')+'</div>';
     if(d.type==='jnl')h+='<div class="card reg">'+jlines(d).map(function(l){return '<div class="line"><span>'+(l.s==='d'?'Dr ':'Cr ')+esc(l.p)+'</span><span>'+fmt(l.a)+'</span></div>'}).join('')+'</div>';
     if(T.kind==='items'){
       if((d.items||[]).length){
@@ -5539,6 +5667,18 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('stPrint').addEventListener('click',function(){var r=stockReport();if(!r.empty)printCanvas(drawTable(r),r.file)});
   $('dbShare').addEventListener('click',function(){var r=dayBookReport();if(!r.empty)shareCanvas(drawTable(r),r.file,r.title)});
   $('dbPrint').addEventListener('click',function(){var r=dayBookReport();if(!r.empty)printCanvas(drawTable(r),r.file)});
+  $('lgAge').addEventListener('click',function(){
+    var nm=$('lgParty').value.trim();if(!nm)return;
+    var b=0,pm=findParty(pkey(nm));try{var lg=curLedger();b=lg.bal!=null?lg.bal:(lg.close!=null?lg.close:0)}catch(e){}
+    $('osParty').value=nm;$('osKind').value=(b<0||(pm&&pm.side==='Cr'&&!b))?'pay':'rec';$('osOn').value=todayBS();$('osView').value='sum';
+    go('report','ledger','led:age');
+  });
+  $('lgRcpt').addEventListener('click',function(){
+    var nm=$('lgParty').value.trim();if(!nm||!canEnter()){toast('You cannot enter vouchers.');return}
+    var b=0;try{var lg=curLedger();b=lg.bal!=null?lg.bal:(lg.close!=null?lg.close:0)}catch(e){}
+    var t=b<0?'pay':'rec';go('voucher',grpOfLeaf('voucher',t),t);
+    S[t].party=nm;$('party').value=nm;$('party').dispatchEvent(new Event('input',{bubbles:true}));$('party').dispatchEvent(new Event('change',{bubbles:true}));renderAlloc();$('vAmt').focus();
+  });
   $('lgNew').addEventListener('click',function(){
     if(!canEnter()){toast('Only owners and operators can create ledgers.');return}
     var nm=$('lgParty').value.trim(),idx=-1;
@@ -5790,11 +5930,17 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   $('discV').addEventListener('input',function(){S[cur].discV=this.value;totals();saveDraft()});
   $('alList').addEventListener('input',function(e){var n=e.target.getAttribute('data-no');if(n==null)return;S[cur].alloc[n]=e.target.value;saveDraft();alNote()});
   $('alAuto').addEventListener('click',function(){
-    var st=S[cur],o=pendingBills(cur,st.party),left=r2(num(st.amount));if(!o)return;
+    var st=S[cur],o=pendingBills(cur,st.party),left=r2(num(st.amount)+num(st.disc));if(!o)return;
     st.alloc={};
     o.inv.forEach(function(b){var p=r2(b.total-b.paid);if(p<=0.004||left<=0)return;var a=Math.min(p,left);st.alloc[b.no]=String(a);left=r2(left-a)});
     saveDraft();renderAlloc();
   });
+  $('osSlab').addEventListener('change',function(){
+    var a=String($('osSlab').value).split(/[^0-9]+/).map(Number).filter(function(x){return x>0&&x<1000});
+    a=a.filter(function(x,i){return a.indexOf(x)===i}).sort(function(x,y){return x-y}).slice(0,6);
+    if(!a.length)a=[30,45,60];DATA.cfg.slabs=a;DATA.cfg.at=stamp();saveData();queueAuto();$('osSlab').value=a.join(',');renderOutstanding();
+  });
+  $('osView').addEventListener('change',renderOutstanding);
   ['osKind','osOn','osParty'].forEach(function(id){$(id).addEventListener('input',renderOutstanding);$(id).addEventListener('change',renderOutstanding)});
   ['cbWhich','cbFrom','cbTo'].forEach(function(id){$(id).addEventListener('input',renderCash);$(id).addEventListener('change',renderCash)});
   ['plFrom','plTo'].forEach(function(id){$(id).addEventListener('input',renderPL)});
@@ -6133,7 +6279,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['12. Typing formulas in number boxes','In any quantity, rate, amount or discount box type = and a formula, then press Enter or Tab. It supports + - * / ^ %, brackets, SUM MIN MAX AVERAGE ROUND ABS SQRT.\nExample: =12*4.5+10 gives 64. =ROUND(100/3,2) gives 33.33.',''],
       ['13. A/C Report > Sales, Purchase, Returns, Receipt, Payment, Expense','Each has By date, By item (or mode / head) and By party. Choose the period at the top. Tap any row to go deeper: report, then party or item, then a summary of the voucher (date, party, bill no., quantity, rate), then the full voucher. Oldest entries come first, newest at the bottom.\nExample: Sales > By item > tap Paracetamol > tap Ram > tap the bill.','report|sales|sale:item'],
       ['14. A/C Report > Ledger','By party name: statement of one party; leave the name empty to see only parties with a balance. By group: totals of a group. Outstanding: bills still to receive or pay. Ageing: how old the unpaid bills are.\nExample: type "Ram" to see every bill and receipt with running balance.','report|ledger|led:party'],
-      ['15. A/C Report > Books','Day book: every entry of a period. Manual day book: pick a day, count your cash notes, compare with the expected cash and save; difference shows Short or Excess. Cash / Bank: cash book and bank book. Profit & Loss: income and expenses with gross profit.\nExample: Manual day book for today, count 1000 x 5 + 500 x 3, save.','report|books|bk:man'],
+      ['15. A/C Report > Books','Day book: every entry of a period. Manual day book: pick a day, count your cash notes, compare with the expected cash and save; difference shows Short or Excess. Cash / Bank: cash book and bank book. Profit & Loss: income and expenses with gross profit.\nExample: Manual day book for today, count 1000 x 5 + 500 x 3, save.\n\nManual day book (money in / out), now typed by you and independent of sales and ledger: first add your own headings for money in and money out (with an optional remark each; they are remembered and can be modified). Then record money in (Cash, A/c payee cheque, QR, Due) and money out (Cash, Bank, QR). One entry can be split over several modes; the lines must equal the total. Expected physical cash = total in - total out - A/c payee - QR - due (plus any money out paid by bank or QR). Type the cash you counted to see the gap. Opening balance is the previous day closing; closing = opening + in - out. Old A/c payee cheques and dues have a settlement panel: record part payments with dates, and tick Fully settled only when the remaining balance is zero. Settlements are for checking only and never change cash, bank, income or expense. Reports: heading-wise, daily gap with period conclusion, cheque, due, pending, partially settled and settled.','report|books|bk:man'],
       ['16. A/C Report > User-wise (owner only)','User summary: how many vouchers each user made and their amounts. User vouchers: list by user and type. Who changed what: when and by whom any voucher, ledger, stock item or setting was created, edited, cancelled or deleted.\nExample: choose user "operator1" and see yesterday\'s edits.','report|users|us:log'],
       ['17. Inventory > Stock','Stock summary: quantity and value of every item. Stock by item: statement of one item with every in and out. Purchase / Sales price list: latest rates. Expiry alert: items expiring soon. Stock by group: totals per stock group.\nExample: Expiry alert, 90 days.','inventory|stock|st:sum'],
       ['18. Inventory > Order book','Customer orders: what customers asked for. Supplier orders: what you ordered. Tap + New order, choose the party and date, add items with quantity, unit and remarks. Type any item name; a new name is added to your stock list. Tap an order to edit, mark completed, share or print.\nExample: Supplier order SO-0001, Amoxicillin 100 Strip, remarks "deliver Friday".','inventory|order|ob:cust'],
@@ -6144,7 +6290,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['23. Go To','The Go To button (bottom right, or Alt+/) opens a search over every tab, menu and sub-menu. Type a word and press Enter.\nExample: type "slow" and Enter to open Analysis > Slow stock.',''],
       ['24. Backup, Google Drive and several devices','Settings > Company: connect Google Drive to back up and to share the same company between devices. Passwords and user permissions travel with the company data, so a change made on one device reaches the others the next time they sync with Drive (open the app while online). Download a backup file now and then.\nExample: owner changes staff1 password on the shop PC; staff1 phone gets it after the next sync.','s:co'],
       ['25. Users, roles and permissions','Only the owner (and app admin) can add staff, change roles and passwords, and each change asks for the owner password. Owner: everything. Operator: chosen voucher types. Viewer: reports only. You can also hide Reports or Inventory for a person.\nExample: cashier = Operator with only Sales and Receipt.','a:user'],
-      ['26. Import from Excel with column mapping','Add On > Import / Export > Import. You can use your OWN Excel file; you do not need to change its headings.\n1) Choose what to import (stock items, parties and ledgers, or vouchers: Sales, Purchase, Receipt...).\n2) Choose the file. A workbook can have many worksheets: pick the one you want in "Which worksheet to import". "Automatic" reads every worksheet that matches a voucher format.\n3) Pick the row that holds the column titles. For each box of the app (Item name, Unit, Opening stock, Rate, Batch, Expiry, MRP...) choose the column of your file. The app suggests matches; change any that are wrong. Boxes marked * must be mapped. Unit, batch, expiry, MRP and packing are optional: each has a tick box; untick it (or leave "Not in my file") to skip that column.\n4) Tap Show preview, check the first rows and any warnings, then Import (owner password). Existing names are skipped, never overwritten.\nTo keep a mapping under your own name, type a name under "Save the choices above as a template" and tap Save template. Next time choose it in "My import template". Templates are kept per import type (stock, parties, each voucher kind) and are shared with all devices of the company. The app also remembers the last mapping for files with the same titles.\nExample: sheet "Stock List" with columns Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: choose sheet Stock List, then Medicine for Item name, Qty on hand for Opening stock, and so on. Expiry may be a real Excel date or text like 08/2027.\nLedger statements and voucher registers in the app\'s own format are read automatically without mapping.\n\nMore imports, each chosen separately in "What to import": Ageing / outstanding report (party balances), Stock groups (item to group), Order book, plus stock, ledgers and every voucher type. Each has its own template, and you can save your own named template for each. Nothing is duplicated: items, parties and stock groups that already exist, vouchers with the same number, vouchers with the same date, party and amount, and orders with the same party, date and items are skipped.','a:ie']
+      ['26. Import from Excel with column mapping','Add On > Import / Export > Import. You can use your OWN Excel file; you do not need to change its headings.\n1) Choose what to import (stock items, parties and ledgers, or vouchers: Sales, Purchase, Receipt...).\n2) Choose the file. A workbook can have many worksheets: pick the one you want in "Which worksheet to import". "Automatic" reads every worksheet that matches a voucher format.\n3) Pick the row that holds the column titles. For each box of the app (Item name, Unit, Opening stock, Rate, Batch, Expiry, MRP...) choose the column of your file. The app suggests matches; change any that are wrong. Boxes marked * must be mapped. Unit, batch, expiry, MRP and packing are optional: each has a tick box; untick it (or leave "Not in my file") to skip that column.\n4) Tap Show preview, check the first rows and any warnings, then Import (owner password). Existing names are skipped, never overwritten.\nTo keep a mapping under your own name, type a name under "Save the choices above as a template" and tap Save template. Next time choose it in "My import template". Templates are kept per import type (stock, parties, each voucher kind) and are shared with all devices of the company. The app also remembers the last mapping for files with the same titles.\nExample: sheet "Stock List" with columns Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: choose sheet Stock List, then Medicine for Item name, Qty on hand for Opening stock, and so on. Expiry may be a real Excel date or text like 08/2027.\nLedger statements and voucher registers in the app\'s own format are read automatically without mapping.\n\nMore imports, each chosen separately in "What to import": Ageing / outstanding report (party balances), Stock groups (item to group), Order book, plus stock, ledgers and every voucher type. Each has its own template, and you can save your own named template for each. Nothing is duplicated: items, parties and stock groups that already exist, vouchers with the same number, vouchers with the same date, party and amount, and orders with the same party, date and items are skipped.\n\nAgeing report, bill-wise: choose \"Ageing report, bill-wise\" in What to import (customers to receive or suppliers to pay), then pick your PDF, Excel or a clear photo. Party name, bill number, bill date and pending amount are read, and each bill falls in its slab (Below 30, Above 30, Above 45, Above 60 or your own days). Open it in Reports, Ledger, Ageing, or press Ageing (bill-wise) on the party ledger, and use + Receipt / payment there. Importing the same report again adds nothing. Receipt and Payment vouchers have a Discount box: money 500 + discount 120 adjusts 620 in the ledger, and only 500 enters the cash or bank book.','a:ie']
     ],
     ne:[
       ['१. सुरु गर्ने तरिका',"पहिलो पटक Create account थिचेर युजरनेम र पासवर्ड राख्नुहोस्; यो व्यक्ति मालिक/एडमिन हुन्छ। त्यसपछि कम्पनीको नाम, ठेगाना र प्यान राख्नुहोस्। धेरै कम्पनी राख्न सकिन्छ, Switch ले बदल्छ।\nउदाहरण: युजरनेम ram, कम्पनी \"राम मेडिकल हल\"। अर्को फोन वा कम्प्युटरमा सोही युजरनेमले लगइन गर्नुहोस्।",''],
@@ -6161,7 +6307,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['१२. अंकको खानामा सूत्र लेख्ने','परिमाण, दर, रकम, छुटको खानामा = लेखेर सूत्र लेख्नुहोस्, अनि Enter वा Tab थिच्नुहोस्।\nउदाहरण: =12*4.5+10 ले ६४ दिन्छ।',''],
       ['१३. खाता रिपोर्ट > बिक्री, खरिद, फिर्ता, रसिद, भुक्तानी, खर्च','मिति, सामान (वा तरिका/शीर्षक) र पार्टी अनुसार हेर्न सकिन्छ। कुनै लाइन थिचेर तल-तल जानुहोस्: रिपोर्ट → पार्टी/सामान → भौचर सारांश → पूरा भौचर। पुरानो माथि, नयाँ तल देखिन्छ।\nउदाहरण: बिक्री > सामान अनुसार > Paracetamol > राम > बिल।','report|sales|sale:item'],
       ['१४. खाता रिपोर्ट > लेजर','पार्टी अनुसार: एक पार्टीको विवरण (नाम खाली राखे बाँकी भएका पार्टी मात्र)। समूह अनुसार, बाँकी (लिन/तिर्न बाँकी बिल) र पुरानो बाँकी (Ageing)।\nउदाहरण: "Ram" लेख्दा सबै बिल, रसिद र बाँकी देखिन्छ।','report|ledger|led:party'],
-      ['१५. खाता रिपोर्ट > बुक्स','डे बुक: अवधिका सबै प्रविष्टि। म्यानुअल डे बुक: दिन छानेर नोट गन्ने, अपेक्षित नगदसँग मिलाउने र सुरक्षित गर्ने; फरक भए घटी/बढी देखिन्छ। नगद/बैंक बुक। नाफा-नोक्सान।\nउदाहरण: आजको म्यानुअल डे बुकमा १००० x ५ + ५०० x ३ गन्ने।','report|books|bk:man'],
+      ['१५. खाता रिपोर्ट > बुक्स','डे बुक: अवधिका सबै प्रविष्टि। म्यानुअल डे बुक: दिन छानेर नोट गन्ने, अपेक्षित नगदसँग मिलाउने र सुरक्षित गर्ने; फरक भए घटी/बढी देखिन्छ। नगद/बैंक बुक। नाफा-नोक्सान।\nउदाहरण: आजको म्यानुअल डे बुकमा १००० x ५ + ५०० x ३ गन्ने।\n\nम्यानुअल डे बुक (आम्दानी/खर्च, बिक्री र लेजरबाट स्वतन्त्र): आफ्नै हेडिङ बनाउनुहोस् (सम्झिन्छ, परिमार्जन गर्न मिल्छ)। रकम नगद, ए/सी पेयी चेक, QR, उधारोमा बाँडेर लेख्न सकिन्छ। अपेक्षित नगद = जम्मा आम्दानी - जम्मा खर्च - ए/सी पेयी - QR - उधारो। गनेको नगद लेख्दा फरक देखिन्छ। पुराना चेक/उधारोको भुक्तानी मिति सहित आंशिक रूपमा लेख्न सकिन्छ; बाँकी शून्य भएपछि मात्र पूर्ण भुक्तानी टिक गर्नुहोस्। यसले नगद, बैंक, आम्दानी वा खर्च बदल्दैन।','report|books|bk:man'],
       ['१६. खाता रिपोर्ट > प्रयोगकर्ता अनुसार (मालिक मात्र)','प्रयोगकर्ता सारांश, प्रयोगकर्ताका भौचर, र कसले कहिले के बदल्यो (भौचर, लेजर, सामान, सेटिङ)।\nउदाहरण: प्रयोगकर्ता operator1 छानेर हिजोको परिवर्तन हेर्नुहोस्।','report|users|us:log'],
       ['१७. मौज्दात > स्टक','स्टक सारांश, सामान अनुसार विवरण, खरिद/बिक्री मूल्य सूची, म्याद सूचना र समूह अनुसार स्टक।\nउदाहरण: म्याद सूचना, ९० दिन।','inventory|stock|st:sum'],
       ['१८. मौज्दात > अर्डर बुक','ग्राहक अर्डर र आपूर्तिकर्ता अर्डर। + नयाँ अर्डर थिचेर पार्टी, मिति, सामान, परिमाण, एकाइ र टिप्पणी राख्नुहोस्। नयाँ सामानको नाम लेखे स्टक सूचीमा थपिन्छ।\nउदाहरण: SO-0001, Amoxicillin १०० Strip, "शुक्रबार पठाउनु"।','inventory|order|ob:cust'],
@@ -6172,7 +6318,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['२३. Go To (जानुहोस्)','दायाँ तल Go To बटन वा Alt+/ थिचेर कुनै पनि ट्याब, मेनु, उपमेनु खोज्नुहोस् र Enter थिच्नुहोस्।\nउदाहरण: "slow" लेखेर Enter।',''],
       ['२४. ब्याकअप, गुगल ड्राइभ र धेरै उपकरण','सेटिङ > कम्पनीमा गुगल ड्राइभ जोडेपछि ब्याकअप हुन्छ र उपकरणहरूबीच डेटा मिल्छ। पासवर्ड र अनुमति पनि कम्पनीको डेटासँगै जान्छ; अर्को उपकरणमा अर्को पटक इन्टरनेटमा सिंक हुँदा लागु हुन्छ।','s:co'],
       ['२५. प्रयोगकर्ता र अनुमति','मालिक/एडमिनले मात्र कर्मचारी थप्न, भूमिका र पासवर्ड बदल्न सक्छ; हरेक परिवर्तनमा मालिकको पासवर्ड सोधिन्छ। मालिक: सबै। सञ्चालक: रोजेका भौचर। हेर्ने: रिपोर्ट मात्र।','a:user'],
-      ['२६. एक्सेलबाट आयात (स्तम्भ मिलान सहित)','Add On > Import / Export > Import। तपाईंको आफ्नै एक्सेल फाइल प्रयोग गर्न सकिन्छ; शीर्षक बदल्न पर्दैन।\n१) के आयात गर्ने रोज्नुहोस् (सामान, पार्टी/लेजर वा भौचर)।\n२) फाइल रोज्नुहोस्। एउटा फाइलमा धेरै वर्कशीट भए "Which worksheet to import" बाट चाहिएको शीट रोज्नुहोस्।\n३) शीर्षक भएको पङ्क्ति रोज्नुहोस्। एपका हरेक खाना (सामानको नाम, एकाइ, सुरुको स्टक, दर, ब्याच, म्याद, MRP...) का लागि आफ्नो फाइलको स्तम्भ रोज्नुहोस्। * भएका अनिवार्य हुन्; ब्याच, म्याद, MRP ऐच्छिक हुन्, चाहिँदैन भने "Not in my file" छोड्नुहोस्।\n४) Show preview थिचेर जाँच्नुहोस्, त्यसपछि Import (मालिकको पासवर्ड)। पहिलेदेखि भएका नाम नमेटिई छोडिन्छन्।\nआफ्नै नाम दिएर मिलान सुरक्षित गर्न "Save the choices above as a template" मा नाम लेखेर Save template थिच्नुहोस्; अर्को पटक "My import template" बाट रोज्नुहोस्। टेम्प्लेट आयातको प्रकार अनुसार छुट्टै रहन्छ र कम्पनीका सबै उपकरणमा चल्छ।\nउदाहरण: शीट "Stock List" मा Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट रोजेर Medicine लाई सामानको नाम, Qty on hand लाई सुरुको स्टक मिलाउनुहोस्।\n\nअन्य आयात: एजिङ/बाँकी रिपोर्ट, स्टक समूह, अर्डर बुक, स्टक, लेजर र सबै भौचर, \"What to import\" बाट छुट्टाछुट्टै। सबैको आफ्नै टेम्प्लेट बनाउन सकिन्छ। दोहोरो डाटा आयात हुँदैन।','a:ie']
+      ['२६. एक्सेलबाट आयात (स्तम्भ मिलान सहित)','Add On > Import / Export > Import। तपाईंको आफ्नै एक्सेल फाइल प्रयोग गर्न सकिन्छ; शीर्षक बदल्न पर्दैन।\n१) के आयात गर्ने रोज्नुहोस् (सामान, पार्टी/लेजर वा भौचर)।\n२) फाइल रोज्नुहोस्। एउटा फाइलमा धेरै वर्कशीट भए "Which worksheet to import" बाट चाहिएको शीट रोज्नुहोस्।\n३) शीर्षक भएको पङ्क्ति रोज्नुहोस्। एपका हरेक खाना (सामानको नाम, एकाइ, सुरुको स्टक, दर, ब्याच, म्याद, MRP...) का लागि आफ्नो फाइलको स्तम्भ रोज्नुहोस्। * भएका अनिवार्य हुन्; ब्याच, म्याद, MRP ऐच्छिक हुन्, चाहिँदैन भने "Not in my file" छोड्नुहोस्।\n४) Show preview थिचेर जाँच्नुहोस्, त्यसपछि Import (मालिकको पासवर्ड)। पहिलेदेखि भएका नाम नमेटिई छोडिन्छन्।\nआफ्नै नाम दिएर मिलान सुरक्षित गर्न "Save the choices above as a template" मा नाम लेखेर Save template थिच्नुहोस्; अर्को पटक "My import template" बाट रोज्नुहोस्। टेम्प्लेट आयातको प्रकार अनुसार छुट्टै रहन्छ र कम्पनीका सबै उपकरणमा चल्छ।\nउदाहरण: शीट "Stock List" मा Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट रोजेर Medicine लाई सामानको नाम, Qty on hand लाई सुरुको स्टक मिलाउनुहोस्।\n\nअन्य आयात: एजिङ/बाँकी रिपोर्ट, स्टक समूह, अर्डर बुक, स्टक, लेजर र सबै भौचर, \"What to import\" बाट छुट्टाछुट्टै। सबैको आफ्नै टेम्प्लेट बनाउन सकिन्छ। दोहोरो डाटा आयात हुँदैन।\n\nबिल अनुसार एजिङ आयात: What to import मा \"Ageing report, bill-wise\" छानी PDF, Excel वा फोटो दिनुहोस्। पार्टी, बिल नं., मिति र बाँकी रकम पढिन्छ। लेजरबाट एजिङ खोल्न र रसिद थप्न सकिन्छ। रसिद/भुक्तानीमा छुट: नगद 500 + छुट 120 = लेजरमा 620। दोहोरो डाटा आयात हुँदैन।','a:ie']
     ],
     hi:[
       ['1. शुरू करना',"पहली बार Create account दबाकर यूज़रनेम और पासवर्ड बनाएँ; यह व्यक्ति मालिक/एडमिन होगा। फिर कंपनी का नाम, पता और PAN भरें। कई कंपनियाँ रख सकते हैं, Switch से बदलें।\nउदाहरण: यूज़रनेम ram, कंपनी \"राम मेडिकल हॉल\"। दूसरे फोन/पीसी पर उसी यूज़रनेम से लॉगिन करें।",''],
@@ -6189,7 +6335,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['12. संख्या वाले खानों में सूत्र','मात्रा, दर, रकम, छूट के खाने में = लिखकर सूत्र लिखें, फिर Enter या Tab दबाएँ।\nउदाहरण: =12*4.5+10 से 64 मिलता है।',''],
       ['13. A/C रिपोर्ट > बिक्री, खरीद, वापसी, रसीद, भुगतान, खर्च','तारीख, आइटम (या तरीका/मद) और पार्टी के अनुसार देखें। किसी भी पंक्ति को दबाकर गहराई में जाएँ: रिपोर्ट → पार्टी/आइटम → वाउचर सार → पूरा वाउचर। पुराना ऊपर, नए नीचे दिखते हैं।\nउदाहरण: बिक्री > आइटम अनुसार > Paracetamol > राम > बिल।','report|sales|sale:item'],
       ['14. A/C रिपोर्ट > लेजर','पार्टी अनुसार: एक पार्टी का विवरण (नाम खाली हो तो केवल बकाया वाली पार्टियाँ)। समूह अनुसार, बकाया और उम्र अनुसार बकाया (Ageing)।\nउदाहरण: "Ram" लिखने पर सभी बिल, रसीद और शेष दिखता है।','report|ledger|led:party'],
-      ['15. A/C रिपोर्ट > बुक्स','डे बुक: अवधि की सभी प्रविष्टियाँ। मैनुअल डे बुक: दिन चुनें, नोट गिनें, अपेक्षित नकद से मिलाएँ और सेव करें; अंतर हो तो कम/ज़्यादा दिखता है। नकद/बैंक बुक। लाभ-हानि।\nउदाहरण: आज की मैनुअल डे बुक में 1000 x 5 + 500 x 3 गिनें।','report|books|bk:man'],
+      ['15. A/C रिपोर्ट > बुक्स','डे बुक: अवधि की सभी प्रविष्टियाँ। मैनुअल डे बुक: दिन चुनें, नोट गिनें, अपेक्षित नकद से मिलाएँ और सेव करें; अंतर हो तो कम/ज़्यादा दिखता है। नकद/बैंक बुक। लाभ-हानि।\nउदाहरण: आज की मैनुअल डे बुक में 1000 x 5 + 500 x 3 गिनें।\n\nमैनुअल डे बुक (आमद/खर्च, बिक्री और लेजर से स्वतंत्र): अपने हेडिंग बनाएँ (याद रहते हैं, बदल सकते हैं)। रकम नकद, ए/सी पेयी चेक, QR, उधार में बाँटकर लिखें। अपेक्षित नकद = कुल आमद - कुल खर्च - ए/सी पेयी - QR - उधार। गिना हुआ नकद लिखने पर अंतर दिखता है। पुराने चेक/उधार का आंशिक भुगतान तारीख सहित लिखें; शेष शून्य होने पर ही पूर्ण भुगतान टिक करें। इससे नकद, बैंक, आय या खर्च नहीं बदलता।','report|books|bk:man'],
       ['16. A/C रिपोर्ट > यूज़र अनुसार (केवल मालिक)','यूज़र सार, यूज़र के वाउचर, और किसने कब क्या बदला (वाउचर, लेजर, आइटम, सेटिंग)।\nउदाहरण: यूज़र operator1 चुनकर कल के बदलाव देखें।','report|users|us:log'],
       ['17. इन्वेंटरी > स्टॉक','स्टॉक सार, आइटम अनुसार विवरण, खरीद/बिक्री मूल्य सूची, एक्सपायरी अलर्ट और समूह अनुसार स्टॉक।\nउदाहरण: एक्सपायरी अलर्ट, 90 दिन।','inventory|stock|st:sum'],
       ['18. इन्वेंटरी > ऑर्डर बुक','ग्राहक ऑर्डर और सप्लायर ऑर्डर। + नया ऑर्डर दबाकर पार्टी, तारीख, आइटम, मात्रा, यूनिट और टिप्पणी भरें। नया आइटम नाम लिखें तो स्टॉक सूची में जुड़ जाता है।\nउदाहरण: SO-0001, Amoxicillin 100 Strip, "शुक्रवार भेजें"।','inventory|order|ob:cust'],
@@ -6200,7 +6346,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       ['23. Go To (जाएँ)','दाएँ नीचे Go To बटन या Alt+/ दबाकर किसी भी टैब, मेनू, उप-मेनू को खोजें और Enter दबाएँ।\nउदाहरण: "slow" लिखकर Enter।',''],
       ['24. बैकअप, गूगल ड्राइव और कई डिवाइस','सेटिंग्स > कंपनी में गूगल ड्राइव जोड़ने से बैकअप होता है और डिवाइस के बीच डेटा मिलता है। पासवर्ड और अनुमतियाँ भी कंपनी डेटा के साथ जाती हैं; दूसरे डिवाइस पर अगली बार इंटरनेट पर सिंक होने पर लागू होती हैं।','s:co'],
       ['25. यूज़र और अनुमतियाँ','केवल मालिक/एडमिन स्टाफ जोड़ सकता है, भूमिका और पासवर्ड बदल सकता है; हर बदलाव पर मालिक का पासवर्ड पूछा जाता है। मालिक: सब। ऑपरेटर: चुने वाउचर। व्यूअर: केवल रिपोर्ट।','a:user'],
-      ['26. एक्सेल से इम्पोर्ट (कॉलम मैपिंग के साथ)','Add On > Import / Export > Import। आप अपनी ही एक्सेल फ़ाइल इस्तेमाल कर सकते हैं; हेडिंग बदलने की ज़रूरत नहीं।\n1) क्या इम्पोर्ट करना है चुनें (आइटम, पार्टी/लेजर या वाउचर)।\n2) फ़ाइल चुनें। एक फ़ाइल में कई वर्कशीट हों तो "Which worksheet to import" में ज़रूरी शीट चुनें।\n3) शीर्षक वाली पंक्ति चुनें। ऐप के हर खाने (आइटम नाम, यूनिट, शुरुआती स्टॉक, दर, बैच, एक्सपायरी, MRP...) के लिए अपनी फ़ाइल का कॉलम चुनें। * वाले ज़रूरी हैं; बैच, एक्सपायरी, MRP वैकल्पिक हैं, न चाहिए तो "Not in my file" रहने दें।\n4) Show preview दबाकर जाँचें, फिर Import (मालिक का पासवर्ड)। पहले से मौजूद नाम छोड़ दिए जाते हैं।\nअपने नाम से मैपिंग सेव करने के लिए "Save the choices above as a template" में नाम लिखकर Save template दबाएँ; अगली बार "My import template" से चुनें। टेम्पलेट इम्पोर्ट के प्रकार के अनुसार अलग रहते हैं और कंपनी के सभी डिवाइस पर चलते हैं।\nउदाहरण: शीट "Stock List" में Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट चुनकर Medicine को आइटम नाम और Qty on hand को शुरुआती स्टॉक से जोड़ें।\n\nअन्य इम्पोर्ट: एजिंग/बकाया रिपोर्ट, स्टॉक ग्रुप, ऑर्डर बुक, स्टॉक, लेजर और सभी वाउचर, \"What to import\" से अलग-अलग। हर एक का अपना टेम्पलेट बना सकते हैं। डुप्लिकेट डाटा इम्पोर्ट नहीं होता।','a:ie']
+      ['26. एक्सेल से इम्पोर्ट (कॉलम मैपिंग के साथ)','Add On > Import / Export > Import। आप अपनी ही एक्सेल फ़ाइल इस्तेमाल कर सकते हैं; हेडिंग बदलने की ज़रूरत नहीं।\n1) क्या इम्पोर्ट करना है चुनें (आइटम, पार्टी/लेजर या वाउचर)।\n2) फ़ाइल चुनें। एक फ़ाइल में कई वर्कशीट हों तो "Which worksheet to import" में ज़रूरी शीट चुनें।\n3) शीर्षक वाली पंक्ति चुनें। ऐप के हर खाने (आइटम नाम, यूनिट, शुरुआती स्टॉक, दर, बैच, एक्सपायरी, MRP...) के लिए अपनी फ़ाइल का कॉलम चुनें। * वाले ज़रूरी हैं; बैच, एक्सपायरी, MRP वैकल्पिक हैं, न चाहिए तो "Not in my file" रहने दें।\n4) Show preview दबाकर जाँचें, फिर Import (मालिक का पासवर्ड)। पहले से मौजूद नाम छोड़ दिए जाते हैं।\nअपने नाम से मैपिंग सेव करने के लिए "Save the choices above as a template" में नाम लिखकर Save template दबाएँ; अगली बार "My import template" से चुनें। टेम्पलेट इम्पोर्ट के प्रकार के अनुसार अलग रहते हैं और कंपनी के सभी डिवाइस पर चलते हैं।\nउदाहरण: शीट "Stock List" में Medicine, Pack Unit, Qty on hand, Cost, M.R.P., Batch No, Exp Date: शीट चुनकर Medicine को आइटम नाम और Qty on hand को शुरुआती स्टॉक से जोड़ें।\n\nअन्य इम्पोर्ट: एजिंग/बकाया रिपोर्ट, स्टॉक ग्रुप, ऑर्डर बुक, स्टॉक, लेजर और सभी वाउचर, \"What to import\" से अलग-अलग। हर एक का अपना टेम्पलेट बना सकते हैं। डुप्लिकेट डाटा इम्पोर्ट नहीं होता।\n\nबिल-वार एजिंग इम्पोर्ट: What to import में \"Ageing report, bill-wise\" चुनकर PDF, Excel या फोटो दें। पार्टी, बिल नं., तारीख और बकाया पढ़ा जाता है। लेजर से एजिंग खोल सकते हैं और रसीद जोड़ सकते हैं। रसीद/भुगतान में छूट: नकद 500 + छूट 120 = लेजर में 620। डुप्लिकेट इम्पोर्ट नहीं होता।','a:ie']
     ]
   };
   var HLANG=[['en','English'],['ne','नेपाली (Nepali)'],['hi','हिन्दी (Hindi)'],['mai','Maithili'],['new','Nepal Bhasa'],['bho','Bhojpuri'],['ur','Urdu'],['bn','Bengali'],['gu','Gujarati'],['mr','Marathi'],['ta','Tamil'],['te','Telugu'],['zh-CN','Chinese'],['ar','Arabic'],['es','Spanish'],['fr','French'],['ja','Japanese'],['ko','Korean']];
@@ -6237,7 +6383,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     var open=num(DATA.cfg.openCash),inn=0,out=0,list=[];
     DATA.docs.forEach(function(d,i){
       if(!live(d)||(d.type!=='rec'&&d.type!=='pay'&&d.type!=='exp')||d.mode!=='Cash')return;
-      var dt=dmy(d.date),a=d.type==='rec'?d.total:0,b=d.type==='rec'?0:d.total;
+      var dt=dmy(d.date),a=d.type==='rec'?cashAmt(d):0,b=d.type==='rec'?0:cashAmt(d);
       if(dt<day)open=r2(open+a-b);
       else if(dt===day){inn=r2(inn+a);out=r2(out+b);list.push({d:d,i:i,a:a,b:b})}
     });
@@ -6294,6 +6440,288 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   });
   repBtn('mdShare',mdReport,true);repBtn('mdPrint',mdReport,false);
 
+  /* ---------- Daily day book (money in / out, cash gap, settlement tracking) ---------- */
+  var DDM_IN=[['cash','Cash'],['acc','A/c payee cheque'],['qr','QR received'],['due','Due (short period)']],DDM_OUT=[['cash','Cash'],['bank','Bank / A/c payee'],['qr','QR paid']];
+  var DD={ed:null,dir:'in'};
+  function ddMName(dir,m){var l=dir==='in'?DDM_IN:DDM_OUT,r='';l.forEach(function(x){if(x[0]===m)r=x[1]});return r||m}
+  function ddHArr(){if(!Array.isArray(DATA.cfg.ddh))DATA.cfg.ddh=[];return DATA.cfg.ddh}
+  function ddHeadsOf(dir){var m={},r=[];ddHArr().forEach(function(h){if(!h.del&&h.dir===dir&&!m[h.name.toLowerCase()]){m[h.name.toLowerCase()]=1;r.push(h)}});r.sort(function(a,b){return a.name.toLowerCase()<b.name.toLowerCase()?-1:1});return r}
+  function ddHFind(dir,name){var n=String(name).trim().toLowerCase(),r=null;ddHArr().forEach(function(h){if(!h.del&&h.dir===dir&&h.name.toLowerCase()===n)r=h});return r}
+  function ddHRemember(dir,name,rem){if(!name||ddHFind(dir,name))return;ddHArr().push({id:newUid(),dir:dir,name:name,rem:rem||'',at:stamp()})}
+  function ddArr(){if(!Array.isArray(DATA.cfg.ddb))DATA.cfg.ddb=[];return DATA.cfg.ddb}
+  function ddCnt(){if(!DATA.cfg.ddc||typeof DATA.cfg.ddc!=='object')DATA.cfg.ddc={};return DATA.cfg.ddc}
+  function ddLive(){return ddArr().filter(function(e){return !e.del})}
+  function ddDay(){return normBS($('ddDate').value)||''}
+  function ddSave(){DATA.cfg.at=stamp();saveData();queueAuto()}
+  function ddSet(e,m){return (e.set&&e.set[m])||{h:[],full:false,fd:''}}
+  function ddSetSum(e,m){var t=0;ddSet(e,m).h.forEach(function(x){t=r2(t+x.a)});return t}
+  function ddLine(e,m){var t=0;(e.alloc||[]).forEach(function(l){if(l.m===m)t=r2(t+l.a)});return t}
+  function ddStatus(e,m){var s=ddSet(e,m),sum=ddSetSum(e,m);return s.full?'Settled':(sum>0.004?'Partially Settled':'Pending')}
+  function ddItems(){
+    var r=[];
+    ddLive().forEach(function(e){if(e.dir!=='in')return;['acc','due'].forEach(function(m){var a=ddLine(e,m);if(a>0)r.push({e:e,m:m,total:a,sum:ddSetSum(e,m),st:ddStatus(e,m),key:e.id+':'+m})})});
+    r.sort(function(a,b){return a.e.date<b.e.date?-1:(a.e.date>b.e.date?1:0)});
+    return r;
+  }
+  function ddCalc(day){
+    var open=num(DATA.cfg.ddOpen),t={cin:0,acc:0,qr:0,due:0,ocash:0,obank:0,oqr:0,inn:0,out:0},list=[];
+    ddLive().forEach(function(e){
+      if(e.date<day){open=r2(open+(e.dir==='in'?e.total:-e.total));return}
+      if(e.date!==day)return;
+      list.push(e);
+      if(e.dir==='in'){t.inn=r2(t.inn+e.total);e.alloc.forEach(function(l){var k=l.m==='cash'?'cin':l.m;t[k]=r2(t[k]+l.a)})}
+      else{t.out=r2(t.out+e.total);e.alloc.forEach(function(l){var k=l.m==='cash'?'ocash':(l.m==='bank'?'obank':'oqr');t[k]=r2(t[k]+l.a)})}
+    });
+    t.nonc=r2(t.obank+t.oqr);
+    t.exp=r2(t.inn-t.out-t.acc-t.qr-t.due+t.nonc);
+    t.open=open;t.close=r2(open+t.inn-t.out);t.list=list;
+    return t;
+  }
+  function ddRenderSum(){
+    var day=ddDay();if(!day){$('ddSum').innerHTML='<div class="note">Enter a valid date.</div>';return}
+    var c=ddCalc(day),cnt=ddCnt()[day],ln=function(a,b,bold){return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px'+(bold?';font-weight:700':'')+'"><span>'+a+'</span><span>'+b+'</span></div>'};
+    $('ddSum').innerHTML='<div class="card">'+ln('Opening balance (previous day closing)','Rs '+fmt(c.open),1)+ln('+ Total money in','Rs '+fmt(c.inn))+ln('&minus; Total money out','Rs '+fmt(c.out))+ln('= Closing balance','Rs '+fmt(c.close),1)+'</div>'+
+      '<div class="card"><b>Expected physical cash</b>'+ln('Total in','Rs '+fmt(c.inn))+ln('&minus; Total out','Rs '+fmt(c.out))+ln('&minus; A/c payee cheque','Rs '+fmt(c.acc))+ln('&minus; QR received','Rs '+fmt(c.qr))+ln('&minus; Due','Rs '+fmt(c.due))+(c.nonc?ln('+ Money out that was paid by bank or QR, not cash','Rs '+fmt(c.nonc)):'')+ln('= Expected physical cash','Rs '+fmt(c.exp),1)+'</div>';
+    ddGap();
+  }
+  function ddGap(){
+    var day=ddDay(),c=ddCalc(day),v=$('ddCash').value.trim();
+    if(v===''){$('ddGap').textContent='Gap: enter the physical cash counted.';$('ddGap').style.color='';return}
+    var got=r2(num(v)),g=r2(got-c.exp);
+    $('ddGap').textContent='Expected '+fmt(c.exp)+'   Counted '+fmt(got)+'   Gap '+(g===0?'0.00 (tally)':(g<0?'SHORT by '+fmt(-g):'OVER by '+fmt(g)));
+    $('ddGap').style.color=g===0?'':'#c0392b';
+  }
+  function ddRenderList(){
+    var day=ddDay(),c=ddCalc(day);
+    $('ddList').innerHTML=c.list.length?c.list.map(function(e){
+      var al=e.alloc.map(function(l){return esc(ddMName(e.dir,l.m))+' '+fmt(l.a)}).join(', ');
+      return '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+(e.dir==='in'?'IN':'OUT')+' &middot; '+esc(e.head)+'</b><b>'+fmt(e.total)+'</b></div><div class="note" style="margin:2px 0">'+esc(e.party||'')+(e.ref?' &middot; ref '+esc(e.ref):'')+(e.rem?' &middot; '+esc(e.rem):'')+'</div><div>'+al+'</div><div class="btns" style="margin-top:6px"><button class="btn2" data-dde="'+e.id+'" type="button">Edit</button><button class="btn2" data-ddd="'+e.id+'" type="button">Delete</button></div></div>';
+    }).join(''):'<div class="note">No entries on this day. Use + Money in or + Money out.</div>';
+    ddRenderHeads();
+    $('ddParties').innerHTML=DATA.parties.slice(0,3000).map(function(p){return '<option value="'+esc(p.name)+'">'}).join('');
+  }
+  function ddRenderHeads(){
+    ['in','out'].forEach(function(d){$(d==='in'?'ddHeadsIn':'ddHeadsOut').innerHTML=ddHeadsOf(d).map(function(h){return '<option value="'+esc(h.name)+'">'}).join('')});
+    var h='';
+    [['in','Money in headings'],['out','Money out headings']].forEach(function(g){
+      var L=ddHeadsOf(g[0]);
+      h+='<div class="card"><b>'+g[1]+'</b>'+(L.length?L.map(function(x){return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>'+esc(x.name)+(x.rem?' <span class="note" style="margin:0">- '+esc(x.rem)+'</span>':'')+'</span><span style="white-space:nowrap"><button class="btn2" data-ddhe="'+x.id+'" type="button" style="min-width:0;padding:2px 10px">Modify</button> <button class="btn2" data-ddhd="'+x.id+'" type="button" style="min-width:0;padding:2px 10px">Delete</button></span></div>'}).join(''):'<div class="note" style="margin:2px 0 0">None yet.</div>')+'</div>';
+    });
+    $('ddhList').innerHTML=h;
+    var keep={};[].forEach.call($('ddHeadPick').querySelectorAll('input:checked'),function(i){keep[i.value]=1});
+    var all=ddHeadsOf('in').map(function(x){return ['in',x.name]}).concat(ddHeadsOf('out').map(function(x){return ['out',x.name]}));
+    $('ddHeadPick').innerHTML=all.length?all.map(function(x,i){var v=x[0]+'|'+x[1];return '<div class="chk" style="margin:2px 0"><input type="checkbox" value="'+esc(v)+'" id="ddhp'+i+'" aria-labelledby="ddhpt'+i+'"'+(keep[v]?' checked':'')+'><span id="ddhpt'+i+'">'+(x[0]==='in'?'In: ':'Out: ')+esc(x[1])+'</span></div>'}).join(''):'<div class="note" style="margin:0">Add headings above first.</div>';
+  }
+  var DDH={ed:null};
+  function ddhReset(){DDH.ed=null;$('ddhName').value='';$('ddhRem').value='';$('ddhSave').textContent='Add heading';$('ddhCancel').hidden=true}
+  $('ddhCancel').addEventListener('click',ddhReset);
+  $('ddhSave').addEventListener('click',function(){
+    if(!canEnter()){toast('You cannot change headings.');return}
+    var dir=$('ddhDir').value,name=$('ddhName').value.trim().replace(/\s+/g,' '),rem=$('ddhRem').value.trim();
+    if(!name){toast('Type the heading name.');return}
+    var dup=ddHFind(dir,name);
+    if(DDH.ed){
+      var h=ddHArr().filter(function(x){return x.id===DDH.ed})[0];if(!h){ddhReset();return}
+      if(dup&&dup.id!==h.id){toast('This heading already exists.');return}
+      var oldN=h.name,oldD=h.dir;
+      if(oldN!==name||oldD!==dir){ddArr().forEach(function(e){if(!e.del&&e.dir===oldD&&e.head===oldN){e.head=name;e.at=stamp()}})}
+      h.name=name;h.dir=dir;h.rem=rem;h.at=stamp();
+    }else{
+      if(dup){toast('This heading already exists.');return}
+      ddHArr().push({id:newUid(),dir:dir,name:name,rem:rem,at:stamp()});
+    }
+    ddSave();logAct('Day book','Heading '+(DDH.ed?'modified: ':'added: ')+name);ddhReset();renderDD();toast('Heading saved.');
+  });
+  $('ddhList').addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b)return;
+    var id=b.getAttribute('data-ddhe')||b.getAttribute('data-ddhd'),h=ddHArr().filter(function(x){return x.id===id})[0];if(!h)return;
+    if(b.getAttribute('data-ddhe')){DDH.ed=h.id;$('ddhDir').value=h.dir;$('ddhName').value=h.name;$('ddhRem').value=h.rem||'';$('ddhSave').textContent='Save heading';$('ddhCancel').hidden=false;$('ddhBox').scrollIntoView({block:'center'});$('ddhName').focus();return}
+    if(!canEnter()){toast('You cannot change headings.');return}
+    if(confirm('Delete the heading "'+h.name+'"? Old entries keep their text.')){h.del=true;h.at=stamp();ddSave();renderDD()}
+  });
+  function ddRenderSet(){
+    var today=todayBS(),all=ddItems(),show=$('ddShowSet').checked,old=all.filter(function(i){return i.e.date<today&&(show||i.st!=='Settled')}),fresh=all.filter(function(i){return i.e.date>=today&&i.st!=='Settled'}).length;
+    var h=fresh?'<div class="note">'+fresh+' cheque/due item(s) dated today become trackable from tomorrow.</div>':'';
+    h+=old.length?old.map(function(it){
+      var s=ddSet(it.e,it.m),rem=r2(it.total-it.sum),run=it.total;
+      var hist=s.h.map(function(x,i){run=r2(run-x.a);return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(x.d)+' &middot; paid '+fmt(x.a)+' &middot; remaining '+fmt(run)+'</span>'+(s.full?'':'<button class="btn2" data-ddx="'+it.key+'|'+i+'" type="button" style="min-width:0;padding:2px 8px">Remove</button>')+'</div>'}).join('');
+      return '<div class="card" data-ddk="'+it.key+'"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(it.e.date)+' &middot; '+esc(it.e.party||it.e.head)+'</b><span class="tag '+(it.st==='Settled'?'grn':'')+'">'+it.st+'</span></div><div class="note" style="margin:2px 0">'+(it.m==='acc'?'A/c payee cheque':'Due')+(it.e.ref?' &middot; ref '+esc(it.e.ref):'')+' &middot; Amount '+fmt(it.total)+' &middot; Settled '+fmt(it.sum)+' &middot; <b>Remaining '+fmt(rem)+'</b></div>'+hist+
+        (s.full?'<div class="note" style="margin:4px 0 0">Fully settled on '+esc(s.fd||'')+'.</div>':'<div class="meta" style="margin-top:6px"><div><label>Partial amount (Rs)</label><input data-ddpa type="text" inputmode="decimal" placeholder="'+fmt(rem)+'" autocomplete="off"></div><div><label>Settlement date</label><input data-ddpd data-dt="1" type="text" inputmode="numeric" maxlength="10" value="'+today+'" autocomplete="off"></div><div class="full btns" style="margin-top:0"><button class="btn2" data-ddp="'+it.key+'" type="button">Record settlement</button><button class="btn2" data-ddr="'+it.key+'" type="button">Settle the full remaining</button></div></div>')+
+        '<div class="chk" style="margin:8px 0 0"><input type="checkbox" data-ddf="'+it.key+'" aria-labelledby="ddft'+it.key.replace(/\W/g,'')+'"'+(s.full?' checked':'')+((rem>0.004&&!s.full)?' disabled':'')+'><span id="ddft'+it.key.replace(/\W/g,'')+'">Fully settled'+(rem>0.004&&!s.full?' (available when the remaining balance is zero)':'')+'</span></div></div>';
+    }).join(''):'<div class="note">'+(all.length?'No old pending cheques or dues.':'No A/c payee cheque or due entries yet.')+'</div>';
+    $('ddSet').innerHTML=h;
+  }
+  function renderDD(){
+    if(!$('ddDate').value)$('ddDate').value=todayBS();
+    if(!$('ddFrom').value)$('ddFrom').value=todayBS().slice(0,8)+'01';
+    if(!$('ddTo').value)$('ddTo').value=todayBS();
+    var day=ddDay();
+    if($('ddDate').getAttribute('data-ld')!==day){$('ddDate').setAttribute('data-ld',day);var r=ddCnt()[day];$('ddCash').value=r&&r.cash!=null?String(r.cash):'';$('ddRem').value=r&&r.rem||''}
+    if(document.activeElement!==$('ddOpenB'))$('ddOpenB').value=DATA.cfg.ddOpen?String(DATA.cfg.ddOpen):'';
+    ddRenderSum();ddRenderList();ddRenderSet();ddRepRender();
+  }
+  function ddShift(n){var a=bsToAD(ddDay()||todayBS());if(!a)return;var q=a.split('-'),b=adToBS(adIsoOf(Date.UTC(+q[0],+q[1]-1,+q[2])+n*864e5));if(b){$('ddDate').value=b;renderDD()}}
+  $('ddPrev').addEventListener('click',function(){ddShift(-1)});$('ddNext').addEventListener('click',function(){ddShift(1)});
+  $('ddToday').addEventListener('click',function(){$('ddDate').value=todayBS();renderDD()});
+  ['input','change'].forEach(function(ev){$('ddDate').addEventListener(ev,function(){if(ddDay())renderDD()})});
+  $('ddCash').addEventListener('input',ddGap);
+  $('ddOpenB').addEventListener('change',function(){DATA.cfg.ddOpen=r2(num(this.value));ddSave();renderDD()});
+  $('ddSaveCnt').addEventListener('click',function(){
+    var day=ddDay();if(!day){toast('Enter a valid date.');return}
+    var cv=$('ddCash').value.trim();if(cv===''){toast('Type the physical cash counted.');return}
+    if(/^\s*=/.test(cv)&&!fxApply($('ddCash')))return;
+    var c=ddCalc(day),got=r2(num($('ddCash').value));
+    ddCnt()[day]={cash:got,exp:c.exp,gap:r2(got-c.exp),rem:$('ddRem').value.trim(),by:user.username,at:stamp()};
+    ddSave();toast('Counted cash saved for '+day+'.');ddRepRender();
+  });
+  /* entry form */
+  function ddAllocRow(m,a,dir){
+    var opts=(dir==='in'?DDM_IN:DDM_OUT).map(function(x){return '<option value="'+x[0]+'"'+(x[0]===m?' selected':'')+'>'+x[1]+'</option>'}).join('');
+    return '<div class="lg" style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><select data-dam style="flex:1.4">'+opts+'</select><input data-daa type="text" inputmode="decimal" placeholder="Amount" value="'+(a==null?'':a)+'" style="flex:1" autocomplete="off"><button class="btn2" data-dax type="button" style="min-width:0;padding:4px 10px" aria-label="Remove line">&times;</button></div>';
+  }
+  function ddAllocRead(){
+    var r=[];[].forEach.call($('ddfAlloc').children,function(d){var a=r2(num(d.querySelector('[data-daa]').value));r.push({m:d.querySelector('[data-dam]').value,a:a})});return r;
+  }
+  function ddAllocLeft(){
+    var t=r2(num($('ddfTotal').value)),s=0;ddAllocRead().forEach(function(l){s=r2(s+l.a)});
+    var d=r2(t-s);$('ddfLeft').textContent='Allocated '+fmt(s)+' of '+fmt(t)+(Math.abs(d)<0.005?'  (matches)':(d>0?'  Still to allocate '+fmt(d):'  Over by '+fmt(-d)));
+    $('ddfLeft').style.color=Math.abs(d)<0.005?'':'#c0392b';
+  }
+  function ddOpenForm(dir,e){
+    if(!canEnter()){toast('You cannot enter data.');return}
+    DD.ed=e?e.id:null;DD.dir=e?e.dir:dir;$('ddfHead').setAttribute('list',DD.dir==='in'?'ddHeadsIn':'ddHeadsOut');
+    $('ddfTitle').textContent=(e?'Edit ':'')+(DD.dir==='in'?'Money in':'Money out');
+    $('ddfDate').value=e?e.date:ddDay()||todayBS();$('ddfHead').value=e?e.head:'';$('ddfParty').value=e?e.party||'':'';$('ddfTotal').value=e?String(e.total):'';$('ddfRef').value=e?e.ref||'':'';$('ddfRemk').value=e?e.rem||'':'';
+    $('ddfAlloc').innerHTML=(e?e.alloc:[{m:'cash',a:null}]).map(function(l){return ddAllocRow(l.m,l.a,DD.dir)}).join('');
+    $('ddForm').hidden=false;ddAllocLeft();$('ddForm').scrollIntoView({block:'center'});$('ddfHead').focus();
+  }
+  $('ddAddIn').addEventListener('click',function(){ddOpenForm('in')});$('ddAddOut').addEventListener('click',function(){ddOpenForm('out')});
+  $('ddfHead').addEventListener('change',function(){var h=ddHFind(DD.dir,this.value);if(h&&h.rem&&!$('ddfRemk').value.trim())$('ddfRemk').value=h.rem});
+  $('ddfCancel').addEventListener('click',function(){$('ddForm').hidden=true;DD.ed=null});
+  $('ddfAddLine').addEventListener('click',function(){
+    var used={};ddAllocRead().forEach(function(l){used[l.m]=1});var l=(DD.dir==='in'?DDM_IN:DDM_OUT).filter(function(x){return !used[x[0]]})[0]||(DD.dir==='in'?DDM_IN:DDM_OUT)[0];
+    var left=r2(num($('ddfTotal').value)-ddAllocRead().reduce(function(a,x){return a+x.a},0));
+    $('ddfAlloc').insertAdjacentHTML('beforeend',ddAllocRow(l[0],left>0?left:null,DD.dir));ddAllocLeft();
+  });
+  $('ddfTotal').addEventListener('input',function(){var ch=$('ddfAlloc').children;if(ch.length===1)ch[0].querySelector('[data-daa]').value=this.value;ddAllocLeft()});
+  $('ddfAlloc').addEventListener('input',ddAllocLeft);
+  $('ddfAlloc').addEventListener('click',function(e){var b=e.target.closest('[data-dax]');if(b&&$('ddfAlloc').children.length>1){b.parentNode.remove();ddAllocLeft()}});
+  $('ddfSave').addEventListener('click',function(){
+    var dt=normBS($('ddfDate').value),head=$('ddfHead').value.trim(),tv=$('ddfTotal').value.trim();
+    if(/^\s*=/.test(tv)&&!fxApply($('ddfTotal')))return;
+    var total=r2(num($('ddfTotal').value)),al=ddAllocRead().filter(function(l){return l.a>0});
+    if(!dt){toast('Enter a valid date.');return}if(isLocked(dt)){toast(lockMsg());return}
+    if(!head){toast('Type the heading or category.');return}
+    if(!(total>0)){toast('Enter the total amount.');return}
+    if(!al.length){toast('Enter the amount in at least one mode line.');return}
+    var s=0;al.forEach(function(l){s=r2(s+l.a)});if(Math.abs(s-total)>0.005){toast('The mode lines add up to '+fmt(s)+' but the total is '+fmt(total)+'. They must be equal.');return}
+    var seen={},m2=[];for(var i=0;i<al.length;i++){if(seen[al[i].m]){seen[al[i].m].a=r2(seen[al[i].m].a+al[i].a)}else{seen[al[i].m]={m:al[i].m,a:al[i].a};m2.push(seen[al[i].m])}}
+    var e=DD.ed?ddArr().filter(function(x){return x.id===DD.ed})[0]:null;
+    if(e){
+      for(var k=0;k<2;k++){var mm=['acc','due'][k],old=ddLine(e,mm),nw=0;m2.forEach(function(l){if(l.m===mm)nw=l.a});
+        if((ddSet(e,mm).h.length||ddSet(e,mm).full)&&Math.abs(old-nw)>0.004){toast('Settlement is already recorded for the '+(mm==='acc'?'A/c payee cheque':'due')+' part. Remove those settlement records first.');return}}
+      if(isLocked(e.date)){toast(lockMsg());return}
+    }
+    if(!e){e={id:newUid(),dir:DD.dir,by:user.username};ddArr().push(e)}
+    ddHRemember(e.dir,head,'');
+    e.date=dt;e.head=head;e.party=$('ddfParty').value.trim();e.total=total;e.alloc=m2;e.ref=$('ddfRef').value.trim();e.rem=$('ddfRemk').value.trim();e.at=stamp();
+    ddSave();logAct('Day book',(DD.ed?'Edited ':'Added ')+(e.dir==='in'?'money in ':'money out ')+fmt(total)+' '+head);
+    $('ddForm').hidden=true;DD.ed=null;$('ddDate').value=dt;renderDD();toast('Entry saved.');
+  });
+  $('ddList').addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b)return;var id=b.getAttribute('data-dde')||b.getAttribute('data-ddd'),e=ddArr().filter(function(x){return x.id===id})[0];if(!e)return;
+    if(b.getAttribute('data-dde')){ddOpenForm(e.dir,e);return}
+    if(isLocked(e.date)){toast(lockMsg());return}
+    if(!canEnter()){toast('You cannot delete entries.');return}
+    if(confirm('Delete this entry ('+e.head+', '+fmt(e.total)+')?')){e.del=true;e.at=stamp();ddSave();logAct('Day book','Deleted entry '+e.head+' '+fmt(e.total));renderDD()}
+  });
+  /* settlement tracking (never touches money figures) */
+  function ddFind(key){var p=key.split(':'),e=ddArr().filter(function(x){return x.id===p[0]})[0];return e?{e:e,m:p[1]}:null}
+  function ddEnsure(e,m){if(!e.set)e.set={};if(!e.set[m])e.set[m]={h:[],full:false,fd:''};return e.set[m]}
+  $('ddShowSet').addEventListener('change',ddRenderSet);
+  $('ddSet').addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b||!canEnter())return;
+    var card=b.closest('[data-ddk]');
+    var kp=b.getAttribute('data-ddp'),kr=b.getAttribute('data-ddr'),kx=b.getAttribute('data-ddx');
+    if(kx){var p=kx.split('|'),f=ddFind(p[0]);if(!f)return;var s=ddEnsure(f.e,f.m);s.h.splice(+p[1],1);f.e.at=stamp();ddSave();ddRenderSet();ddRepRender();return}
+    var key=kp||kr;if(!key)return;var f2=ddFind(key);if(!f2)return;
+    var total=ddLine(f2.e,f2.m),rem=r2(total-ddSetSum(f2.e,f2.m)),amt=kr?rem:r2(num(card.querySelector('[data-ddpa]').value)),dt=normBS(card.querySelector('[data-ddpd]').value);
+    if(!dt){toast('Enter a valid settlement date.');return}
+    if(dt<f2.e.date){toast('The settlement date cannot be before the entry date.');return}
+    if(!(amt>0)){toast('Enter the amount settled.');return}
+    if(amt>rem+0.004){toast('The amount is more than the remaining '+fmt(rem)+'.');return}
+    var s2=ddEnsure(f2.e,f2.m);s2.h.push({d:dt,a:amt,by:user.username});f2.e.at=stamp();ddSave();
+    logAct('Settlement',(f2.m==='acc'?'Cheque ':'Due ')+f2.e.date+' '+(f2.e.party||f2.e.head)+' settled '+fmt(amt));ddRenderSet();ddRepRender();
+  });
+  $('ddSet').addEventListener('change',function(ev){
+    var k=ev.target.getAttribute&&ev.target.getAttribute('data-ddf');if(!k||!canEnter())return;
+    var f=ddFind(k);if(!f)return;var s=ddEnsure(f.e,f.m),rem=r2(ddLine(f.e,f.m)-ddSetSum(f.e,f.m));
+    if(ev.target.checked){
+      if(rem>0.004){ev.target.checked=false;toast('Tick only when the remaining balance is zero.');return}
+      s.full=true;s.fd=s.h.length?s.h[s.h.length-1].d:todayBS();
+    }else{s.full=false;s.fd=''}
+    f.e.at=stamp();ddSave();ddRenderSet();ddRepRender();
+  });
+  /* reports */
+  function ddRange(){return {from:normBS($('ddFrom').value)||'',to:normBS($('ddTo').value)||''}}
+  function ddRepReport(){
+    var kind=$('ddRep').value,R=ddRange();
+    if(!R.from||!R.to)return {empty:'Enter valid From and To dates.'};
+    if(R.from>R.to)return {empty:'The From date is after the To date.'};
+    var per='From '+R.from+' to '+R.to,file='DayBook_'+kind+'_'+R.from.replace(/\//g,'-')+'_'+R.to.replace(/\//g,'-');
+    if(kind==='heads'){
+      var dir=$('ddDir').value,hf=[].map.call($('ddHeadPick').querySelectorAll('input:checked'),function(i){return i.value.toLowerCase()}),L=ddLive().filter(function(e){return e.date>=R.from&&e.date<=R.to&&(!dir||e.dir===dir)&&(!hf.length||hf.indexOf((e.dir+'|'+e.head).toLowerCase())>=0)});
+      L.sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0)});
+      if(!L.length)return {empty:'No entries match for this period and headings.'};
+      var tin=0,tout=0,tot={},byH={};
+      var rows=L.map(function(e){
+        var g=function(m){var v=0;e.alloc.forEach(function(l){if(l.m===m)v=r2(v+l.a)});return v};
+        if(e.dir==='in')tin=r2(tin+e.total);else tout=r2(tout+e.total);
+        var k=(e.dir==='in'?'In: ':'Out: ')+e.head;byH[k]=r2((byH[k]||0)+e.total);
+        ['cash','acc','qr','due','bank'].forEach(function(m){tot[m+e.dir]=r2((tot[m+e.dir]||0)+g(m))});
+        return [e.date,(e.dir==='in'?'In':'Out')+' - '+e.head+(e.party?' ('+e.party+')':'')+(e.ref?' ref '+e.ref:'')+(e.rem?' - '+e.rem:''),e.dir==='in'?fmt(e.total):'',e.dir==='out'?fmt(e.total):'',g('cash')?fmt(g('cash')):'',(g('acc')+g('bank'))?fmt(g('acc')+g('bank')):'',g('qr')?fmt(g('qr')):'',g('due')?fmt(g('due')):''];
+      });
+      var info=[per+'   |   '+(dir==='in'?'Money in only':dir==='out'?'Money out only':'Money in and out')];
+      Object.keys(byH).sort().forEach(function(k){info.push(k+': Rs '+fmt(byH[k]))});
+      info.push('Total in Rs '+fmt(tin)+'   Total out Rs '+fmt(tout)+'   Net Rs '+fmt(r2(tin-tout)));
+      return {file:file,title:'DAY BOOK - HEADING REPORT',info:info,cols:[{h:'Date',w:1.3,al:'l'},{h:'Heading / party',w:3.2,al:'l'},{h:'Money in',w:1.2,al:'r'},{h:'Money out',w:1.2,al:'r'},{h:'Cash',w:1.1,al:'r'},{h:'A/c / Bank',w:1.1,al:'r'},{h:'QR',w:1,al:'r'},{h:'Due',w:1,al:'r'}],rows:rows,
+        totals:[['','Total',fmt(tin),fmt(tout),fmt(r2((tot.cashin||0)+(tot.cashout||0))),fmt(r2((tot.accin||0)+(tot.bankout||0))),fmt(r2((tot.qrin||0)+(tot.qrout||0))),fmt(tot.duein||0)]],minw:760,foot:'Cash, A/c / Bank, QR and Due columns show how each entry was split.'};
+    }
+    if(kind==='gap'){
+      var days={};ddLive().forEach(function(e){if(e.date>=R.from&&e.date<=R.to)days[e.date]=1});Object.keys(ddCnt()).forEach(function(d){if(d>=R.from&&d<=R.to)days[d]=1});
+      var ks=Object.keys(days).sort();if(!ks.length)return {empty:'No entries or counted cash in this period.'};
+      var ti=0,to=0,tg=0,over=0,short=0,counted=0,rowsG=ks.map(function(d){
+        var c=ddCalc(d),cn=ddCnt()[d];ti=r2(ti+c.inn);to=r2(to+c.out);
+        var gp=cn?r2(cn.cash-c.exp):null;if(gp!==null){tg=r2(tg+gp);counted++;if(gp>0)over=r2(over+gp);else short=r2(short-gp)}
+        var r=[d,fmt(c.open),c.inn?fmt(c.inn):'',c.out?fmt(c.out):'',fmt(c.close),fmt(c.exp),cn?fmt(cn.cash):'Not counted',gp===null?'':(gp===0?'0.00':(gp<0?'Short '+fmt(-gp):'Over '+fmt(gp)))];return r;
+      });
+      var o1=ddCalc(ks[0]).open,c1=ddCalc(ks[ks.length-1]).close;
+      return {file:file,title:'DAILY GAP REPORT',info:[per,'PERIOD CONCLUSION','Opening balance Rs '+fmt(o1)+'   Closing balance Rs '+fmt(c1),'Total in Rs '+fmt(ti)+'   Total out Rs '+fmt(to),'Days counted '+counted+' of '+ks.length+'   Total gap Rs '+fmt(tg)+(tg===0?' (tally)':(tg<0?' (net SHORT)':' (net OVER)')),'Short Rs '+fmt(short)+'   Over Rs '+fmt(over)],
+        cols:[{h:'Date',w:1.3,al:'l'},{h:'Opening',w:1.3,al:'r'},{h:'In',w:1.2,al:'r'},{h:'Out',w:1.2,al:'r'},{h:'Closing',w:1.3,al:'r'},{h:'Expected cash',w:1.3,al:'r'},{h:'Counted',w:1.3,al:'r'},{h:'Gap',w:1.3,al:'r'}],rows:rowsG,
+        totals:[['Total','',fmt(ti),fmt(to),'','','',fmt(tg)]],minw:820,foot:'Expected cash = total in - total out - A/c payee - QR - due (+ money out paid by bank or QR). Gap = counted - expected. Days without counted cash are not in the gap totals.'};
+    }
+    // settlement reports
+    var want={acc:['acc'],due:['due'],pending:['acc','due'],part:['acc','due'],done:['acc','due']}[kind],stf={acc:'',due:'',pending:'Pending',part:'Partially Settled',done:'Settled'}[kind];
+    var its=ddItems().filter(function(i){return want.indexOf(i.m)>=0&&i.e.date>=R.from&&i.e.date<=R.to&&(!stf||i.st===stf)});
+    if(!its.length)return {empty:'No matching cheque or due entries in this period.'};
+    var rowsS=[],ta=0,ts=0,tr=0;
+    its.forEach(function(it){
+      var s=ddSet(it.e,it.m),rem=r2(it.total-it.sum),run=it.total;ta=r2(ta+it.total);ts=r2(ts+it.sum);tr=r2(tr+rem);
+      var r=[it.e.date,(it.e.party||it.e.head)+' - '+(it.m==='acc'?'A/c payee cheque':'Due')+(it.e.ref?' ref '+it.e.ref:''),fmt(it.total),fmt(it.sum),fmt(rem),it.st+(s.full&&s.fd?' on '+s.fd:'')];r.b=true;rowsS.push(r);
+      s.h.forEach(function(x){run=r2(run-x.a);rowsS.push([x.d,'   Part settlement','',fmt(x.a),fmt(run),''])});
+    });
+    var tt={acc:'A/C PAYEE CHEQUE REPORT',due:'DUE REPORT',pending:'PENDING CHEQUES AND DUES',part:'PARTIALLY SETTLED CHEQUES AND DUES',done:'FULLY SETTLED CHEQUES AND DUES'}[kind];
+    return {file:file,title:tt,info:[per+'   |   '+its.length+' item(s)'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Party / reference',w:3.4,al:'l'},{h:'Amount',w:1.2,al:'r'},{h:'Settled',w:1.2,al:'r'},{h:'Remaining',w:1.2,al:'r'},{h:'Status',w:2,al:'l'}],rows:rowsS,totals:[['','Total',fmt(ta),fmt(ts),fmt(tr),'']],minw:720,
+      foot:'Tracking only. Settlements do not change cash, bank, income or expense figures.'};
+  }
+  function ddRepRender(){
+    var k=$('ddRep').value;$('ddDirW').hidden=$('ddHeadW').hidden=(k!=='heads');
+    showReport($('ddRepOut'),$('ddRepBtns'),ddRepReport());
+  }
+  $('ddHeadPick').addEventListener('change',ddRepRender);
+  ['ddRep','ddFrom','ddTo','ddDir'].forEach(function(id){['input','change'].forEach(function(ev){$(id).addEventListener(ev,ddRepRender)})});
+  repBtn('ddRepShare',ddRepReport,true);repBtn('ddRepPrint',ddRepReport,false);
+
   /* ---------- audit log ---------- */
   function logAct(k,w){
     if(!DATA||!DATA.cfg||!user)return;
@@ -6303,7 +6731,8 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function mergeLists(rc){
     var lc=DATA.cfg,ch=false,q;
-    ['notes','orders'].forEach(function(k){
+    if(rc.ddc&&typeof rc.ddc==='object'){var m3=lc.ddc=lc.ddc||{};Object.keys(rc.ddc).forEach(function(k){if(!m3[k]||(rc.ddc[k].at||'')>(m3[k].at||'')){m3[k]=rc.ddc[k];ch=true}})}
+    ['notes','orders','obills','ddb','ddh'].forEach(function(k){
       if(!Array.isArray(rc[k]))return;
       var a=lc[k]=Array.isArray(lc[k])?lc[k]:[],m={};a.forEach(function(x){m[x.id]=x});
       rc[k].forEach(function(r){var l=m[r.id];if(!l){a.push(r);m[r.id]=r;ch=true}else if((r.at||'')>(l.at||'')){for(q in l)delete l[q];for(q in r)l[q]=r[q];ch=true}});
@@ -6763,6 +7192,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   /* ---------- import mapping (choose worksheet, header row and columns, like Tally) ---------- */
   var IMF=null;
   var IM_LBL={
+    agebills:{party:'Party name',no:'Bill / invoice number',date:'Bill date (B.S. or A.D.)',open:'Pending amount'},
     ageing:{name:'Party / ledger name',open:'Outstanding amount',side:'Dr / Cr (optional)',phone:'Phone (optional)'},
     sgroup:{name:'Item name',group:'Stock group'},
     orders:{date:'Order date',kind:'Customer or supplier order',party:'Party',item:'Item',qty:'Quantity',unit:'Unit (optional)',rem:'Remarks (optional)',no:'Order number'},
@@ -6774,7 +7204,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function immapKey(base,h){return base+'|'+h.slice(0,14).map(hkey).join(',')}
   function imSpecial(sh){return isLedgerSheet(sh)>=0||isRegSheet(sh)>=0}
   function ieMapStart(r){
-    var what=$('ieImWhat').value,base=what.replace(/^txn:.*/,'txn'),sheets=r.sheets||[r.rows],spec=IM_SPEC[base],best=-1,ok=0;
+    var what=$('ieImWhat').value,base=imBase(what),sheets=r.sheets||[r.rows],spec=IM_SPEC[base],best=-1,ok=0;
     sheets.forEach(function(sh,i){
       if(!sh.sname)sh.sname=r.src==='Excel'?'Sheet '+(i+1):(r.src||'Data');
       var good=findHeader(sh,spec)>=0||(base==='txn'&&imSpecial(sh));if(good){ok++;if(best<0)best=i}
@@ -6856,6 +7286,258 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     }
   });
   $('ieImWhat').addEventListener('change',function(){if(IMF){$('ieImOut').innerHTML='';ieMapStart(IMF.r)}});
+  /* ---------- bill-wise ageing import (PDF, Excel, photo) ---------- */
+  function obills(){if(!Array.isArray(DATA.cfg.obills))DATA.cfg.obills=[];return DATA.cfg.obills}
+  function billAge(b,nd){if(nd==null)return null;if(b.ag!=null&&b.ao){var a=bsDays(b.ao);if(a!=null)return b.ag+(nd-a)}var bd=b.date?bsDays(b.date):null;return bd!=null?nd-bd:null}
+  function slabs(){var a=DATA.cfg.slabs;if(!Array.isArray(a)||!a.length)a=[30,45,60];return a}
+  function slabLabels(sl){return ['Below '+sl[0]].concat(sl.map(function(x){return 'Above '+x}))}
+  function slabIx(days,sl){if(days==null)return sl.length;var n=0;sl.forEach(function(x){if(days>=x)n++});return n}
+  function ageKey(o){
+    var pk=pkey(o.party),no=pkey(o.no);
+    return [o.kind,pk,no?no+'|'+(o.amt<0?'-':'+'):(o.date+'|'+r2(o.amt))].join('|');
+  }
+  function bytesStr(u){var s='';for(var i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return s}
+  function strBytes(s){var u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u}
+  function inflateBytes(b){
+    if(typeof DecompressionStream==='undefined')return Promise.reject(new Error('This browser cannot open PDF files. Use Chrome or Edge, or import the report from Excel.'));
+    var ds=new DecompressionStream('deflate'),w=ds.writable.getWriter();w.write(b);w.close();
+    return new Response(ds.readable).arrayBuffer().then(function(x){return new Uint8Array(x)});
+  }
+  function pdfRows(buf){
+    var s=bytesStr(new Uint8Array(buf)),objs={},re=/(\d+)\s+(\d+)\s+obj\b/g,m,st=[];
+    if(s.slice(0,5)!=='%PDF-')return Promise.reject(new Error('This is not a PDF file.'));
+    while((m=re.exec(s)))st.push({n:+m[1],p:m.index+m[0].length});
+    st.forEach(function(o){if(objs[o.n]!==undefined)return;var e=s.indexOf('endobj',o.p);objs[o.n]=s.slice(o.p,e<0?s.length:e)});
+    function dictOf(b){var i=b.indexOf('stream');return i<0?b:b.slice(0,i)}
+    function streamOf(n){
+      var b=objs[n];if(b==null)return Promise.resolve(null);
+      var i=b.indexOf('stream');if(i<0)return Promise.resolve(null);
+      var d=b.slice(0,i),a=i+6;if(b.charAt(a)==='\r')a++;if(b.charAt(a)==='\n')a++;
+      var lm=/\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(d),z=lm?a+(+lm[1]):b.lastIndexOf('endstream');
+      var raw=b.slice(a,z);if(!lm)raw=raw.replace(/\r?\n$/,'');
+      if(/\/FlateDecode/.test(d))return inflateBytes(strBytes(raw)).then(bytesStr);
+      if(/\/Filter/.test(d))return Promise.resolve(null);
+      return Promise.resolve(raw);
+    }
+    function refs(t){var r=[],q=/(\d+)\s+0\s+R/g,x;while((x=q.exec(t)))r.push(+x[1]);return r}
+    var order=[];
+    (function walk(n,depth){
+      var b=objs[n];if(b==null||depth>12)return;var d=dictOf(b);
+      if(/\/Type\s*\/Pages\b/.test(d)){var k=/\/Kids\s*\[([^\]]*)\]/.exec(d);if(k)refs(k[1]).forEach(function(c){walk(c,depth+1)})}
+      else if(/\/Type\s*\/Page\b/.test(d))order.push(n);
+    })((function(){for(var k in objs){var d=dictOf(objs[k]);if(/\/Type\s*\/Pages\b/.test(d)&&!/\/Parent/.test(d))return +k}return -1})(),0);
+    if(!order.length)Object.keys(objs).forEach(function(k){if(/\/Type\s*\/Page\b/.test(dictOf(objs[k])))order.push(+k)});
+    if(!order.length)return Promise.reject(new Error('No pages found in this PDF.'));
+    var fontCache={};
+    function fontOf(n){
+      if(fontCache[n])return fontCache[n];
+      var d=dictOf(objs[n]||''),tu=/\/ToUnicode\s+(\d+)\s+0\s+R/.exec(d),f={map:{},two:/\/Type0/.test(d)||/Identity-H/.test(d)};
+      fontCache[n]=tu?streamOf(+tu[1]).then(function(t){
+        if(t){
+          var bc=/beginbfchar([\s\S]*?)endbfchar/g,x;
+          while((x=bc.exec(t))){var pr=/<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g,y;while((y=pr.exec(x[1])))f.map[parseInt(y[1],16)]=u16(y[2])}
+          var br=/beginbfrange([\s\S]*?)endbfrange/g;
+          while((x=br.exec(t))){
+            var rr=/<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*(?:<([0-9A-Fa-f]+)>|\[([^\]]*)\])/g,z;
+            while((z=rr.exec(x[1]))){
+              var lo=parseInt(z[1],16),hi=parseInt(z[2],16);
+              if(z[3]){var base=parseInt(z[3],16),len=z[3].length;for(var c=lo;c<=hi&&c-lo<70000;c++)f.map[c]=u16((base+c-lo).toString(16).padStart(len,'0'))}
+              else{var hx=z[4].match(/<([0-9A-Fa-f]+)>/g)||[];hx.forEach(function(h,j){f.map[lo+j]=u16(h.slice(1,-1))})}
+            }
+          }
+        }
+        return f;
+      }):Promise.resolve(f);
+      return fontCache[n];
+    }
+    function u16(h){var s='';for(var i=0;i+3<h.length+0;i+=4)s+=String.fromCharCode(parseInt(h.substr(i,4),16));return s}
+    function pageRuns(pn){
+      var d=dictOf(objs[pn]),res=/\/Resources\s+(\d+)\s+0\s+R/.exec(d),rt=res?dictOf(objs[+res[1]]||''):(/\/Resources\s*<<([\s\S]*)>>/.exec(d)||['',''])[1];
+      var fm=/\/Font\s+(\d+)\s+0\s+R/.exec(rt),fdt=fm?dictOf(objs[+fm[1]]||''):((/\/Font\s*<<([\s\S]*?)>>/.exec(rt)||['',''])[1]);
+      var fnames={},fp=/\/([A-Za-z0-9_.+-]+)\s+(\d+)\s+0\s+R/g,q;while((q=fp.exec(fdt)))fnames[q[1]]=+q[2];
+      var cm=/\/Contents\s*(?:\[([^\]]*)\]|(\d+)\s+0\s+R)/.exec(d),cn=cm?(cm[1]?refs(cm[1]):[+cm[2]]):[];
+      var fl=Object.keys(fnames).map(function(k){return fontOf(fnames[k]).then(function(f){return [k,f]})});
+      return Promise.all([Promise.all(cn.map(streamOf)),Promise.all(fl)]).then(function(r){
+        var txt=r[0].filter(function(x){return x!=null}).join('\n'),fonts={};r[1].forEach(function(p){fonts[p[0]]=p[1]});
+        var tk=/<([0-9A-Fa-f\s]*)>|\(((?:\\[\s\S]|[^\\)])*)\)|(\[)|(\])|\/([^\s\/\[\]<>()]+)|([-+]?\d*\.?\d+)|([A-Za-z'"*]+)/g,ops=[],arr=null,runs=[],tlm=[1,0,0,1,0,0],cmx=null,font=null,x,idx=0;
+        function dec(sv){
+          var o='';
+          if(sv.h!==undefined){var h=sv.h.replace(/\s/g,'');if(font&&font.two){for(var i=0;i+3<h.length+0;i+=4)o+=font.map[parseInt(h.substr(i,4),16)]||'';}else for(var j=0;j+1<h.length+1;j+=2){var c=parseInt(h.substr(j,2),16);o+=(font&&font.map[c])||String.fromCharCode(c)}}
+          else{var b=sv.s.replace(/\\([nrtbf()\\])/g,function(a,c){return {n:'\n',r:'\r',t:'\t',b:'\b',f:'\f','(':'(',')':')','\\':'\\'}[c]}).replace(/\\(\d{1,3})/g,function(a,c){return String.fromCharCode(parseInt(c,8))});
+            if(font&&font.two){for(var k=0;k+1<b.length;k+=2)o+=font.map[b.charCodeAt(k)*256+b.charCodeAt(k+1)]||''}else for(var l=0;l<b.length;l++)o+=(font&&font.map[b.charCodeAt(l)])||b.charAt(l)}
+          return o;
+        }
+        function emit(parts){
+          var t='';parts.forEach(function(p){if(typeof p==='number'){if(p<-300)t+=' '}else t+=dec(p)});
+          if(t.trim()==='')return;runs.push({x:tlm[4],y:tlm[5],t:t,i:idx++});
+        }
+        while((x=tk.exec(txt))){
+          if(x[1]!==undefined&&x[0].charAt(0)==='<'){var v={h:x[1]};if(arr)arr.push(v);else ops.push(v)}
+          else if(x[2]!==undefined){var v2={s:x[2]};if(arr)arr.push(v2);else ops.push(v2)}
+          else if(x[3]){arr=[]}
+          else if(x[4]){ops.push(arr||[]);arr=null}
+          else if(x[5]!==undefined){ops.push({n:x[5]})}
+          else if(x[6]!==undefined){if(arr)arr.push(+x[6]);else ops.push(+x[6])}
+          else if(x[7]!==undefined){
+            var op=x[7],n=ops.length;
+            if(op==='BT'){tlm=[1,0,0,1,0,0]}
+            else if(op==='Tf'){var nm=ops[n-2];font=nm&&nm.n?fonts[nm.n]:null}
+            else if(op==='Tm'&&n>=6){tlm=ops.slice(n-6).map(Number)}
+            else if((op==='Td'||op==='TD')&&n>=2){tlm=[tlm[0],tlm[1],tlm[2],tlm[3],tlm[4]+ops[n-2],tlm[5]+ops[n-1]]}
+            else if(op==='cm'&&n>=6&&!cmx){cmx=ops.slice(n-6).map(Number)}
+            else if(op==='Tj'||op==="'"){var sv=ops[n-1];if(sv&&(sv.h!==undefined||sv.s!==undefined))emit([sv])}
+            else if(op==='TJ'){var ar=ops[n-1];if(Array.isArray(ar))emit(ar)}
+            ops=[];
+          }
+        }
+        var dd=cmx?cmx[3]:1,ff=cmx?cmx[5]:0;
+        runs.forEach(function(r){r.ey=dd*r.y+ff});
+        runs.sort(function(a,b){return b.ey-a.ey||a.i-b.i});
+        var lines=[],cur=null;
+        runs.forEach(function(r){if(!cur||Math.abs(cur.y-r.ey)>3){cur={y:r.ey,r:[]};lines.push(cur)}cur.r.push(r)});
+        return lines.map(function(l){l.r.sort(function(a,b){return a.x-b.x||a.i-b.i});return l.r.map(function(r){return r.t.trim()}).filter(Boolean)}).filter(function(l){return l.length});
+      });
+    }
+    var all=[];
+    return order.reduce(function(p,pn){return p.then(function(){return pageRuns(pn).then(function(ls){all.push(['@@PAGE@@']);ls.forEach(function(l){all.push(l)})})})},Promise.resolve()).then(function(){return all});
+  }
+  var AGE_AMT=/^\(?-?[\d,]*\d\.\d{1,2}\)?-?$/;
+  function ageNum(t){var s=String(t).trim(),neg=/^\(.*\)$/.test(s)||/-/.test(s);var n=parseFloat(s.replace(/[^\d.]/g,''));return isFinite(n)?(neg?-n:n):0}
+  function ageDate(v,out){
+    var t=String(v).replace(/[.\-]/g,'/'),d=normBS(t);if(d)return d;
+    var m=/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(t);
+    if(m&&BS[+m[1]]&&+m[2]>=1&&+m[2]<=12&&+m[3]>=1&&+m[3]<=32){out.fix=(out.fix||0)+1;return m[1]+'/'+p2(+m[2])+'/'+p2(Math.min(+m[3],BS[+m[1]][+m[2]-1]))}
+    return null;
+  }
+  function ageParse(rows){
+    var out={bills:[],errs:[],g:null,cnt:0,asof:''},party='',started=false,cur=null,secs=/^(sales?|sales return|cr\.? ?note|credit note|dr\.? ?note|debit note|receipt|payment|purchase|purchase return|journal|opening|opening balance|bill|bills)$/i,sec='';
+    function close(pt,tot){
+      if(!cur||tot==null)return;
+      var sum=0;cur.forEach(function(b){sum=r2(sum+b.amt)});
+      if(Math.abs(sum-tot)>0.06)out.errs.push(pt+': bills add up to '+fmt(sum)+' but the report total is '+fmt(tot)+'. Some rows may be missing.');
+    }
+    rows.forEach(function(r0){
+      var r=r0.map(function(x){return String(x==null?'':x).trim()}).filter(function(x){return x!==''});if(!r.length)return;
+      if(r[0]==='@@PAGE@@'){started=false;return}
+      var line=r.join(' ');
+      if(/\binv(oice)?\.?\s*(no|number)\b|\bbill\s*(no|number)\b/i.test(line)&&/^date$/i.test(r[0])){started=true;return}
+      if(!started){if(!out.asof)r.forEach(function(x){var mm=/^(\d{4})\/(\d{2})\/(\d{2})$/.exec(x);if(mm&&+mm[1]>=2070&&+mm[1]<2120&&!out.asof)out.asof=ageDate(x,{})});return}
+      if(/^g(rand)?\.?\s*total/i.test(r[0])){var gn=r.slice(1).filter(function(x){return AGE_AMT.test(x)});if(gn.length)out.g=ageNum(gn[gn.length-1]);return}
+      if(/^total\s*:?$/i.test(r[0])||/^total\s*:/i.test(line)){var tn=r.slice(1).filter(function(x){return AGE_AMT.test(x)});close(party,tn.length?ageNum(tn[tn.length-1]):null);cur=null;return}
+      if(/^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/.test(r[0])){
+        if(!party){out.errs.push('A bill row came before any party name: '+line.slice(0,50));return}
+        var no=r[1]||'',rest=r.slice(2);
+        if(AGE_AMT.test(no)){rest=r.slice(1);no=''}
+        var am=rest.filter(function(x){return AGE_AMT.test(x)});
+        if(!am.length){out.errs.push(party+' '+r[0]+' '+no+': no amount found.');return}
+        var dt=ageDate(r[0],out);
+        if(!dt){out.errs.push(party+' '+no+': date "'+r[0]+'" not understood.');return}
+        var agt=rest.filter(function(x){return /^\d{1,5}$/.test(x)}),b={party:party,no:no,date:dt,amt:r2(ageNum(am[0])),sec:sec};
+        if(agt.length&&out.asof)b.age=+agt[agt.length-1];
+        out.bills.push(b);if(cur)cur.push(b);return;
+      }
+      if(r.length===1&&secs.test(r[0])){sec=r[0];return}
+      if(/^page\s+\d/i.test(line))return;
+      if(r.length<=2&&!/^\d/.test(r[0])&&/[A-Za-z]/.test(r[0])){
+        var nm=r[0].split(',')[0].replace(/\s*\bPAN\b.*$/i,'').replace(/\s+/g,' ').trim();
+        if(nm.length>1){party=nm;cur=[];sec='';out.cnt++}
+      }
+    });
+    return out;
+  }
+  function agePlan(pr,kind,src){
+    var P={pr:pr,adj:[],what:'agebills',add:[],skip:0,errs:pr.errs.slice(),opens:[],sets:[],kind:kind,src:src,keep:0,sum:0,fix:pr.fix||0};if(pr.asof)P.asof=pr.asof;
+    if(!pr.bills.length){P.fatal='No ageing rows were found in this file. The report needs party names, then rows with bill date, bill number and pending amount.';return P}
+    var have={};obills().forEach(function(o){if(!o.del&&o.kind===kind)have[ageKey(o)]=1});
+    var invT=kind==='rec'?'sale':'pur',byNo={};
+    DATA.docs.forEach(function(d){if(live(d)&&d.type===invT&&d.no)byNo[pkey(d.party)+'|'+pkey(d.no)]=1});
+    var net={},names={},seenP={};
+    pr.bills.forEach(function(b){
+      var pk=pkey(b.party),pm=findParty(pk),nm=pm?pm.name:b.party,o={kind:kind,party:nm,no:b.no,date:b.date,amt:b.amt};
+      if(isLocked(b.date)&&false)return;
+      if(b.no&&b.amt>0&&byNo[pk+'|'+pkey(b.no)]){P.skip++;return}
+      var key=ageKey(o);if(have[key]){P.skip++;return}have[key]=1;
+      o.id=ageKey(o);o.sec=b.sec;if(b.age!=null&&pr.asof){o.age=b.age;o.asof=pr.asof}P.add.push(o);P.sum=r2(P.sum+b.amt);
+      net[pk]=r2((net[pk]||0)+b.amt);names[pk]=nm;
+    });
+    Object.keys(net).forEach(function(pk){
+      var pm=findParty(pk),v=net[pk];
+      if(!pm){
+        var pan='';P.opens.push({name:names[pk],phone:'',pan:pan,address:'',open:r2(Math.abs(v)),side:(kind==='rec')===(v>=0)?'Dr':'Cr',obl:1});
+      }else if(pm.obl){P.adj.push({name:pm.name,d:(kind==='rec'?v:-v)})
+      }else if(!num(pm.open)&&!DATA.docs.some(function(d){return live(d)&&pkey(d.party)===pk})){
+        P.sets.push({name:pm.name,open:r2(Math.abs(v)),side:(kind==='rec')===(v>=0)?'Dr':'Cr'});
+      }else P.keep++;
+    });
+    return P;
+  }
+  function ageShow(P){
+    if(P.fatal){$('ieImOut').innerHTML='<div class="note err">'+esc(P.fatal)+'</div>';IM=null;return}
+    var parts={},cnt=0;P.add.forEach(function(o){if(!parts[pkey(o.party)]){parts[pkey(o.party)]=1;cnt++}});
+    var h='<h2>Preview</h2><div class="card"><label for="ageKind"><b>This ageing is of</b></label><select id="ageKind"><option value="rec"'+(P.kind==='rec'?' selected':'')+'>Dr parties (debtors: they owe you, to receive)</option><option value="pay"'+(P.kind==='pay'?' selected':'')+'>Cr parties (creditors: you owe them, to pay)</option></select></div><div class="card"><b>'+P.add.length+' bills of '+cnt+' parties will be added</b> (read from '+esc(P.src)+(P.asof?', report date '+esc(P.asof):'')+'). Net pending Rs '+fmt(P.sum)+'.'+(P.skip?'<div class="note">'+P.skip+' bills are already imported or already in your vouchers and will be skipped, so nothing is duplicated.</div>':'')+'</div>';
+    if(P.add.length){
+      var sl=slabs();
+      var rows=P.add.slice(0,10).map(function(o){var ag=o.age!=null?o.age:(bsDays(o.date)!=null&&bsDays(todayBS())!=null?bsDays(todayBS())-bsDays(o.date):null);return [o.party,o.no,o.date,fmt(o.amt),ag==null?'':slabLabels(sl)[slabIx(ag,sl)]]});
+      h+=htmlTable({cols:[{h:'Party',w:2.4,al:'l'},{h:'Bill',w:1.5,al:'l'},{h:'Date',w:1.3,al:'l'},{h:'Pending',w:1.2,al:'r'},{h:'Slab',w:1.2,al:'l'}],rows:rows,totals:[],minw:560})+(P.add.length>10?'<div class="note">...and '+(P.add.length-10)+' more bills.</div>':'');
+    }
+    if(P.opens.length)h+='<div class="note">'+P.opens.length+' new ledger(s) will be created. Each bill appears as its own line in the ledger, statement and reports.</div>';
+    if(P.sets.length)h+='<div class="note">'+P.sets.length+' existing ledger(s) with no balance yet will get the report total as opening balance.</div>';
+    if(P.fix)h+='<div class="note">'+P.fix+' bill date(s) had a day beyond the real length of the month (for example 2081/02/32). They were set to the last day of that month.</div>';
+    if(P.keep)h+='<div class="note">'+P.keep+' existing ledger(s) already have a balance or entries. Their ledger balance is left unchanged; only their ageing is added.</div>';
+    if(P.errs.length)h+='<div class="note err"><b>'+P.errs.length+' point(s) need attention:</b><br>'+P.errs.slice(0,8).map(esc).join('<br>')+(P.errs.length>8?'<br>...':'')+'</div>';
+    if(P.add.length)h+='<div class="btns"><button class="btn2 prim" id="ieImGo" type="button">Import '+P.add.length+' bills (password)</button></div>';
+    else h+='<div class="note">Nothing new to import.</div>';
+    $('ieImOut').innerHTML=h;IM=P;
+    if($('ieImGo'))$('ieImGo').addEventListener('click',ieCommit);
+    $('ageKind').addEventListener('change',function(){var k=this.value;$('ieImWhat').value='agebills:'+k;ageShow(agePlan(P.pr,k,P.src))});
+  }
+  function ageFile(file,what){
+    var kind=what.slice(9),n=(file.name||'').toLowerCase(),t=file.type||'',out=$('ieImOut'),box=$('ieMapBox');
+    box.innerHTML='';out.innerHTML='<div class="note">Reading the report... a large report may take a few seconds.</div>';IM=null;
+    function fromRows(rows,src){
+      var pr=ageParse(rows);
+      if(pr.bills.length){ageShow(agePlan(pr,kind,src));return true}
+      return false;
+    }
+    function fail(e){box.innerHTML='';out.innerHTML='<div class="note err">'+esc(e.message||'Could not read the file.')+'</div>'}
+    function viaPhoto(){
+      return photoRead(file,'ageing').then(function(r){
+        var rows=(r&&r.rows)||[];rows.unshift(['@@PAGE@@']);
+        rows=rows.map(function(x){return x});
+        if(!rows.some(function(x){return /inv/i.test(x.join(' '))&&/^date$/i.test(String(x[0]))}))rows.splice(1,0,['Date','Inv No.']);
+        if(!fromRows(rows,'the photo'))fail(new Error('Could not find ageing rows in this picture. Use a clear, straight, well-lit picture of the whole page, or import from PDF or Excel.'));
+      });
+    }
+    if(/\.pdf$/.test(n)||t==='application/pdf'){
+      file.arrayBuffer().then(pdfRows).then(function(rows){
+        if(!fromRows(rows,'the PDF')){
+          return viaPhoto();
+        }
+      }).catch(function(e){
+        if(/not a PDF|cannot open PDF/.test(e.message))return fail(e);
+        viaPhoto().catch(fail);
+      });
+      return;
+    }
+    if(/^image\//.test(t)){viaPhoto().catch(fail);return}
+    fileToRows(file,'agebills').then(function(r){
+      var sheets=r.sheets||[r.rows],done=false;
+      var rows=[];sheets.forEach(function(sh){rows.push(['@@PAGE@@']);sh.forEach(function(x){rows.push(x)})});
+      if(fromRows(rows,'worksheet data')){return}
+      ieMapStart(r);
+    }).catch(fail);
+  }
+  function ageCommit(P){
+    var n=0;
+    (P.opens||[]).forEach(function(o){if(!findParty(pkey(o.name))){DATA.parties.push(o)}});
+    (P.sets||[]).forEach(function(s){var pm=findParty(pkey(s.name));if(pm&&!num(pm.open)){pm.open=s.open;pm.side=s.side;pm.obl=1}});
+    (P.adj||[]).forEach(function(a){var pm=findParty(pkey(a.name));if(!pm)return;var v=r2((pm.side==='Cr'?-1:1)*num(pm.open)+a.d);pm.open=Math.abs(v);pm.side=v<0?'Cr':'Dr'});
+    var have={};obills().forEach(function(o){if(!o.del&&o.kind===P.kind)have[ageKey(o)]=1});
+    var now=stamp();
+    P.add.forEach(function(o){if(have[ageKey(o)])return;have[ageKey(o)]=1;o.at=now;obills().push(o);n++});
+    DATA.cfg.at=now;logAct('Import','Imported '+n+' ageing bills ('+(P.kind==='rec'?'receivable':'payable')+')');
+    return n;
+  }
   /* ---------- Members (app admin only) and membership lock ---------- */
   var MB={edit:-1};
   function mbDB(){var d=get('eb_members',null);if(!d||!Array.isArray(d.list))d={list:[],req:false,grace:7,msg:''};if(!d.msg)d.msg='Dear {name}, your MEDBOOKS membership renews on {date} (Rs {amount}). The app will log out automatically {grace} days after the renewal date. Please renew to keep using it. Thank you.';if(!d.grace&&d.grace!==0)d.grace=7;return d}

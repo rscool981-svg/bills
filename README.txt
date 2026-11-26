@@ -90,3 +90,16 @@ Back up the member list from the Members tab (it is stored only on your device).
 v30 - More imports (Add On > Import / Export > Import > What to import)
 New separate imports: Ageing / outstanding report, Stock groups, Order book. Own named templates work for all of them.
 Duplicates are blocked: same name (items, parties, groups), same voucher number, same date + party + amount, same order.
+
+v31 - Bill-wise ageing import and receipt/payment discount
+Add On > Import > What to import > "Ageing report, bill-wise" (customers or suppliers). Accepts PDF (text PDFs such as Microsoft Print to PDF), Excel (report layout or flat table Party/Bill no/Bill date/Pending) and photos (needs the photo reader).
+Duplicates are skipped (same party + bill no). Slabs are editable in Reports > Ledger > Ageing (default 30,45,60). Ledger has "Ageing (bill-wise)" and "+ Receipt / payment" buttons.
+Receipt and Payment vouchers: Discount box. Ledger gets money + discount; cash/bank book gets money only; P&L shows discount allowed/received.
+
+v32 - Imported ageing bills appear as lines in the party ledger/statement (ledger of a party created or set by the import shows each bill; totals unchanged). The preview asks whether the ageing is of Dr parties (debtors) or Cr parties (creditors).
+
+v33 - Daily day book (A/C Report > Books > Daily day book (in / out))
+Money in: Cash, A/c payee cheque, QR, Due. Money out: Cash, Bank, QR. Split allocation per entry (must equal total).
+Expected physical cash, counted cash and gap; automatic opening/closing balance; settlement tracking (partial/full, history) for old cheques and dues - tracking only, never changes money figures; heading, daily gap, cheque, due, pending, partial and settled reports.
+
+v34 - The money in/out day book is now THE Manual day book (A/C Report > Books > Manual day book). It is typed by the user and does not read sales or ledger. Own headings for money in and out (remembered, modifiable, with remark), heading picker for reports. The old voucher-based manual day book screen was removed (its saved counts stay in the data file).
