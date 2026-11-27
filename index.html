@@ -518,7 +518,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     <div id="ddSet"></div>
     <h2>Day book reports</h2>
     <div class="card meta">
-      <div class="full"><label for="ddRep">Report</label><select id="ddRep"><option value="heads">Heading-wise money in / out</option><option value="hsum">Heading-wise summary (one line per heading)</option><option value="gap">Daily gap report with period conclusion</option><option value="acc">A/c payee cheque report</option><option value="due">Due report</option><option value="pending">Pending (cheques and dues)</option><option value="part">Partially settled (cheques and dues)</option><option value="done">Fully settled (cheques and dues)</option><option value="log">Entry, edit and delete log</option></select></div>
+      <div class="full"><label for="ddRep">Report</label><select id="ddRep"><option value="day">Day book by date (entries with day total)</option><option value="dsum">Day summary by date (one line per day)</option><option value="heads">Heading-wise money in / out</option><option value="hsum">Heading-wise summary (one line per heading)</option><option value="gap">Daily gap report with period conclusion</option><option value="acc">A/c payee cheque report</option><option value="due">Due report</option><option value="pending">Pending (cheques and dues)</option><option value="part">Partially settled (cheques and dues)</option><option value="done">Fully settled (cheques and dues)</option><option value="log">Entry, edit and delete log</option></select></div>
       <div><label for="ddFrom">From (B.S.)</label><input id="ddFrom" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
       <div><label for="ddTo">To (B.S.)</label><input id="ddTo" data-dt="1" type="text" inputmode="numeric" maxlength="10" autocomplete="off"></div>
       <div id="ddDirW"><label for="ddDir">Money</label><select id="ddDir"><option value="">In and out</option><option value="in">Money in only</option><option value="out">Money out only</option></select></div>
@@ -5303,6 +5303,13 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   }
   function kclick(id){var el=$(id);if(el&&!el.hidden&&!el.disabled&&el.offsetParent!==null){el.click();return true}return false}
   function krun(a){
+    var dsec=$('v-ddb');
+    if(dsec&&!dsec.hidden){
+      if(a==='save')return kclick('ddSaveAll');
+      if(a==='print')return kclick('ddRepPrint');
+      if(a==='share')return kclick('ddRepShare');
+      if(a==='addrow'){var f=$('ddGridIn').querySelector('tbody tr:last-child input');if(f){f.focus();return true}return false}
+    }
     if(a==='save'){
       if(!$('ntModal').hidden)return kclick('ntSave');
       if(!$('msModal').hidden)return kclick('mSave');
@@ -6500,22 +6507,21 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
   function ddCalc(day){
     var open=num(DATA.cfg.ddOpen),t={cin:0,acc:0,qr:0,due:0,ocash:0,obank:0,oqr:0,inn:0,out:0},list=[];
     ddLive().forEach(function(e){
-      if(e.date<day){open=r2(open+(e.dir==='in'?e.total:-e.total));return}
+      if(e.date<day){e.alloc.forEach(function(l){if(l.m==='cash')open=r2(open+(e.dir==='in'?l.a:-l.a))});return}
       if(e.date!==day)return;
       list.push(e);
       if(e.dir==='in'){t.inn=r2(t.inn+e.total);e.alloc.forEach(function(l){var k=l.m==='cash'?'cin':l.m;t[k]=r2(t[k]+l.a)})}
       else{t.out=r2(t.out+e.total);e.alloc.forEach(function(l){var k=l.m==='cash'?'ocash':(l.m==='bank'?'obank':'oqr');t[k]=r2(t[k]+l.a)})}
     });
     t.nonc=r2(t.obank+t.oqr);
-    t.exp=r2(t.inn-t.out-t.acc-t.qr-t.due+t.nonc);
-    t.open=open;t.close=r2(open+t.inn-t.out);t.list=list;
+    t.cashIn=r2(t.inn-t.acc-t.qr-t.due);
+    t.open=open;t.exp=r2(open+t.inn-t.acc-t.qr-t.due-t.ocash);t.close=t.exp;t.list=list;
     return t;
   }
   function ddRenderSum(){
     var day=ddDay();if(!day){$('ddSum').innerHTML='<div class="note">Enter a valid date.</div>';return}
     var c=ddCalc(day),cnt=ddCnt()[day],ln=function(a,b,bold){return '<div class="lg" style="display:flex;justify-content:space-between;gap:8px'+(bold?';font-weight:700':'')+'"><span>'+a+'</span><span>'+b+'</span></div>'};
-    $('ddSum').innerHTML='<div class="card">'+ln('Money at start of day (yesterday end)','Rs '+fmt(c.open),1)+ln('+ Total money in','Rs '+fmt(c.inn))+ln('&minus; Total money out','Rs '+fmt(c.out))+ln('= Money at end of day','Rs '+fmt(c.close),1)+'</div>'+
-      '<div class="card"><b>How much cash should you have?</b>'+ln('Total in','Rs '+fmt(c.inn))+ln('&minus; Total out','Rs '+fmt(c.out))+ln('&minus; A/c payee cheque','Rs '+fmt(c.acc))+ln('&minus; QR received','Rs '+fmt(c.qr))+ln('&minus; Due','Rs '+fmt(c.due))+(c.nonc?ln('+ Money out that was paid by bank or QR, not cash','Rs '+fmt(c.nonc)):'')+ln('= Cash that should be in your drawer','Rs '+fmt(c.exp),1)+'</div>';
+    $('ddSum').innerHTML='<div class="card"><b>Cash of the day</b>'+ln('Money at start of day (yesterday end)','Rs '+fmt(c.open),1)+ln('+ Total money in','Rs '+fmt(c.inn))+ln('&minus; A/c payee cheque (not cash)','Rs '+fmt(c.acc))+ln('&minus; QR received (not cash)','Rs '+fmt(c.qr))+ln('&minus; Due (not received yet)','Rs '+fmt(c.due))+ln('&minus; Money out paid in cash','Rs '+fmt(c.ocash))+ln('= Expected cash = Money at end of day','Rs '+fmt(c.exp),1)+(c.nonc?'<div class="note" style="margin:6px 0 0">Money out by bank / QR: Rs '+fmt(c.nonc)+'. This is only for record. It does not change the cash.</div>':'')+'</div>';
     ddGap();
   }
   function ddGap(){
@@ -6732,10 +6738,32 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     if(!R.from||!R.to)return {empty:'Enter valid From and To dates.'};
     if(R.from>R.to)return {empty:'The From date is after the To date.'};
     var per='From '+R.from+' to '+R.to,file='DayBook_'+kind+'_'+R.from.replace(/\//g,'-')+'_'+R.to.replace(/\//g,'-');
-    if(kind==='heads'||kind==='hsum'){
+    if(kind==='dsum'){
+      var dd={};ddLive().forEach(function(e){if(e.date>=R.from&&e.date<=R.to)dd[e.date]=1});var dk=Object.keys(dd).sort();
+      if(!dk.length)return {empty:'No entries in this period.'};
+      var T={inn:0,acc:0,qr:0,due:0,oc:0,nc:0},rowsD=dk.map(function(d){var c=ddCalc(d);T.inn=r2(T.inn+c.inn);T.acc=r2(T.acc+c.acc);T.qr=r2(T.qr+c.qr);T.due=r2(T.due+c.due);T.oc=r2(T.oc+c.ocash);T.nc=r2(T.nc+c.nonc);
+        var r=[d,fmt(c.open),c.inn?fmt(c.inn):'',c.acc?fmt(c.acc):'',c.qr?fmt(c.qr):'',c.due?fmt(c.due):'',c.ocash?fmt(c.ocash):'',c.nonc?fmt(c.nonc):'',fmt(c.exp)];r.dr={k:'ddday',day:d};return r});
+      var c1=ddCalc(dk[0]),c2=ddCalc(dk[dk.length-1]);
+      return {file:file,title:'DAY BOOK - DAY SUMMARY BY DATE',info:[per+'   |   '+dk.length+' day(s)','Opening cash Rs '+fmt(c1.open)+'   Closing (expected) cash Rs '+fmt(c2.exp),'Money out by bank / QR is only for record and does not change cash.'],cols:[{h:'Date',w:1.3,al:'l'},{h:'Opening',w:1.2,al:'r'},{h:'Total in',w:1.2,al:'r'},{h:'A/c cheque',w:1.1,al:'r'},{h:'QR',w:1,al:'r'},{h:'Due',w:1,al:'r'},{h:'Cash out',w:1.1,al:'r'},{h:'Bank/QR out (record)',w:1.3,al:'r'},{h:'Closing = Expected cash',w:1.4,al:'r'}],rows:rowsD,
+        totals:[['Total','',fmt(T.inn),fmt(T.acc),fmt(T.qr),fmt(T.due),fmt(T.oc),fmt(T.nc),fmt(c2.exp)]],minw:820,foot:'Closing = Opening + Total in - A/c cheque - QR - Due - Cash out. Tap a line to open that day.'};
+    }
+    if(kind==='heads'||kind==='hsum'||kind==='day'){
       var dir=$('ddDir').value,hf=[].map.call($('ddHeadPick').querySelectorAll('input:checked'),function(i){return i.value.toLowerCase()}),L=ddLive().filter(function(e){return e.date>=R.from&&e.date<=R.to&&(!dir||e.dir===dir)&&(!hf.length||hf.indexOf((e.dir+'|'+e.head).toLowerCase())>=0)});
       L.sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0)});
       if(!L.length)return {empty:'No entries match for this period and headings.'};
+      if(kind==='day'){
+        var rowsY=[],byD={},ordD=[],tin2=0,tout2=0;L.forEach(function(e){if(!byD[e.date]){byD[e.date]=[];ordD.push(e.date)}byD[e.date].push(e)});
+        ordD.sort().forEach(function(d){var c=ddCalc(d),di=0,dou=0,dc=0,da=0,dq=0,dd2=0,hdr=[d,'Opening cash '+fmt(c.open),'','','','','',''];hdr.b=true;hdr.dr={k:'ddday',day:d};rowsY.push(hdr);
+          byD[d].forEach(function(e){var g=function(m){var v=0;e.alloc.forEach(function(l){if(l.m===m)v=r2(v+l.a)});return v};
+            if(e.dir==='in')di=r2(di+e.total);else dou=r2(dou+e.total);
+            dc=r2(dc+g('cash'));da=r2(da+g('acc')+g('bank'));dq=r2(dq+g('qr'));dd2=r2(dd2+g('due'));
+            var r=['',(e.dir==='in'?'In':'Out')+' - '+e.head+(e.party?' ('+e.party+')':'')+(e.ref?' ref '+e.ref:'')+(e.rem?' - '+e.rem:''),e.dir==='in'?fmt(e.total):'',e.dir==='out'?fmt(e.total):'',g('cash')?fmt(g('cash')):'',(g('acc')+g('bank'))?fmt(g('acc')+g('bank')):'',g('qr')?fmt(g('qr')):'',g('due')?fmt(g('due')):''];r.dr={k:'ddday',day:d};rowsY.push(r)});
+          var tr2=['','Day total (closing / expected cash of the day Rs '+fmt(c.exp)+')',fmt(di),fmt(dou),fmt(dc),fmt(da),fmt(dq),fmt(dd2)];tr2.b=true;rowsY.push(tr2);tin2=r2(tin2+di);tout2=r2(tout2+dou)});
+        var inf=[per+'   |   '+(dir==='in'?'Money in only':dir==='out'?'Money out only':'Money in and out')+(hf.length?'   |   '+hf.length+' heading(s) selected':'')];
+        inf.push('Total in Rs '+fmt(tin2)+'   Total out Rs '+fmt(tout2)+'   Net Rs '+fmt(r2(tin2-tout2)));
+        if(hf.length||dir)inf.push('Opening / closing cash shown are for the whole day, not only the selected headings.');
+        return {file:file,title:'DAY BOOK - ENTRIES BY DATE',info:inf,cols:[{h:'Date',w:1.2,al:'l'},{h:'Heading / party',w:3.2,al:'l'},{h:'Money in',w:1.2,al:'r'},{h:'Money out',w:1.2,al:'r'},{h:'Cash',w:1.1,al:'r'},{h:'A/c / Bank',w:1.1,al:'r'},{h:'QR',w:1,al:'r'},{h:'Due',w:1,al:'r'}],rows:rowsY,totals:[['','Total',fmt(tin2),fmt(tout2),'','','','']],minw:760,foot:'Pick one date (From = To) and tick headings to filter that day.'};
+      }
       if(kind==='hsum'){
         var G={},ks2=[];L.forEach(function(e){var k=e.dir+'|'+e.head;if(!G[k]){G[k]={d:e.dir,h:e.head,n:0,t:0,c:0,a:0,q:0,du:0};ks2.push(k)}var g=G[k];g.n++;g.t=r2(g.t+e.total);e.alloc.forEach(function(l){if(l.m==='cash')g.c=r2(g.c+l.a);else if(l.m==='acc'||l.m==='bank')g.a=r2(g.a+l.a);else if(l.m==='qr')g.q=r2(g.q+l.a);else g.du=r2(g.du+l.a)})});
         ks2.sort(function(a,b){return G[a].d===G[b].d?(G[a].h.toLowerCase()<G[b].h.toLowerCase()?-1:1):(G[a].d==='in'?-1:1)});
@@ -6891,6 +6919,18 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
       if(open&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();ACS.ix=(ACS.ix+(e.key==='ArrowDown'?1:-1)+ACS.names.length)%ACS.names.length;acMark();return}
       if(open&&e.key==='Enter'&&ACS.ix>=0){e.preventDefault();acPick(ACS.ix);return}
       if(e.key==='Escape'){acHide();return}
+      var cr=e.ctrlKey||e.metaKey;
+      if(cr&&(e.key==='s'||e.key==='S'||e.key==='Enter')){e.preventDefault();$('ddSaveAll').click();return}
+      if(cr&&(e.key==='ArrowDown'||e.key==='ArrowUp')){var ob=$(dir==='in'?'ddGridOut':'ddGridIn');if(!(dir==='in'&&e.key==='ArrowDown')&&!(dir==='out'&&e.key==='ArrowUp'))return;e.preventDefault();var fo=ob.querySelector('tbody tr input');if(fo){fo.focus();if(fo.select)fo.select()}return}
+      if(e.key==='PageDown'||e.key==='PageUp'){e.preventDefault();$(e.key==='PageDown'?'ddNext':'ddPrev').click();setTimeout(function(){var fi=box.querySelector('tbody tr input');if(fi)fi.focus()},60);return}
+      if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!e.shiftKey&&!cr&&!e.altKey){
+        var len=t.value.length,ss=t.selectionStart,se=t.selectionEnd,rt=e.key==='ArrowRight';
+        if(ss!==se&&!(ss===0&&se===len))return;
+        if(rt?se<len:ss>0)return;
+        var tr3=t.closest('tr'),in3=[].slice.call(tr3.querySelectorAll('input')),i3=in3.indexOf(t),n3=in3[i3+(rt?1:-1)];
+        if(n3){e.preventDefault();n3.focus();if(n3.select)n3.select()}
+        return;
+      }
       if(e.key==='Enter'||e.key==='ArrowDown'||e.key==='ArrowUp'){
         var tr=t.closest('tr'),ins=[].slice.call(tr.querySelectorAll('input')),i=ins.indexOf(t),nx;
         if(e.key==='Enter'){e.preventDefault();ddCommit(tr);if(i<ins.length-1)nx=ins[i+1];else{ddEnsureBlank(box,dir);var nr=tr.nextElementSibling;nx=nr&&nr.querySelector('input')}}
@@ -6938,7 +6978,7 @@ select.fmtSel{flex:0 0 auto;width:auto;font-weight:600;font-size:14px;padding:10
     toast(bad?bad+' row(s) need attention (red). Others saved.':'Saved. '+L.filter(function(e){return e.dir==='in'}).length+' money in and '+L.filter(function(e){return e.dir==='out'}).length+' money out row(s) for '+day+'.');
   });
   function ddRepRender(){
-    var k=$('ddRep').value;$('ddDirW').hidden=$('ddHeadW').hidden=(k!=='heads'&&k!=='hsum');
+    var k=$('ddRep').value;$('ddDirW').hidden=$('ddHeadW').hidden=(k!=='heads'&&k!=='hsum'&&k!=='day');
     showReport($('ddRepOut'),$('ddRepBtns'),ddRepReport());
     var R=ddRange(),its=(R.from&&R.to&&R.from<=R.to)?ddRepItems(k,R):[],today=todayBS();
     $('ddRepSettle').hidden=!its.length;

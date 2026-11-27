@@ -133,3 +133,9 @@ v40 - Settle one by one
 v41 - Cleaner day book screen: removed the detailed-entry block between Money out and settlement (Edit this entry still opens the form); heading rename/delete moved to a collapsed box at the bottom; plain-language labels.
 
 v42 - Removed the headings management section from the day book screen (headings still remembered automatically).
+
+v43 - Cash rule and date reports
+ * Money at end of day = Expected cash = Yesterday's closing + Total in - A/c cheque - QR - Due - Cash paid out.
+ * Money out by Bank or QR is only a record; it never changes cash or the day book.
+ * New reports: "Day book by date" (entries with day total; pick one date and tick headings to filter) and "Day summary by date" (one line per day).
+ * Shortcuts in the day book: arrows, Enter/Tab, Ctrl+S save, PageUp/PageDown change day, Ctrl+Up/Down switch grids.
